@@ -29,9 +29,9 @@ export const Footer = () => {
           >
             <div className="flex items-center gap-2 justify-center md:justify-start mb-3">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">E</span>
+                <span className="text-primary-foreground font-bold text-xl">P</span>
               </div>
-              <span className="text-xl font-bold text-foreground">EduRank</span>
+              <span className="text-xl font-bold text-foreground">Prepixo</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Gamified learning for JEE & NEET aspirants
@@ -87,7 +87,7 @@ export const Footer = () => {
           className="mt-10 pt-6 border-t border-border/30 text-center"
         >
           <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
-            Made with <Heart className="w-4 h-4 text-primary fill-primary" /> by EduRank Team
+            Made with <Heart className="w-4 h-4 text-primary fill-primary" /> by Prepixo Team
           </p>
         </motion.div>
       </div>
