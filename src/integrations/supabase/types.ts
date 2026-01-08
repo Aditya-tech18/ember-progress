@@ -1,0 +1,526 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "13.0.5"
+  }
+  public: {
+    Tables: {
+      chapters: {
+        Row: {
+          id: string
+          is_mains_level: boolean | null
+          jee_year: number
+          name: string
+          subject: string
+        }
+        Insert: {
+          id?: string
+          is_mains_level?: boolean | null
+          jee_year: number
+          name: string
+          subject: string
+        }
+        Update: {
+          id?: string
+          is_mains_level?: boolean | null
+          jee_year?: number
+          name?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      mock_test_results: {
+        Row: {
+          chemistry_correct: number
+          chemistry_score: number
+          chemistry_unattempted: number
+          chemistry_wrong: number
+          created_at: string
+          id: number
+          maths_correct: number
+          maths_score: number
+          maths_unattempted: number
+          maths_wrong: number
+          percentile: number | null
+          physics_correct: number
+          physics_score: number
+          physics_unattempted: number
+          physics_wrong: number
+          rank: number | null
+          submitted_at: string
+          test_id: string
+          time_spent_seconds: number
+          total_correct: number
+          total_questions_attempted: number
+          total_score: number
+          total_unattempted: number
+          total_wrong: number
+          user_id: string
+        }
+        Insert: {
+          chemistry_correct?: number
+          chemistry_score?: number
+          chemistry_unattempted?: number
+          chemistry_wrong?: number
+          created_at?: string
+          id?: number
+          maths_correct?: number
+          maths_score?: number
+          maths_unattempted?: number
+          maths_wrong?: number
+          percentile?: number | null
+          physics_correct?: number
+          physics_score?: number
+          physics_unattempted?: number
+          physics_wrong?: number
+          rank?: number | null
+          submitted_at?: string
+          test_id?: string
+          time_spent_seconds?: number
+          total_correct?: number
+          total_questions_attempted?: number
+          total_score?: number
+          total_unattempted?: number
+          total_wrong?: number
+          user_id: string
+        }
+        Update: {
+          chemistry_correct?: number
+          chemistry_score?: number
+          chemistry_unattempted?: number
+          chemistry_wrong?: number
+          created_at?: string
+          id?: number
+          maths_correct?: number
+          maths_score?: number
+          maths_unattempted?: number
+          maths_wrong?: number
+          percentile?: number | null
+          physics_correct?: number
+          physics_score?: number
+          physics_unattempted?: number
+          physics_wrong?: number
+          rank?: number | null
+          submitted_at?: string
+          test_id?: string
+          time_spent_seconds?: number
+          total_correct?: number
+          total_questions_attempted?: number
+          total_score?: number
+          total_unattempted?: number
+          total_wrong?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      otp_store: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          mode: string
+          otp: string
+          used: boolean
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          mode: string
+          otp: string
+          used?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          mode?: string
+          otp?: string
+          used?: boolean
+        }
+        Relationships: []
+      }
+      password_reset_otps: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          otp_code: string
+          purpose: string | null
+          used: boolean | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          otp_code: string
+          purpose?: string | null
+          used?: boolean | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          otp_code?: string
+          purpose?: string | null
+          used?: boolean | null
+        }
+        Relationships: []
+      }
+      questions: {
+        Row: {
+          chapter: string | null
+          chapter_id: string | null
+          correct_answer: string | null
+          exam_shift: string | null
+          exam_year: number | null
+          id: number
+          options_list: string | null
+          question_image_url: string | null
+          question_text: string
+          solution: string | null
+          subject: string | null
+        }
+        Insert: {
+          chapter?: string | null
+          chapter_id?: string | null
+          correct_answer?: string | null
+          exam_shift?: string | null
+          exam_year?: number | null
+          id: number
+          options_list?: string | null
+          question_image_url?: string | null
+          question_text: string
+          solution?: string | null
+          subject?: string | null
+        }
+        Update: {
+          chapter?: string | null
+          chapter_id?: string | null
+          correct_answer?: string | null
+          exam_shift?: string | null
+          exam_year?: number | null
+          id?: number
+          options_list?: string | null
+          question_image_url?: string | null
+          question_text?: string
+          solution?: string | null
+          subject?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submissions: {
+        Row: {
+          id: number
+          question_id: number | null
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: number
+          question_id?: number | null
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: number
+          question_id?: number | null
+          submitted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submissions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          email: string
+          id: string
+          paid_on: string
+          payment_id: string | null
+          plan_name: string
+          user_id: string
+          valid_until: string
+        }
+        Insert: {
+          email: string
+          id?: string
+          paid_on?: string
+          payment_id?: string | null
+          plan_name: string
+          user_id: string
+          valid_until: string
+        }
+        Update: {
+          email?: string
+          id?: string
+          paid_on?: string
+          payment_id?: string | null
+          plan_name?: string
+          user_id?: string
+          valid_until?: string
+        }
+        Relationships: []
+      }
+      user_activity: {
+        Row: {
+          activity_date: string
+          chapter: string
+          id: number
+          questions_solved: number | null
+          subject: string
+          user_id: string
+        }
+        Insert: {
+          activity_date: string
+          chapter: string
+          id?: number
+          questions_solved?: number | null
+          subject: string
+          user_id: string
+        }
+        Update: {
+          activity_date?: string
+          chapter?: string
+          id?: number
+          questions_solved?: number | null
+          subject?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_devices: {
+        Row: {
+          device_id: string
+          id: string
+          last_active: string | null
+          user_id: string
+        }
+        Insert: {
+          device_id: string
+          id?: string
+          last_active?: string | null
+          user_id: string
+        }
+        Update: {
+          device_id?: string
+          id?: string
+          last_active?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          last_login: string | null
+          phone: string | null
+          serial_id: number
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          last_login?: string | null
+          phone?: string | null
+          serial_id?: number
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          last_login?: string | null
+          phone?: string | null
+          serial_id?: number
+        }
+        Relationships: []
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      get_submissions_grouped: {
+        Args: { p_start_date: string }
+        Returns: {
+          count: number
+          submitted_date: string
+        }[]
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const
