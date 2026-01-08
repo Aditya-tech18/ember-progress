@@ -35,6 +35,10 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
+        success: {
+          DEFAULT: "hsl(var(--success))",
+          foreground: "hsl(var(--success-foreground))",
+        },
         muted: {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
@@ -51,10 +55,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        orange: "hsl(var(--orange))",
-        purple: "hsl(var(--purple))",
-        lime: "hsl(var(--lime))",
-        cyan: "hsl(var(--cyan))",
+        "netflix-red": "hsl(var(--netflix-red))",
+        crimson: "hsl(var(--crimson))",
+        gold: "hsl(var(--gold))",
+        emerald: "hsl(var(--emerald))",
+        "electric-blue": "hsl(var(--electric-blue))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
@@ -93,12 +98,16 @@ export default {
           "100%": { transform: "translateX(0)", opacity: "1" },
         },
         "glow-pulse": {
-          "0%, 100%": { boxShadow: "0 0 20px hsl(27 80% 52% / 0.3)" },
-          "50%": { boxShadow: "0 0 40px hsl(27 80% 52% / 0.6)" },
+          "0%, 100%": { boxShadow: "0 0 20px hsl(358 84% 50% / 0.3)" },
+          "50%": { boxShadow: "0 0 40px hsl(358 84% 50% / 0.6)" },
         },
         "float": {
           "0%, 100%": { transform: "translateY(0px)" },
           "50%": { transform: "translateY(-10px)" },
+        },
+        "shimmer": {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
         },
       },
       animation: {
@@ -109,6 +118,7 @@ export default {
         "slide-in-left": "slide-in-left 0.5s ease-out forwards",
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
+        "shimmer": "shimmer 2s linear infinite",
       },
     },
   },
