@@ -1,7 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Bell, Menu, X, Home, FileText, Target, Trophy, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Search, Bell, Menu, X, Home, FileText, Target, Trophy, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const navLinks = [
   { name: "Home", href: "/", icon: Home },
@@ -12,8 +15,28 @@ const navLinks = [
 ];
 
 export const Navbar = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
 
   return (
     <motion.nav
@@ -27,13 +50,14 @@ export const Navbar = () => {
           {/* Logo */}
           <motion.div
             whileHover={{ scale: 1.05 }}
-            className="flex items-center gap-2"
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 cursor-pointer"
           >
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">E</span>
+              <span className="text-primary-foreground font-bold text-xl">P</span>
             </div>
             <span className="text-xl font-bold text-foreground hidden sm:block">
-              EduRank
+              Prepixo
             </span>
           </motion.div>
 
@@ -85,13 +109,33 @@ export const Navbar = () => {
               <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
             </Button>
 
-            {/* Profile Avatar */}
-            <motion.div
-              whileHover={{ scale: 1.1 }}
-              className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary cursor-pointer flex items-center justify-center"
-            >
-              <User className="w-5 h-5 text-primary-foreground" />
-            </motion.div>
+            {/* Profile Avatar / Login */}
+            {user ? (
+              <div className="flex items-center gap-2">
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  onClick={() => navigate("/profile")}
+                  className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-secondary cursor-pointer flex items-center justify-center"
+                >
+                  <User className="w-5 h-5 text-primary-foreground" />
+                </motion.div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleLogout}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <LogOut className="w-5 h-5" />
+                </Button>
+              </div>
+            ) : (
+              <Button
+                onClick={() => navigate("/auth")}
+                className="bg-gradient-to-r from-primary to-orange text-primary-foreground font-medium"
+              >
+                Login
+              </Button>
+            )}
 
             {/* Mobile Menu Toggle */}
             <Button
