@@ -1,15 +1,26 @@
 import { motion } from "framer-motion";
-import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator, Play, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export const HeroSection = () => {
+  const navigate = useNavigate();
+
+  const handleStartPracticing = () => {
+    // Navigate to first subject by default, or show subject selector
+    navigate("/chapters/Physics");
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-secondary/20 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-accent/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-crimson/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gold/5 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
+        
+        {/* Netflix-style gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50" />
       </div>
 
       {/* Floating Icons */}
@@ -18,7 +29,7 @@ export const HeroSection = () => {
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
         className="absolute top-32 left-[15%] hidden lg:block"
       >
-        <div className="w-16 h-16 glass-card flex items-center justify-center rounded-2xl">
+        <div className="w-16 h-16 glass-card flex items-center justify-center rounded-2xl glow-primary">
           <BookOpen className="w-8 h-8 text-primary" />
         </div>
       </motion.div>
@@ -29,7 +40,7 @@ export const HeroSection = () => {
         className="absolute top-48 right-[10%] hidden lg:block"
       >
         <div className="w-20 h-20 glass-card flex items-center justify-center rounded-2xl">
-          <Atom className="w-10 h-10 text-secondary" />
+          <Atom className="w-10 h-10 text-electric-blue" />
         </div>
       </motion.div>
 
@@ -38,8 +49,8 @@ export const HeroSection = () => {
         transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
         className="absolute bottom-32 left-[10%] hidden lg:block"
       >
-        <div className="w-14 h-14 glass-card flex items-center justify-center rounded-2xl">
-          <Calculator className="w-7 h-7 text-accent" />
+        <div className="w-14 h-14 glass-card flex items-center justify-center rounded-2xl glow-gold">
+          <Calculator className="w-7 h-7 text-gold" />
         </div>
       </motion.div>
 
@@ -51,7 +62,7 @@ export const HeroSection = () => {
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 border border-primary/20"
           >
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-muted-foreground">
@@ -93,15 +104,16 @@ export const HeroSection = () => {
           >
             <Button
               size="lg"
-              className="w-full sm:w-auto bg-gradient-to-r from-primary to-orange hover:opacity-90 text-primary-foreground font-semibold px-8 py-6 text-lg rounded-xl animate-glow-pulse"
+              onClick={handleStartPracticing}
+              className="w-full sm:w-auto bg-gradient-to-r from-primary to-crimson hover:opacity-90 text-primary-foreground font-semibold px-8 py-6 text-lg rounded-xl animate-glow-pulse group"
             >
-              <Target className="w-5 h-5 mr-2" />
+              <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
               Start Practicing
             </Button>
             <Button
               size="lg"
               variant="outline"
-              className="w-full sm:w-auto border-border/50 hover:bg-muted/50 text-foreground font-semibold px-8 py-6 text-lg rounded-xl"
+              className="w-full sm:w-auto border-border/50 hover:bg-muted/50 text-foreground font-semibold px-8 py-6 text-lg rounded-xl hover:border-primary/50 transition-colors"
             >
               <BarChart3 className="w-5 h-5 mr-2" />
               View Progress
@@ -116,14 +128,19 @@ export const HeroSection = () => {
             className="grid grid-cols-3 gap-4 sm:gap-8 mt-16 max-w-2xl mx-auto"
           >
             {[
-              { value: "50K+", label: "Questions" },
-              { value: "12", label: "Ranks" },
-              { value: "10K+", label: "Students" },
+              { value: "50K+", label: "Questions", icon: Zap },
+              { value: "12", label: "Ranks", icon: Target },
+              { value: "10K+", label: "Students", icon: Sparkles },
             ].map((stat, index) => (
-              <div key={index} className="text-center">
+              <motion.div 
+                key={index} 
+                className="text-center glass-card p-4 rounded-xl"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <div className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </div>
+              </motion.div>
             ))}
           </motion.div>
         </div>
