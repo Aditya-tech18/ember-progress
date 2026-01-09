@@ -10,6 +10,11 @@ import PasswordReset from "./pages/PasswordReset";
 import ChapterSelect from "./pages/ChapterSelect";
 import QuestionList from "./pages/QuestionList";
 import QuestionScreen from "./pages/QuestionScreen";
+import Subscription from "./pages/Subscription";
+import MockTestList from "./pages/MockTestList";
+import MockTestInstructions from "./pages/MockTestInstructions";
+import MockTest from "./pages/MockTest";
+import MockTestResult from "./pages/MockTestResult";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,7 +33,11 @@ const App = () => (
           <Route path="/chapters/:subject" element={<ChapterSelect />} />
           <Route path="/questions/:chapterName" element={<QuestionList />} />
           <Route path="/question/:questionId" element={<QuestionScreen />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/subscription" element={<Subscription />} />
+          <Route path="/mock-tests" element={<MockTestList />} />
+          <Route path="/mock-test/instructions/:testId" element={<MockTestInstructions />} />
+          <Route path="/mock-test/:testId" element={<MockTest />} />
+          <Route path="/mock-test/result/:resultId" element={<MockTestResult />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
