@@ -15,6 +15,7 @@ import MockTestList from "./pages/MockTestList";
 import MockTestInstructions from "./pages/MockTestInstructions";
 import MockTest from "./pages/MockTest";
 import MockTestResult from "./pages/MockTestResult";
+import AIChat from "./pages/AIChat";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="/mock-test/instructions/:testId" element={<MockTestInstructions />} />
           <Route path="/mock-test/:testId" element={<MockTest />} />
           <Route path="/mock-test/result/:resultId" element={<MockTestResult />} />
+          <Route path="/ai-chat" element={<AIChat />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

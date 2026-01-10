@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Trophy, TrendingUp, Target } from "lucide-react";
+import { Trophy, TrendingUp, Target, Loader2 } from "lucide-react";
+import { useUserProgress } from "@/hooks/useUserProgress";
 
 interface ProgressRingProps {
   progress: number;
@@ -63,11 +64,52 @@ const ProgressRing = ({ progress, color, label, solved, total }: ProgressRingPro
 };
 
 export const ProgressSection = () => {
+  const { 
+    progress,
+    loading,
+    currentRank,
+    nextRank,
+    questionsToNextRank,
+  } = useUserProgress();
+
   const subjects = [
-    { label: "Physics", progress: 68, solved: 340, total: 500, color: "hsl(187, 85%, 53%)" },
-    { label: "Chemistry", progress: 52, solved: 260, total: 500, color: "hsl(27, 80%, 52%)" },
-    { label: "Mathematics", progress: 75, solved: 375, total: 500, color: "hsl(90, 73%, 55%)" },
+    { 
+      label: "Physics", 
+      progress: progress.physics.total > 0 ? Math.round((progress.physics.solved / progress.physics.total) * 100) : 0,
+      solved: progress.physics.solved, 
+      total: progress.physics.total, 
+      color: "hsl(187, 85%, 53%)" 
+    },
+    { 
+      label: "Chemistry", 
+      progress: progress.chemistry.total > 0 ? Math.round((progress.chemistry.solved / progress.chemistry.total) * 100) : 0,
+      solved: progress.chemistry.solved, 
+      total: progress.chemistry.total, 
+      color: "hsl(27, 80%, 52%)" 
+    },
+    { 
+      label: "Mathematics", 
+      progress: progress.mathematics.total > 0 ? Math.round((progress.mathematics.solved / progress.mathematics.total) * 100) : 0,
+      solved: progress.mathematics.solved, 
+      total: progress.mathematics.total, 
+      color: "hsl(90, 73%, 55%)" 
+    },
   ];
+
+  if (loading) {
+    return (
+      <section className="py-20 relative">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="glass-card p-6 sm:p-10 rounded-2xl flex items-center justify-center min-h-[300px]">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <p className="text-muted-foreground">Loading your progress...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 relative">
@@ -104,11 +146,11 @@ export const ProgressSection = () => {
                 viewport={{ once: true }}
                 className="flex items-center gap-4 p-4 rounded-xl bg-muted/30"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-orange flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-crimson flex items-center justify-center">
                   <Target className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">975</div>
+                  <div className="text-2xl font-bold text-foreground">{progress.totalSolved}</div>
                   <div className="text-sm text-muted-foreground">Total Questions Solved</div>
                 </div>
               </motion.div>
@@ -121,11 +163,13 @@ export const ProgressSection = () => {
                 transition={{ delay: 0.1 }}
                 className="flex items-center gap-4 p-4 rounded-xl bg-muted/30"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-purple flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-purple-600 flex items-center justify-center">
                   <Trophy className="w-6 h-6 text-secondary-foreground" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">Major</div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {currentRank.icon} {currentRank.name}
+                  </div>
                   <div className="text-sm text-muted-foreground">Current Rank</div>
                 </div>
               </motion.div>
@@ -138,12 +182,16 @@ export const ProgressSection = () => {
                 transition={{ delay: 0.2 }}
                 className="flex items-center gap-4 p-4 rounded-xl bg-muted/30"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-lime flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-amber-400 flex items-center justify-center">
                   <TrendingUp className="w-6 h-6 text-accent-foreground" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">25 more</div>
-                  <div className="text-sm text-muted-foreground">Questions to become Colonel!</div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {questionsToNextRank > 0 ? `${questionsToNextRank} more` : "Max Rank!"}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    {nextRank ? `Questions to become ${nextRank.name}!` : "You've reached the top!"}
+                  </div>
                 </div>
               </motion.div>
             </div>

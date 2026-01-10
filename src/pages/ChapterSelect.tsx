@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { useSubscription, isChapterFree } from "@/hooks/useSubscription";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,8 @@ import {
   Loader2,
   FileQuestion,
   Sparkles,
+  Lock,
+  Crown,
 } from "lucide-react";
 
 interface Chapter {
@@ -53,6 +56,7 @@ const subjectConfig = {
 const ChapterSelect = () => {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
+  const { hasAccess, loading: subLoading } = useSubscription();
   
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,7 +117,15 @@ const ChapterSelect = () => {
     chapter.name.toLowerCase().includes(searchText.toLowerCase())
   );
 
-  const handleChapterClick = (chapter: Chapter) => {
+  const handleChapterClick = (chapter: Chapter, index: number) => {
+    // Check if user has access (old user or subscribed) or if chapter is free
+    const isFree = isChapterFree(index);
+    
+    if (!hasAccess && !isFree) {
+      navigate("/subscription");
+      return;
+    }
+    
     navigate(`/questions/${encodeURIComponent(chapter.name)}?subject=${encodeURIComponent(decodedSubject)}`);
   };
 
@@ -164,6 +176,20 @@ const ChapterSelect = () => {
             </div>
           </motion.div>
 
+          {/* Free chapters info */}
+          {!hasAccess && !subLoading && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 rounded-xl bg-gold/10 border border-gold/20 flex items-center gap-3"
+            >
+              <Crown className="w-5 h-5 text-gold shrink-0" />
+              <p className="text-sm text-gold">
+                First 2 chapters of each subject are <strong>free</strong>! Subscribe to unlock all chapters.
+              </p>
+            </motion.div>
+          )}
+
           {/* Chapters Grid */}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
@@ -181,47 +207,71 @@ const ChapterSelect = () => {
               animate={{ opacity: 1 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
             >
-              {filteredChapters.map((chapter, index) => (
-                <motion.div
-                  key={chapter.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  onClick={() => handleChapterClick(chapter)}
-                  className={`glass-card-hover p-5 cursor-pointer group relative overflow-hidden`}
-                >
-                  {/* Background gradient */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${config.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+              {filteredChapters.map((chapter, index) => {
+                const isFree = isChapterFree(index);
+                const isLocked = !hasAccess && !isFree;
+                
+                return (
+                  <motion.div
+                    key={chapter.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03 }}
+                    onClick={() => handleChapterClick(chapter, index)}
+                    className={`glass-card-hover p-5 cursor-pointer group relative overflow-hidden ${
+                      isLocked ? "opacity-75" : ""
+                    }`}
+                  >
+                    {/* Background gradient */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${config.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
 
-                  <div className="relative z-10">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center`}>
-                        <BookOpen className="w-5 h-5 text-white" />
+                    {/* Lock overlay for locked chapters */}
+                    {isLocked && (
+                      <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
+                        <div className="bg-muted/90 rounded-lg px-3 py-1.5 flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground font-medium">Premium</span>
+                        </div>
                       </div>
-                      {chapter.is_mains_level && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gold/20 text-gold text-xs font-medium">
-                          <Sparkles className="w-3 h-3 mr-1" />
-                          Mains
-                        </span>
-                      )}
+                    )}
+
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center`}>
+                          <BookOpen className="w-5 h-5 text-white" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isFree && !hasAccess && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-medium">
+                              Free
+                            </span>
+                          )}
+                          {chapter.is_mains_level && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gold/20 text-gold text-xs font-medium">
+                              <Sparkles className="w-3 h-3 mr-1" />
+                              Mains
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                        {chapter.name}
+                      </h3>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                          <FileQuestion className="w-4 h-4" />
+                          <span>{chapter.questionCount} Questions</span>
+                        </div>
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                          <ChevronRight className="w-4 h-4 text-primary group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      </div>
                     </div>
-
-                    <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                      {chapter.name}
-                    </h3>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                        <FileQuestion className="w-4 h-4" />
-                        <span>{chapter.questionCount} Questions</span>
-                      </div>
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                        <ChevronRight className="w-4 h-4 text-primary group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </motion.div>
           )}
         </div>

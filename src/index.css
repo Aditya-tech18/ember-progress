@@ -187,11 +187,13 @@
   }
 
   .option-card.correct {
-    @apply border-emerald-500 bg-emerald-500/10;
+    border-color: hsl(var(--success));
+    background-color: hsl(var(--success) / 0.1);
   }
 
   .option-card.incorrect {
-    @apply border-destructive bg-destructive/10;
+    border-color: hsl(var(--destructive));
+    background-color: hsl(var(--destructive) / 0.1);
   }
 
   .option-card.disabled {
