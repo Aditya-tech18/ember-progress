@@ -1,142 +1,340 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription, isChapterFree } from "@/hooks/useSubscription";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ArrowLeft,
   Search,
-  BookOpen,
   Atom,
   FlaskConical,
   Calculator,
-  ChevronRight,
   Loader2,
-  FileQuestion,
-  Sparkles,
   Lock,
   Crown,
+  Ruler,
+  MoveRight,
+  Split,
+  RefreshCw,
+  Zap,
+  RotateCw,
+  Globe,
+  Box,
+  Waves,
+  Thermometer,
+  Flame,
+  CircleDot,
+  AudioWaveform,
+  Volume2,
+  Bolt,
+  Battery,
+  FlashlightOff,
+  Compass,
+  Cable,
+  Wifi,
+  Eye,
+  Hand,
+  Cpu,
+  Radio,
+  Microscope,
+  Sparkles,
+  Beaker,
+  Layers,
+  Table2,
+  Link2,
+  Cloud,
+  Droplets,
+  Scale,
+  Repeat,
+  Gauge,
+  Factory,
+  Leaf,
+  Hexagon,
+  Flame as FlameIcon,
+  Wine,
+  FlaskRound,
+  HeartPulse,
+  Shapes,
+  Home,
+  TestTube,
+  Grid3X3,
+  TrendingUp,
+  FunctionSquare,
+  Sigma,
+  Shuffle,
+  Brain,
+  Expand,
+  Triangle,
+  GitBranch,
+  Circle,
+  BarChart2,
+  Minus,
+  LineChart,
+  AreaChart,
+  ArrowRight,
+  View,
+  SquareStack,
+  Dice5,
+  Mountain,
+  Lightbulb,
+  Target,
 } from "lucide-react";
 
-interface Chapter {
-  id: string;
+// Define chapter data structure
+interface ChapterData {
   name: string;
-  subject: string;
-  jee_year: number;
-  is_mains_level: boolean | null;
-  questionCount?: number;
+  icon: React.ElementType;
+  iconColor: string;
 }
+
+// Complete chapter data from Flutter app
+const allChaptersData: Record<string, ChapterData[]> = {
+  // ==================== PHYSICS - 30 CHAPTERS ====================
+  physics: [
+    { name: "Units & Dimensions", icon: Ruler, iconColor: "text-green-400" },
+    { name: "Motion in 1D", icon: MoveRight, iconColor: "text-blue-400" },
+    { name: "Motion in 2D", icon: Split, iconColor: "text-red-400" },
+    { name: "Laws of Motion", icon: RefreshCw, iconColor: "text-orange-400" },
+    { name: "Work Power Energy", icon: Zap, iconColor: "text-yellow-500" },
+    { name: "Rotational Motion", icon: RotateCw, iconColor: "text-purple-500" },
+    { name: "Gravitation", icon: Globe, iconColor: "text-orange-500" },
+    { name: "Properties of Solids", icon: Box, iconColor: "text-green-600" },
+    { name: "Properties of Fluids", icon: Waves, iconColor: "text-blue-600" },
+    { name: "Thermal Properties", icon: Thermometer, iconColor: "text-red-600" },
+    { name: "Thermodynamics", icon: Flame, iconColor: "text-orange-700" },
+    { name: "KTG", icon: CircleDot, iconColor: "text-lime-400" },
+    { name: "Oscillations", icon: AudioWaveform, iconColor: "text-slate-400" },
+    { name: "Waves & Sound", icon: Volume2, iconColor: "text-purple-400" },
+    { name: "Electrostatics", icon: Bolt, iconColor: "text-indigo-400" },
+    { name: "Capacitance", icon: Battery, iconColor: "text-teal-400" },
+    { name: "Current Electricity", icon: FlashlightOff, iconColor: "text-red-700" },
+    { name: "Magnetic Properties", icon: Compass, iconColor: "text-cyan-700" },
+    { name: "Magnetism & Current", icon: Cable, iconColor: "text-orange-600" },
+    { name: "EMI", icon: Bolt, iconColor: "text-blue-600" },
+    { name: "AC Circuits", icon: Wifi, iconColor: "text-sky-400" },
+    { name: "EM Waves", icon: Wifi, iconColor: "text-purple-600" },
+    { name: "Ray Optics", icon: Eye, iconColor: "text-cyan-400" },
+    { name: "Wave Optics", icon: Hand, iconColor: "text-green-500" },
+    { name: "Dual Nature", icon: Layers, iconColor: "text-indigo-300" },
+    { name: "Atomic Physics", icon: Atom, iconColor: "text-pink-400" },
+    { name: "Nuclear Physics", icon: Atom, iconColor: "text-orange-700" },
+    { name: "Semiconductors", icon: Cpu, iconColor: "text-teal-700" },
+    { name: "Communication System", icon: Radio, iconColor: "text-slate-700" },
+    { name: "Experimental Physics", icon: Microscope, iconColor: "text-violet-700" },
+  ],
+
+  // ==================== CHEMISTRY - 33 CHAPTERS ====================
+  chemistry: [
+    { name: "Mole Concept", icon: Beaker, iconColor: "text-orange-400" },
+    { name: "Atomic Structure", icon: Atom, iconColor: "text-blue-400" },
+    { name: "Periodic Table", icon: Table2, iconColor: "text-teal-400" },
+    { name: "Chemical Bonding", icon: Link2, iconColor: "text-purple-400" },
+    { name: "States of Matter", icon: Cloud, iconColor: "text-cyan-400" },
+    { name: "Solid State", icon: Box, iconColor: "text-amber-700" },
+    { name: "Solutions", icon: Droplets, iconColor: "text-sky-400" },
+    { name: "Thermodynamics", icon: Flame, iconColor: "text-red-500" },
+    { name: "Chemical Equilibrium", icon: Scale, iconColor: "text-lime-500" },
+    { name: "Ionic Equilibrium", icon: Droplets, iconColor: "text-purple-500" },
+    { name: "Redox Reactions", icon: Repeat, iconColor: "text-slate-500" },
+    { name: "Electrochemistry", icon: Battery, iconColor: "text-yellow-500" },
+    { name: "Chemical Kinetics", icon: Gauge, iconColor: "text-orange-600" },
+    { name: "Surface Chemistry", icon: Layers, iconColor: "text-gray-500" },
+    { name: "Hydrogen", icon: Cloud, iconColor: "text-sky-300" },
+    { name: "s Block", icon: Grid3X3, iconColor: "text-lime-400" },
+    { name: "p Block", icon: Grid3X3, iconColor: "text-indigo-500" },
+    { name: "d & f Block", icon: Grid3X3, iconColor: "text-violet-600" },
+    { name: "Coordination Compounds", icon: Shapes, iconColor: "text-green-500" },
+    { name: "Metallurgy", icon: Factory, iconColor: "text-amber-700" },
+    { name: "Environmental Chemistry", icon: Leaf, iconColor: "text-green-500" },
+    { name: "General Organic Chemistry", icon: Hexagon, iconColor: "text-amber-500" },
+    { name: "Hydrocarbons", icon: FlameIcon, iconColor: "text-orange-500" },
+    { name: "Haloalkanes & Haloarenes", icon: Droplets, iconColor: "text-cyan-500" },
+    { name: "Alcohols, Phenols & Ethers", icon: Wine, iconColor: "text-fuchsia-400" },
+    { name: "Aldehydes & Ketones", icon: FlaskRound, iconColor: "text-orange-600" },
+    { name: "Carboxylic Acids", icon: Droplets, iconColor: "text-blue-500" },
+    { name: "Amines", icon: CircleDot, iconColor: "text-pink-500" },
+    { name: "Biomolecules", icon: HeartPulse, iconColor: "text-lime-500" },
+    { name: "Polymers", icon: Link2, iconColor: "text-amber-700" },
+    { name: "Everyday Chemistry", icon: Home, iconColor: "text-pink-400" },
+    { name: "Practical Chemistry", icon: TestTube, iconColor: "text-orange-500" },
+    { name: "Chemistry in Everyday Life", icon: HeartPulse, iconColor: "text-pink-400" },
+  ],
+
+  // ==================== MATHS - 34 CHAPTERS ====================
+  maths: [
+    { name: "Sets & Relations", icon: Grid3X3, iconColor: "text-purple-500" },
+    { name: "Functions", icon: FunctionSquare, iconColor: "text-orange-600" },
+    { name: "Quadratic Equations", icon: FunctionSquare, iconColor: "text-blue-500" },
+    { name: "Complex Numbers", icon: Grid3X3, iconColor: "text-orange-600" },
+    { name: "Permutations & Combinations", icon: Shuffle, iconColor: "text-lime-500" },
+    { name: "Sequences & Series", icon: TrendingUp, iconColor: "text-orange-500" },
+    { name: "Mathematical Induction", icon: Brain, iconColor: "text-violet-600" },
+    { name: "Binomial Theorem", icon: Expand, iconColor: "text-cyan-500" },
+    { name: "Trigonometry", icon: Triangle, iconColor: "text-pink-500" },
+    { name: "Trigonometric Equations", icon: FunctionSquare, iconColor: "text-pink-400" },
+    { name: "Inverse Trigonometric Functions", icon: GitBranch, iconColor: "text-purple-500" },
+    { name: "Straight Lines", icon: TrendingUp, iconColor: "text-green-500" },
+    { name: "Circle", icon: Circle, iconColor: "text-indigo-500" },
+    { name: "Parabola", icon: BarChart2, iconColor: "text-orange-500" },
+    { name: "Ellipse", icon: Circle, iconColor: "text-green-400" },
+    { name: "Hyperbola", icon: Waves, iconColor: "text-blue-500" },
+    { name: "Limits", icon: Minus, iconColor: "text-purple-500" },
+    { name: "Continuity & Differentiability", icon: LineChart, iconColor: "text-indigo-500" },
+    { name: "Differentiation", icon: TrendingUp, iconColor: "text-teal-500" },
+    { name: "Application of Derivatives", icon: BarChart2, iconColor: "text-green-500" },
+    { name: "Indefinite Integration", icon: FunctionSquare, iconColor: "text-orange-500" },
+    { name: "Definite Integration", icon: Sigma, iconColor: "text-red-500" },
+    { name: "Area Under Curves", icon: AreaChart, iconColor: "text-blue-500" },
+    { name: "Differential Equations", icon: FunctionSquare, iconColor: "text-purple-500" },
+    { name: "Vector Algebra", icon: ArrowRight, iconColor: "text-blue-400" },
+    { name: "3D Geometry", icon: View, iconColor: "text-blue-600" },
+    { name: "Matrices", icon: Grid3X3, iconColor: "text-teal-500" },
+    { name: "Determinants", icon: SquareStack, iconColor: "text-indigo-500" },
+    { name: "Statistics", icon: BarChart2, iconColor: "text-amber-500" },
+    { name: "Probability", icon: Dice5, iconColor: "text-pink-500" },
+    { name: "Heights & Distances", icon: Mountain, iconColor: "text-green-500" },
+    { name: "Properties of Triangles", icon: Triangle, iconColor: "text-purple-500" },
+    { name: "Mathematical Reasoning", icon: Lightbulb, iconColor: "text-violet-600" },
+    { name: "Linear Programming", icon: Target, iconColor: "text-amber-700" },
+  ],
+};
 
 const subjectConfig = {
   Physics: {
     icon: Atom,
     gradient: "from-electric-blue to-cyan-500",
     bgGradient: "from-electric-blue/20 to-cyan-500/10",
+    dbSubject: "physics",
+    questionsSubject: "Physics",
   },
   Chemistry: {
     icon: FlaskConical,
     gradient: "from-primary to-crimson",
     bgGradient: "from-primary/20 to-crimson/10",
+    dbSubject: "chemistry",
+    questionsSubject: "Chemistry",
   },
   Mathematics: {
     icon: Calculator,
     gradient: "from-gold to-amber-500",
     bgGradient: "from-gold/20 to-amber-500/10",
+    dbSubject: "maths",
+    questionsSubject: "Mathematics",
   },
   Maths: {
     icon: Calculator,
     gradient: "from-gold to-amber-500",
     bgGradient: "from-gold/20 to-amber-500/10",
+    dbSubject: "maths",
+    questionsSubject: "Mathematics",
   },
 };
+
+const availableYears = Array.from({ length: 11 }, (_, i) => 2025 - i);
 
 const ChapterSelect = () => {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
   const { hasAccess, loading: subLoading } = useSubscription();
   
-  const [chapters, setChapters] = useState<Chapter[]>([]);
+  const [chapterStats, setChapterStats] = useState<Record<string, { solved: number; total: number }>>({});
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
+  const [selectedYear, setSelectedYear] = useState<string>("2025");
 
   const decodedSubject = decodeURIComponent(subject || "");
   const config = subjectConfig[decodedSubject as keyof typeof subjectConfig] || subjectConfig.Physics;
   const SubjectIcon = config.icon;
 
-  // Map display subject names to database format
-  const getDbSubject = (displaySubject: string): string => {
-    const map: Record<string, string> = {
-      "Mathematics": "maths",
-      "Physics": "physics", 
-      "Chemistry": "chemistry",
-    };
-    return map[displaySubject] || displaySubject.toLowerCase();
-  };
-
-  // Map database subject to display format for questions table
-  const getQuestionsSubject = (displaySubject: string): string => {
-    return displaySubject; // questions table uses capitalized: Mathematics, Physics, Chemistry
-  };
+  // Get chapters for this subject
+  const chapters = useMemo(() => {
+    const key = config.dbSubject as keyof typeof allChaptersData;
+    return allChaptersData[key] || [];
+  }, [config.dbSubject]);
 
   useEffect(() => {
-    fetchChapters();
-  }, [decodedSubject]);
+    fetchChapterStats();
+  }, [config.questionsSubject]);
 
-  const fetchChapters = async () => {
+  const fetchChapterStats = async () => {
     setLoading(true);
-
     try {
-      const dbSubject = getDbSubject(decodedSubject);
-      const questionsSubject = getQuestionsSubject(decodedSubject);
-
-      // Fetch chapters (uses lowercase: maths, physics, chemistry)
-      const { data: chapterData, error: chapterError } = await supabase
-        .from("chapters")
-        .select("*")
-        .eq("subject", dbSubject)
-        .order("name", { ascending: true });
-
-      if (chapterError) throw chapterError;
-
-      // Fetch question counts per chapter (uses capitalized: Mathematics, Physics, Chemistry)
-      const { data: questionData, error: questionError } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Fetch all questions for this subject to get totals
+      const { data: questionData } = await supabase
         .from("questions")
-        .select("chapter")
-        .eq("subject", questionsSubject);
+        .select("id, chapter")
+        .eq("subject", config.questionsSubject);
 
-      if (questionError) throw questionError;
-
-      // Count questions per chapter
-      const questionCounts: Record<string, number> = {};
+      const totals: Record<string, number> = {};
+      const questionIds: Record<string, number[]> = {};
+      
       questionData?.forEach((q) => {
         if (q.chapter) {
-          questionCounts[q.chapter] = (questionCounts[q.chapter] || 0) + 1;
+          totals[q.chapter] = (totals[q.chapter] || 0) + 1;
+          if (!questionIds[q.chapter]) questionIds[q.chapter] = [];
+          questionIds[q.chapter].push(q.id);
         }
       });
 
-      // Merge counts with chapters
-      const chaptersWithCounts = (chapterData || []).map((chapter) => ({
-        ...chapter,
-        questionCount: questionCounts[chapter.name] || 0,
-      }));
+      // If user is logged in, fetch their submissions
+      const stats: Record<string, { solved: number; total: number }> = {};
+      
+      if (user) {
+        const { data: submissions } = await supabase
+          .from("submissions")
+          .select("question_id")
+          .eq("user_id", user.id);
 
-      setChapters(chaptersWithCounts);
+        const solvedSet = new Set(submissions?.map(s => s.question_id) || []);
+
+        chapters.forEach((chapter) => {
+          const chapterQuestionIds = questionIds[chapter.name] || [];
+          const solvedCount = chapterQuestionIds.filter(id => solvedSet.has(id)).length;
+          stats[chapter.name] = {
+            solved: solvedCount,
+            total: totals[chapter.name] || 0,
+          };
+        });
+      } else {
+        chapters.forEach((chapter) => {
+          stats[chapter.name] = {
+            solved: 0,
+            total: totals[chapter.name] || 0,
+          };
+        });
+      }
+
+      setChapterStats(stats);
     } catch (err) {
-      console.error("Error fetching chapters:", err);
+      console.error("Error fetching chapter stats:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredChapters = chapters.filter((chapter) =>
-    chapter.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const filteredChapters = useMemo(() => {
+    return chapters.filter((chapter) =>
+      chapter.name.toLowerCase().includes(searchText.toLowerCase())
+    );
+  }, [chapters, searchText]);
 
-  const handleChapterClick = (chapter: Chapter, index: number) => {
-    // Check if user has access (old user or subscribed) or if chapter is free
+  const totalQuestions = useMemo(() => {
+    return Object.values(chapterStats).reduce((acc, s) => acc + s.total, 0);
+  }, [chapterStats]);
+
+  const handleChapterClick = (chapterName: string, index: number) => {
     const isFree = isChapterFree(index);
     
     if (!hasAccess && !isFree) {
@@ -144,7 +342,7 @@ const ChapterSelect = () => {
       return;
     }
     
-    navigate(`/questions/${encodeURIComponent(chapter.name)}?subject=${encodeURIComponent(decodedSubject)}`);
+    navigate(`/questions/${encodeURIComponent(chapterName)}?subject=${encodeURIComponent(decodedSubject)}`);
   };
 
   return (
@@ -157,7 +355,7 @@ const ChapterSelect = () => {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8"
+            className="mb-6"
           >
             <Button
               variant="ghost"
@@ -168,29 +366,60 @@ const ChapterSelect = () => {
               Back to Home
             </Button>
 
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-4">
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg`}>
-                  <SubjectIcon className="w-8 h-8 text-white" />
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center shadow-lg`}>
+                  <SubjectIcon className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">{decodedSubject}</h1>
-                  <p className="text-muted-foreground">
-                    {filteredChapters.length} Chapters • {filteredChapters.reduce((acc, c) => acc + (c.questionCount || 0), 0)} Questions
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">JEE Mains PYQ Bank</h1>
+                  <p className="text-muted-foreground text-sm">
+                    {filteredChapters.length} Chapters • {totalQuestions} Questions
                   </p>
                 </div>
               </div>
+            </div>
 
-              {/* Search */}
-              <div className="relative w-full md:w-72">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            {/* Subject Tabs */}
+            <div className="flex gap-2 mb-6">
+              {["Physics", "Chemistry", "Mathematics"].map((sub) => {
+                const isSelected = decodedSubject === sub || (decodedSubject === "Maths" && sub === "Mathematics");
+                return (
+                  <Button
+                    key={sub}
+                    variant={isSelected ? "default" : "outline"}
+                    onClick={() => navigate(`/chapters/${encodeURIComponent(sub)}`)}
+                    className={`flex-1 ${isSelected ? "bg-primary text-primary-foreground" : "bg-card border-border"}`}
+                  >
+                    {sub === "Mathematics" ? "Maths" : sub}
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Search and Year Filter */}
+            <div className="flex gap-3 items-center">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                 <Input
-                  placeholder="Search chapters..."
+                  placeholder="Search chapter..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   className="pl-10 bg-card border-border"
                 />
               </div>
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                <SelectTrigger className="w-28 bg-card border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((year) => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </motion.div>
 
@@ -199,93 +428,73 @@ const ChapterSelect = () => {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 rounded-xl bg-gold/10 border border-gold/20 flex items-center gap-3"
+              className="mb-4 p-3 rounded-xl bg-gold/10 border border-gold/20 flex items-center gap-3"
             >
               <Crown className="w-5 h-5 text-gold shrink-0" />
               <p className="text-sm text-gold">
-                First 2 chapters of each subject are <strong>free</strong>! Subscribe to unlock all chapters.
+                First 2 chapters are <strong>free</strong>! Subscribe to unlock all.
               </p>
             </motion.div>
           )}
 
-          {/* Chapters Grid */}
+          {/* Chapters List */}
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20">
               <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
               <p className="text-muted-foreground">Loading chapters...</p>
             </div>
-          ) : filteredChapters.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <BookOpen className="w-16 h-16 text-muted-foreground/50 mb-4" />
-              <p className="text-muted-foreground text-lg">No chapters found</p>
-            </div>
           ) : (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              className="space-y-3"
             >
               {filteredChapters.map((chapter, index) => {
                 const isFree = isChapterFree(index);
                 const isLocked = !hasAccess && !isFree;
-                
+                const stats = chapterStats[chapter.name] || { solved: 0, total: 0 };
+                const ChapterIcon = chapter.icon;
+
                 return (
                   <motion.div
-                    key={chapter.id}
+                    key={chapter.name}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.03 }}
-                    onClick={() => handleChapterClick(chapter, index)}
-                    className={`glass-card-hover p-5 cursor-pointer group relative overflow-hidden ${
-                      isLocked ? "opacity-75" : ""
+                    transition={{ delay: index * 0.02 }}
+                    onClick={() => handleChapterClick(chapter.name, index)}
+                    className={`bg-card rounded-2xl p-5 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-primary/10 border border-border/50 ${
+                      isLocked ? "opacity-60" : ""
                     }`}
                   >
-                    {/* Background gradient */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${config.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-
-                    {/* Lock overlay for locked chapters */}
-                    {isLocked && (
-                      <div className="absolute inset-0 bg-background/50 backdrop-blur-[1px] z-10 flex items-center justify-center">
-                        <div className="bg-muted/90 rounded-lg px-3 py-1.5 flex items-center gap-2">
-                          <Lock className="w-4 h-4 text-muted-foreground" />
-                          <span className="text-sm text-muted-foreground font-medium">Premium</span>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="relative z-10">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${config.gradient} flex items-center justify-center`}>
-                          <BookOpen className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {isFree && !hasAccess && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success/20 text-success text-xs font-medium">
-                              Free
-                            </span>
-                          )}
-                          {chapter.is_mains_level && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gold/20 text-gold text-xs font-medium">
-                              <Sparkles className="w-3 h-3 mr-1" />
-                              Mains
-                            </span>
-                          )}
-                        </div>
+                    <div className="flex items-center gap-4">
+                      {/* Icon */}
+                      <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center shrink-0">
+                        <ChapterIcon className="w-6 h-6 text-primary-foreground" />
                       </div>
 
-                      <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                        {chapter.name}
-                      </h3>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                          <FileQuestion className="w-4 h-4" />
-                          <span>{chapter.questionCount} Questions</span>
-                        </div>
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                          <ChevronRight className="w-4 h-4 text-primary group-hover:translate-x-0.5 transition-transform" />
-                        </div>
+                      {/* Chapter Name */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground text-base truncate">
+                          {chapter.name}
+                        </h3>
+                        {isFree && !hasAccess && (
+                          <span className="text-xs text-success font-medium">Free</span>
+                        )}
                       </div>
+
+                      {/* Stats or Lock */}
+                      {isLocked ? (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Lock className="w-5 h-5" />
+                        </div>
+                      ) : (
+                        <div className="text-right shrink-0">
+                          <p className="text-success font-bold text-sm">
+                            {stats.solved}/{stats.total} Qs
+                          </p>
+                          <p className="text-xs text-muted-foreground">Total Solved</p>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 );

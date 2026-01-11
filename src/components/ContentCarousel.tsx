@@ -36,8 +36,9 @@ export const ContentCarousel = ({ title, items, variant = "default" }: ContentCa
   const handleItemClick = (item: CarouselItem) => {
     if (item.type === "mock") {
       navigate("/mock-tests");
-    } else if (item.year) {
-      navigate(`/questions/all?year=${item.year}`);
+    } else if (item.type === "pyq") {
+      // Navigate to ChapterSelect with Physics as default subject
+      navigate("/chapters/Physics");
     }
   };
 

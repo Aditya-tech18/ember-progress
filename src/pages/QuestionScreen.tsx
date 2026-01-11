@@ -418,7 +418,7 @@ const QuestionScreen = () => {
                   </div>
                   <h3 className="text-xl font-bold text-foreground">Solution</h3>
                 </div>
-                <div className="text-muted-foreground leading-relaxed overflow-x-auto question-scroll">
+                <div className="text-muted-foreground leading-loose overflow-x-auto question-scroll whitespace-pre-wrap solution-content">
                   <LatexRenderer content={currentQuestion.solution} />
                 </div>
               </motion.div>

@@ -37,6 +37,30 @@ interface Answer {
   isMarkedForReview: boolean;
 }
 
+// Mock Test Question IDs Configuration for JEE Main 2 April 2025 Shift 2
+const getMockTestQuestionIds = () => {
+  // Mathematics: Section A (MCQ) + Section B (Integer)
+  const mathsSectionA = Array.from({ length: 20 }, (_, i) => 202524201 + i); // 202524201-202524220
+  const mathsSectionBFirst5 = Array.from({ length: 5 }, (_, i) => 202524221 + i); // 202524221-202524225
+  const mathsSectionBLast5 = [21, 22, 23, 24, 25]; // IDs 21-25
+
+  // Physics: Section A (MCQ) + Section B (Integer)
+  const physicsSectionA = Array.from({ length: 20 }, (_, i) => 202524226 + i); // 202524226-202524245
+  const physicsSectionBFirst5 = Array.from({ length: 5 }, (_, i) => 202524246 + i); // 202524246-202524250
+  const physicsSectionBLast5 = Array.from({ length: 8 }, (_, i) => 20244552 + i); // 20244552-20244559
+
+  // Chemistry: Section A (MCQ) + Section B (Integer)  
+  const chemistrySectionA = Array.from({ length: 20 }, (_, i) => 202524251 + i); // 202524251-202524270
+  const chemistrySectionBFirst5 = Array.from({ length: 5 }, (_, i) => 202524271 + i); // 202524271-202524275
+  const chemistrySectionBLast5 = Array.from({ length: 5 }, (_, i) => 20244485 + i); // 20244485-20244489
+
+  return {
+    Mathematics: [...mathsSectionA, ...mathsSectionBFirst5, ...mathsSectionBLast5],
+    Physics: [...physicsSectionA, ...physicsSectionBFirst5, ...physicsSectionBLast5.slice(0, 5)],
+    Chemistry: [...chemistrySectionA, ...chemistrySectionBFirst5, ...chemistrySectionBLast5],
+  };
+};
+
 const MockTest = () => {
   const navigate = useNavigate();
   const { testId } = useParams<{ testId: string }>();
@@ -73,21 +97,49 @@ const MockTest = () => {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      // Fetch questions with ID starting with 2025242 (April 2 2025 Shift 2)
+      const questionIds = getMockTestQuestionIds();
+      const allIds = [
+        ...questionIds.Physics,
+        ...questionIds.Chemistry,
+        ...questionIds.Mathematics,
+      ];
+
+      // Fetch questions by specific IDs
       const { data, error } = await supabase
         .from("questions")
         .select("*")
-        .like("id", "2025%")
-        .order("id", { ascending: true })
-        .limit(90);
+        .in("id", allIds);
 
       if (error) throw error;
 
       if (data && data.length > 0) {
-        setQuestions(data);
+        // Sort questions by subject order: Physics, Chemistry, Mathematics
+        // and within each subject by the order in our ID arrays
+        const sortedQuestions: Question[] = [];
+        
+        // Add Physics questions in order
+        questionIds.Physics.forEach(id => {
+          const q = data.find(d => d.id === id);
+          if (q) sortedQuestions.push({ ...q, subject: "Physics" });
+        });
+        
+        // Add Chemistry questions in order
+        questionIds.Chemistry.forEach(id => {
+          const q = data.find(d => d.id === id);
+          if (q) sortedQuestions.push({ ...q, subject: "Chemistry" });
+        });
+        
+        // Add Mathematics questions in order
+        questionIds.Mathematics.forEach(id => {
+          const q = data.find(d => d.id === id);
+          if (q) sortedQuestions.push({ ...q, subject: "Mathematics" });
+        });
+
+        setQuestions(sortedQuestions);
+        
         // Initialize answers
         const initialAnswers = new Map<number, Answer>();
-        data.forEach((q) => {
+        sortedQuestions.forEach((q) => {
           initialAnswers.set(q.id, {
             questionId: q.id,
             userAnswer: null,
@@ -464,11 +516,8 @@ const MockTest = () => {
             Previous
           </Button>
 
-          <div className="text-sm text-muted-foreground">
-            Question {currentIndex + 1} of {questions.length}
-          </div>
-
           <Button
+            variant="outline"
             onClick={() => setCurrentIndex(Math.min(questions.length - 1, currentIndex + 1))}
             disabled={currentIndex === questions.length - 1}
           >
@@ -485,13 +534,15 @@ const MockTest = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowSubmitConfirm(false)}
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-card p-6 rounded-2xl max-w-md mx-4"
+              onClick={(e) => e.stopPropagation()}
+              className="glass-card p-6 max-w-md w-full"
             >
               <h3 className="text-xl font-bold text-foreground mb-4">Submit Test?</h3>
               <p className="text-muted-foreground mb-6">
@@ -506,7 +557,10 @@ const MockTest = () => {
                   Cancel
                 </Button>
                 <Button
-                  onClick={handleSubmitTest}
+                  onClick={() => {
+                    setShowSubmitConfirm(false);
+                    handleSubmitTest();
+                  }}
                   className="flex-1 bg-gradient-to-r from-purple-600 to-primary"
                 >
                   Submit
