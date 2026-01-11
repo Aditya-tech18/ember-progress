@@ -66,6 +66,21 @@ const ChapterSelect = () => {
   const config = subjectConfig[decodedSubject as keyof typeof subjectConfig] || subjectConfig.Physics;
   const SubjectIcon = config.icon;
 
+  // Map display subject names to database format
+  const getDbSubject = (displaySubject: string): string => {
+    const map: Record<string, string> = {
+      "Mathematics": "maths",
+      "Physics": "physics", 
+      "Chemistry": "chemistry",
+    };
+    return map[displaySubject] || displaySubject.toLowerCase();
+  };
+
+  // Map database subject to display format for questions table
+  const getQuestionsSubject = (displaySubject: string): string => {
+    return displaySubject; // questions table uses capitalized: Mathematics, Physics, Chemistry
+  };
+
   useEffect(() => {
     fetchChapters();
   }, [decodedSubject]);
@@ -74,20 +89,23 @@ const ChapterSelect = () => {
     setLoading(true);
 
     try {
-      // Fetch chapters
+      const dbSubject = getDbSubject(decodedSubject);
+      const questionsSubject = getQuestionsSubject(decodedSubject);
+
+      // Fetch chapters (uses lowercase: maths, physics, chemistry)
       const { data: chapterData, error: chapterError } = await supabase
         .from("chapters")
         .select("*")
-        .eq("subject", decodedSubject)
+        .eq("subject", dbSubject)
         .order("name", { ascending: true });
 
       if (chapterError) throw chapterError;
 
-      // Fetch question counts per chapter
+      // Fetch question counts per chapter (uses capitalized: Mathematics, Physics, Chemistry)
       const { data: questionData, error: questionError } = await supabase
         .from("questions")
         .select("chapter")
-        .eq("subject", decodedSubject);
+        .eq("subject", questionsSubject);
 
       if (questionError) throw questionError;
 
