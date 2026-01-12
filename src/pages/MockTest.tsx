@@ -39,6 +39,9 @@ interface Answer {
   isMarkedForReview: boolean;
 }
 
+// Max 5 attempts allowed in Section B per subject
+const MAX_SECTION_B_ATTEMPTS = 5;
+
 // Subject configuration with icons and colors
 const subjectConfig = {
   Physics: {
@@ -191,7 +194,41 @@ const MockTest = () => {
     return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  // Get count of answered questions in Section B for current subject
+  const getSectionBAttemptedCount = (subject: string): number => {
+    const sectionBQuestions = getSubjectQuestions(subject, "B");
+    let count = 0;
+    sectionBQuestions.forEach((q) => {
+      const ans = answers.get(q.id);
+      if (ans?.userAnswer && ans.userAnswer.trim() !== "") {
+        count++;
+      }
+    });
+    return count;
+  };
+
   const handleAnswerChange = (questionId: number, answer: string) => {
+    // Check if this is a Section B question
+    const question = questions.find(q => q.id === questionId);
+    if (question) {
+      const subjectQuestions = questions.filter(q => q.subject === question.subject);
+      const indexInSubject = subjectQuestions.indexOf(question);
+      const isInSectionB = indexInSubject >= 20;
+
+      if (isInSectionB && answer.trim() !== "") {
+        const currentAnswer = answers.get(questionId);
+        const wasEmpty = !currentAnswer?.userAnswer || currentAnswer.userAnswer.trim() === "";
+        
+        if (wasEmpty) {
+          const attemptedCount = getSectionBAttemptedCount(question.subject);
+          if (attemptedCount >= MAX_SECTION_B_ATTEMPTS) {
+            toast.error(`You can only attempt ${MAX_SECTION_B_ATTEMPTS} questions in Section B per subject.`);
+            return;
+          }
+        }
+      }
+    }
+
     setAnswers((prev) => {
       const newAnswers = new Map(prev);
       const current = newAnswers.get(questionId);
@@ -421,6 +458,7 @@ const MockTest = () => {
             {(["A", "B"] as const).map((section) => {
               const isSelected = currentSection === section;
               const config = subjectConfig[selectedSubject as keyof typeof subjectConfig];
+              const sectionBCount = section === "B" ? getSectionBAttemptedCount(selectedSubject) : 0;
               return (
                 <button
                   key={section}
@@ -437,7 +475,7 @@ const MockTest = () => {
                       : `border-primary/50 ${config.textColor} hover:bg-primary/10`
                   }`}
                 >
-                  Section {section} {section === "A" ? "(MCQ)" : "(Integer)"}
+                  Section {section} {section === "A" ? "(MCQ)" : `(Integer - ${sectionBCount}/${MAX_SECTION_B_ATTEMPTS})`}
                 </button>
               );
             })}
@@ -596,47 +634,47 @@ const MockTest = () => {
       {/* Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border shadow-2xl">
         <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-2">
             <Button
               variant="outline"
               onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
               disabled={currentIndex === 0}
-              className="flex-1 h-12 text-base font-semibold"
+              className="flex-1 h-12 text-sm sm:text-base font-semibold"
             >
-              <ChevronLeft className="w-5 h-5 mr-2" />
+              <ChevronLeft className="w-5 h-5 mr-1 sm:mr-2" />
               Previous
             </Button>
 
             <Button
               variant="outline"
               onClick={() => handleMarkForReview(currentQuestion.id)}
-              className={`flex-1 h-12 text-base font-semibold ${
+              className={`flex-1 h-12 text-sm sm:text-base font-semibold ${
                 currentAnswer?.isMarkedForReview 
                   ? "border-gold text-gold bg-gold/10" 
                   : ""
               }`}
             >
-              <Flag className={`w-5 h-5 mr-2 ${currentAnswer?.isMarkedForReview ? "fill-gold" : ""}`} />
+              <Flag className={`w-5 h-5 mr-1 sm:mr-2 ${currentAnswer?.isMarkedForReview ? "fill-gold" : ""}`} />
               Mark
             </Button>
 
-            {currentIndex === questions.length - 1 ? (
-              <Button
-                onClick={() => setShowSubmitConfirm(true)}
-                className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-purple-600 to-primary"
-              >
-                <Send className="w-5 h-5 mr-2" />
-                Submit
-              </Button>
-            ) : (
-              <Button
-                onClick={handleSaveAndNext}
-                className="flex-1 h-12 text-base font-semibold bg-gradient-to-r from-success to-emerald-500"
-              >
-                <Save className="w-5 h-5 mr-2" />
-                Save & Next
-              </Button>
-            )}
+            <Button
+              onClick={handleSaveAndNext}
+              disabled={currentIndex === questions.length - 1}
+              className="flex-1 h-12 text-sm sm:text-base font-semibold bg-gradient-to-r from-success to-emerald-500"
+            >
+              <Save className="w-5 h-5 mr-1 sm:mr-2" />
+              Save & Next
+            </Button>
+
+            {/* Always visible Submit button */}
+            <Button
+              onClick={() => setShowSubmitConfirm(true)}
+              className="flex-1 h-12 text-sm sm:text-base font-semibold bg-gradient-to-r from-destructive to-red-600"
+            >
+              <Send className="w-5 h-5 mr-1 sm:mr-2" />
+              Submit
+            </Button>
           </div>
         </div>
       </div>

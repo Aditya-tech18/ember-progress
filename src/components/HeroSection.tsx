@@ -1,10 +1,13 @@
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator, Play, Zap } from "lucide-react";
+import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator, Play, Zap, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ActivityHeatmap } from "./ActivityHeatmap";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const handleStartPracticing = () => {
     // Navigate to first subject by default, or show subject selector
@@ -113,12 +116,46 @@ export const HeroSection = () => {
             <Button
               size="lg"
               variant="outline"
+              onClick={() => setShowHeatmap(true)}
               className="w-full sm:w-auto border-border/50 hover:bg-muted/50 text-foreground font-semibold px-8 py-6 text-lg rounded-xl hover:border-primary/50 transition-colors"
             >
               <BarChart3 className="w-5 h-5 mr-2" />
               View Progress
             </Button>
           </motion.div>
+
+          {/* Heatmap Modal */}
+          <AnimatePresence>
+            {showHeatmap && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                onClick={() => setShowHeatmap(false)}
+              >
+                <motion.div
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="max-w-4xl w-full max-h-[80vh] overflow-auto"
+                >
+                  <div className="relative">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowHeatmap(false)}
+                      className="absolute top-2 right-2 z-10 rounded-full bg-background/80 hover:bg-background"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                    <ActivityHeatmap />
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Stats */}
           <motion.div
