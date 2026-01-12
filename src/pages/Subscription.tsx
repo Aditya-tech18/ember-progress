@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -14,7 +15,16 @@ import {
   Check,
   Loader2,
   ArrowLeft,
+  Shield,
 } from "lucide-react";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+const RAZORPAY_KEY = "rzp_test_S2p1hAGITW86Df";
 
 const plans = [
   {
@@ -22,7 +32,7 @@ const plans = [
     description: "Begin small, dream big! 🚀",
     duration: "1 month",
     months: 1,
-    amount: 900, // paise
+    amount: 900, // paise (₹9)
     price: "₹9",
     oldPrice: "₹19",
     icon: Rocket,
@@ -33,7 +43,7 @@ const plans = [
     description: "Boost your prep, real results! ⚡",
     duration: "3 months",
     months: 3,
-    amount: 2700,
+    amount: 2700, // paise (₹27)
     price: "₹27",
     oldPrice: "₹49",
     icon: Zap,
@@ -44,7 +54,7 @@ const plans = [
     description: "Game-changer for exam season 🎯",
     duration: "6 months",
     months: 6,
-    amount: 5400,
+    amount: 5400, // paise (₹54)
     price: "₹54",
     oldPrice: "₹99",
     icon: Target,
@@ -55,7 +65,7 @@ const plans = [
     description: "A trusted companion for a year 🤝",
     duration: "12 months",
     months: 12,
-    amount: 10800,
+    amount: 10800, // paise (₹108)
     price: "₹108",
     oldPrice: "₹199",
     icon: Handshake,
@@ -75,6 +85,20 @@ const features = [
 const Subscription = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
+  const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+
+  useEffect(() => {
+    // Load Razorpay script
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => setRazorpayLoaded(true);
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const handleSubscribe = async (plan: typeof plans[0]) => {
     setLoading(plan.name);
@@ -88,31 +112,74 @@ const Subscription = () => {
         return;
       }
 
-      // For demo - directly create subscription
-      // In production, integrate with Razorpay
-      const now = new Date();
-      const validUntil = new Date(now);
-      validUntil.setMonth(validUntil.getMonth() + plan.months);
+      if (!razorpayLoaded) {
+        toast.error("Payment system loading. Please try again.");
+        setLoading(null);
+        return;
+      }
 
-      const { error } = await supabase
-        .from("subscriptions")
-        .upsert({
-          user_id: user.id,
+      const options = {
+        key: RAZORPAY_KEY,
+        amount: plan.amount,
+        currency: "INR",
+        name: "Prepixo",
+        description: `${plan.name} - ${plan.duration} Subscription`,
+        image: "https://i.imgur.com/3g7nmJC.png",
+        handler: async function (response: any) {
+          try {
+            // Payment successful - save subscription
+            const now = new Date();
+            const validUntil = new Date(now);
+            validUntil.setMonth(validUntil.getMonth() + plan.months);
+
+            const { error } = await supabase
+              .from("subscriptions")
+              .upsert({
+                user_id: user.id,
+                email: user.email || "",
+                plan_name: plan.name,
+                paid_on: now.toISOString(),
+                valid_until: validUntil.toISOString(),
+                payment_id: response.razorpay_payment_id,
+              }, { onConflict: "user_id" });
+
+            if (error) throw error;
+
+            toast.success("🎉 Subscription activated successfully!");
+            navigate("/");
+          } catch (error: any) {
+            console.error("Error saving subscription:", error);
+            toast.error("Payment successful but failed to activate. Contact support.");
+          }
+        },
+        prefill: {
           email: user.email || "",
+        },
+        notes: {
+          user_id: user.id,
           plan_name: plan.name,
-          paid_on: now.toISOString(),
-          valid_until: validUntil.toISOString(),
-          payment_id: `demo_${Date.now()}`,
-        }, { onConflict: "user_id" });
+          duration_months: plan.months.toString(),
+        },
+        theme: {
+          color: "#F97316",
+        },
+        modal: {
+          ondismiss: function() {
+            setLoading(null);
+          }
+        }
+      };
 
-      if (error) throw error;
-
-      toast.success("🎉 Subscription activated successfully!");
-      navigate("/");
+      const razorpay = new window.Razorpay(options);
+      razorpay.on("payment.failed", function (response: any) {
+        console.error("Payment failed:", response.error);
+        toast.error("Payment failed. Please try again.");
+        setLoading(null);
+      });
+      razorpay.open();
     } catch (error: any) {
       console.error("Subscription error:", error);
-      toast.error(error.message || "Failed to subscribe");
-    } finally {
+      toast.error(error.message || "Failed to initiate payment");
       setLoading(null);
     }
   };
@@ -231,8 +298,29 @@ const Subscription = () => {
               </motion.div>
             ))}
           </div>
+
+          {/* Trust Badges */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-12 text-center"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/30 text-muted-foreground text-sm">
+              <Shield className="w-4 h-4 text-success" />
+              <span>Secure payments powered by Razorpay</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              By subscribing, you agree to our{" "}
+              <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a>
+              {" "}and{" "}
+              <a href="/refund" className="text-primary hover:underline">Refund Policy</a>
+            </p>
+          </motion.div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
