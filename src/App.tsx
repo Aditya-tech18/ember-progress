@@ -16,6 +16,11 @@ import MockTestInstructions from "./pages/MockTestInstructions";
 import MockTest from "./pages/MockTest";
 import MockTestResult from "./pages/MockTestResult";
 import AIChat from "./pages/AIChat";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsConditions from "./pages/TermsConditions";
+import RefundPolicy from "./pages/RefundPolicy";
+import AboutUs from "./pages/AboutUs";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +45,11 @@ const App = () => (
           <Route path="/mock-test/:testId" element={<MockTest />} />
           <Route path="/mock-test/result/:resultId" element={<MockTestResult />} />
           <Route path="/ai-chat" element={<AIChat />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/terms" element={<TermsConditions />} />
+          <Route path="/refund" element={<RefundPolicy />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
