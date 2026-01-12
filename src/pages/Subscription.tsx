@@ -24,7 +24,7 @@ declare global {
   }
 }
 
-const RAZORPAY_KEY = "rzp_test_S2p1hAGITW86Df";
+const RAZORPAY_KEY = "rzp_live_S2pjg3bXzQnV1q";
 
 const plans = [
   {
