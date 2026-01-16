@@ -22,6 +22,8 @@ import RefundPolicy from "./pages/RefundPolicy";
 import AboutUs from "./pages/AboutUs";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import WeeklyContest from "./pages/WeeklyContest";
+import TeamDashboard from "./pages/TeamDashboard";
 
 const queryClient = new QueryClient();
 
@@ -50,6 +52,9 @@ const App = () => (
           <Route path="/refund" element={<RefundPolicy />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/weekly-contest" element={<WeeklyContest />} />
+          <Route path="/team" element={<TeamDashboard />} />
+          <Route path="/team/:teamId" element={<TeamDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

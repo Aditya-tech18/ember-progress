@@ -7,6 +7,8 @@ import { SubjectsSection } from "@/components/SubjectsSection";
 import { RankSection } from "@/components/RankSection";
 import { Footer } from "@/components/Footer";
 import { DownloadAppBanner } from "@/components/DownloadAppBanner";
+import { GameCards } from "@/components/GameCards";
+
 const trendingPYQs = [
   { id: "1", title: "JEE Main 2024", subtitle: "All Subjects PYQs", image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=600&fit=crop", duration: "2000+ Qs", trending: true, year: 2024, type: "pyq" as const },
   { id: "2", title: "JEE Main 2025", subtitle: "Latest PYQs", image: "https://images.unsplash.com/photo-1509228468518-180dd4864904?w=400&h=600&fit=crop", duration: "500+ Qs", trending: true, year: 2025, type: "pyq" as const },
@@ -24,6 +26,7 @@ const Index = () => {
       <HeroSection />
       <ProgressSection />
       <CategoryPills />
+      <GameCards />
       <ContentCarousel title="🔥 Trending PYQs" items={trendingPYQs} />
       <ContentCarousel title="📝 Mock Tests" items={mockTests} variant="large" />
       <SubjectsSection />
