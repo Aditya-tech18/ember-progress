@@ -115,6 +115,24 @@ export type Database = {
           },
         ]
       }
+      contest_testers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+        }
+        Relationships: []
+      }
       contests: {
         Row: {
           contest_id: string
@@ -656,6 +674,10 @@ export type Database = {
           count: number
           submitted_date: string
         }[]
+      }
+      update_contest_ranks: {
+        Args: { p_contest_id: string }
+        Returns: undefined
       }
     }
     Enums: {
