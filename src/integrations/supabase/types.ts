@@ -38,6 +38,110 @@ export type Database = {
         }
         Relationships: []
       }
+      contest_participants: {
+        Row: {
+          contest_id: string | null
+          created_at: string | null
+          display_name: string
+          id: string
+          rank: number | null
+          submitted_at: string | null
+          total_marks: number | null
+          user_id: string | null
+        }
+        Insert: {
+          contest_id?: string | null
+          created_at?: string | null
+          display_name: string
+          id?: string
+          rank?: number | null
+          submitted_at?: string | null
+          total_marks?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          contest_id?: string | null
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          rank?: number | null
+          submitted_at?: string | null
+          total_marks?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_participants_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["contest_id"]
+          },
+          {
+            foreignKeyName: "contest_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contest_questions: {
+        Row: {
+          contest_id: string | null
+          id: string
+          marks: number | null
+          question_id: string | null
+        }
+        Insert: {
+          contest_id?: string | null
+          id?: string
+          marks?: number | null
+          question_id?: string | null
+        }
+        Update: {
+          contest_id?: string | null
+          id?: string
+          marks?: number | null
+          question_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contest_questions_contest_id_fkey"
+            columns: ["contest_id"]
+            isOneToOne: false
+            referencedRelation: "contests"
+            referencedColumns: ["contest_id"]
+          },
+        ]
+      }
+      contests: {
+        Row: {
+          contest_id: string
+          created_at: string | null
+          end_time: string
+          result_time: string
+          start_time: string
+          title: string
+        }
+        Insert: {
+          contest_id?: string
+          created_at?: string | null
+          end_time: string
+          result_time: string
+          start_time: string
+          title: string
+        }
+        Update: {
+          contest_id?: string
+          created_at?: string | null
+          end_time?: string
+          result_time?: string
+          start_time?: string
+          title?: string
+        }
+        Relationships: []
+      }
       mock_test_results: {
         Row: {
           chemistry_correct: number
@@ -290,6 +394,167 @@ export type Database = {
           valid_until?: string
         }
         Relationships: []
+      }
+      team_challenges: {
+        Row: {
+          challenge_id: string
+          challenge_type: string | null
+          challenger_team: string | null
+          end_time: string | null
+          opponent_team: string | null
+          start_time: string | null
+          status: string | null
+          winner_team: string | null
+        }
+        Insert: {
+          challenge_id?: string
+          challenge_type?: string | null
+          challenger_team?: string | null
+          end_time?: string | null
+          opponent_team?: string | null
+          start_time?: string | null
+          status?: string | null
+          winner_team?: string | null
+        }
+        Update: {
+          challenge_id?: string
+          challenge_type?: string | null
+          challenger_team?: string | null
+          end_time?: string | null
+          opponent_team?: string | null
+          start_time?: string | null
+          status?: string | null
+          winner_team?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_challenges_challenger_team_fkey"
+            columns: ["challenger_team"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_challenges_opponent_team_fkey"
+            columns: ["opponent_team"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_challenges_winner_team_fkey"
+            columns: ["winner_team"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
+      team_leaderboard: {
+        Row: {
+          id: string
+          period: string | null
+          rank: number | null
+          team_id: string | null
+          total_questions: number | null
+        }
+        Insert: {
+          id?: string
+          period?: string | null
+          rank?: number | null
+          team_id?: string | null
+          total_questions?: number | null
+        }
+        Update: {
+          id?: string
+          period?: string | null
+          rank?: number | null
+          team_id?: string | null
+          total_questions?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_leaderboard_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+        ]
+      }
+      team_members: {
+        Row: {
+          daily_questions_solved: number | null
+          id: string
+          joined_at: string | null
+          role: string | null
+          team_id: string | null
+          total_questions_solved: number | null
+          user_id: string | null
+        }
+        Insert: {
+          daily_questions_solved?: number | null
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          team_id?: string | null
+          total_questions_solved?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          daily_questions_solved?: number | null
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          team_id?: string | null
+          total_questions_solved?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          team_id: string
+          team_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          team_id?: string
+          team_name: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          team_id?: string
+          team_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_activity: {
         Row: {
