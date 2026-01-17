@@ -8,6 +8,8 @@ import { RankSection } from "@/components/RankSection";
 import { Footer } from "@/components/Footer";
 import { DownloadAppBanner } from "@/components/DownloadAppBanner";
 import { GameCards } from "@/components/GameCards";
+import { NoticeBanner } from "@/components/NoticeBanner";
+import { CombatNameModal } from "@/components/CombatNameModal";
 
 const trendingPYQs = [
   { id: "1", title: "JEE Main 2024", subtitle: "All Subjects PYQs", image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=600&fit=crop", duration: "2000+ Qs", trending: true, year: 2024, type: "pyq" as const },
@@ -21,8 +23,10 @@ const mockTests = [
 const Index = () => {
   return (
     <div className="min-h-screen pt-14">
+      <NoticeBanner />
       <DownloadAppBanner />
       <Navbar />
+      <CombatNameModal />
       <HeroSection />
       <ProgressSection />
       <CategoryPills />
