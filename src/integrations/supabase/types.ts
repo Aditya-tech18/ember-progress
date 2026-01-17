@@ -413,32 +413,102 @@ export type Database = {
         }
         Relationships: []
       }
+      team_challenge_results: {
+        Row: {
+          challenge_id: string | null
+          completed_at: string | null
+          id: string
+          score: number | null
+          team_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          challenge_id?: string | null
+          completed_at?: string | null
+          id?: string
+          score?: number | null
+          team_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          challenge_id?: string | null
+          completed_at?: string | null
+          id?: string
+          score?: number | null
+          team_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_challenge_results_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "team_challenges"
+            referencedColumns: ["challenge_id"]
+          },
+          {
+            foreignKeyName: "team_challenge_results_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_challenge_results_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_challenges: {
         Row: {
+          accepted: boolean | null
+          accepted_at: string | null
           challenge_id: string
           challenge_type: string | null
+          challenger_participants: number | null
+          challenger_score: number | null
           challenger_team: string | null
           end_time: string | null
+          mock_test_id: string | null
+          opponent_participants: number | null
+          opponent_score: number | null
           opponent_team: string | null
           start_time: string | null
           status: string | null
           winner_team: string | null
         }
         Insert: {
+          accepted?: boolean | null
+          accepted_at?: string | null
           challenge_id?: string
           challenge_type?: string | null
+          challenger_participants?: number | null
+          challenger_score?: number | null
           challenger_team?: string | null
           end_time?: string | null
+          mock_test_id?: string | null
+          opponent_participants?: number | null
+          opponent_score?: number | null
           opponent_team?: string | null
           start_time?: string | null
           status?: string | null
           winner_team?: string | null
         }
         Update: {
+          accepted?: boolean | null
+          accepted_at?: string | null
           challenge_id?: string
           challenge_type?: string | null
+          challenger_participants?: number | null
+          challenger_score?: number | null
           challenger_team?: string | null
           end_time?: string | null
+          mock_test_id?: string | null
+          opponent_participants?: number | null
+          opponent_score?: number | null
           opponent_team?: string | null
           start_time?: string | null
           status?: string | null
@@ -545,22 +615,83 @@ export type Database = {
           },
         ]
       }
+      team_notifications: {
+        Row: {
+          challenge_id: string | null
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          message: string
+          team_id: string | null
+          title: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          challenge_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message: string
+          team_id?: string | null
+          title: string
+          type?: string
+          user_id?: string | null
+        }
+        Update: {
+          challenge_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          message?: string
+          team_id?: string | null
+          title?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_notifications_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "team_challenges"
+            referencedColumns: ["challenge_id"]
+          },
+          {
+            foreignKeyName: "team_notifications_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["team_id"]
+          },
+          {
+            foreignKeyName: "team_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       teams: {
         Row: {
           created_at: string | null
           created_by: string | null
+          short_id: string | null
           team_id: string
           team_name: string
         }
         Insert: {
           created_at?: string | null
           created_by?: string | null
+          short_id?: string | null
           team_id?: string
           team_name: string
         }
         Update: {
           created_at?: string | null
           created_by?: string | null
+          short_id?: string | null
           team_id?: string
           team_name?: string
         }
@@ -633,6 +764,7 @@ export type Database = {
       users: {
         Row: {
           avatar_url: string | null
+          combat_name: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
@@ -643,6 +775,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          combat_name?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
@@ -653,6 +786,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          combat_name?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
