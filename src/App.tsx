@@ -24,6 +24,9 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import WeeklyContest from "./pages/WeeklyContest";
 import TeamDashboard from "./pages/TeamDashboard";
+import TeamBattleMockTest from "./pages/TeamBattleMockTest";
+import SundayResults from "./pages/SundayResults";
+import ContestPage from "./pages/ContestPage";
 
 const queryClient = new QueryClient();
 
@@ -53,8 +56,11 @@ const App = () => (
           <Route path="/about" element={<AboutUs />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/weekly-contest" element={<WeeklyContest />} />
+          <Route path="/contest/:contestId" element={<ContestPage />} />
           <Route path="/team" element={<TeamDashboard />} />
           <Route path="/team/:teamId" element={<TeamDashboard />} />
+          <Route path="/team-battle/:challengeId" element={<TeamBattleMockTest />} />
+          <Route path="/sunday-results" element={<SundayResults />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
