@@ -9,11 +9,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSubscription } from "@/hooks/useSubscription";
 import { 
   Users, Crown, Zap, Trophy, Plus, 
   UserPlus, Swords, Target, Calendar, CheckCircle,
   ChevronRight, Medal, Star, Flame, Eye, X,
-  Bell, Shield, AlertCircle
+  Bell, Shield, AlertCircle, Lock
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, nextSunday, setHours, setMinutes } from "date-fns";
@@ -75,6 +76,7 @@ const TeamDashboard = () => {
   const navigate = useNavigate();
   const { teamId } = useParams();
   const { toast } = useToast();
+  const { hasAccess, loading: subLoading } = useSubscription();
   
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
@@ -94,6 +96,34 @@ const TeamDashboard = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [showNoTeamView, setShowNoTeamView] = useState(false);
+
+  // Check subscription access
+  if (!subLoading && !hasAccess) {
+    return (
+      <div className="min-h-screen bg-background pt-14">
+        <Navbar />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Lock className="w-20 h-20 text-primary mx-auto mb-6" />
+            <h2 className="text-3xl font-bold mb-4">Premium Feature</h2>
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              Friendly Prep (Team Battles) is a premium feature. Subscribe to create or join teams and compete with friends!
+            </p>
+            <Button 
+              onClick={() => navigate("/subscription")}
+              className="bg-gradient-to-r from-primary to-crimson text-white px-8 py-6 text-lg"
+            >
+              <Crown className="w-5 h-5 mr-2" />
+              Subscribe Now
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     checkAuthAndFetch();

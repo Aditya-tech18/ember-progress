@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useSubscription } from "@/hooks/useSubscription";
 import { 
   Trophy, Clock, Users, Medal, Crown, 
   Play, Lock, CheckCircle, AlertCircle, Timer,
-  ChevronRight, Star, Zap
+  ChevronRight, Star, Zap, TrendingUp, Shield
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { format, differenceInSeconds, isAfter, isBefore, addMinutes } from "date-fns";
+import { format, differenceInSeconds, isAfter, isBefore } from "date-fns";
 
 interface Contest {
   contest_id: string;
@@ -37,6 +38,7 @@ type ContestStatus = "upcoming" | "live" | "ended" | "results";
 const WeeklyContest = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { hasAccess, loading: subLoading } = useSubscription();
   
   const [contest, setContest] = useState<Contest | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -49,6 +51,7 @@ const WeeklyContest = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTester, setIsTester] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [combatNames, setCombatNames] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchContestData();
@@ -77,7 +80,6 @@ const WeeklyContest = () => {
 
   const fetchContestData = async () => {
     try {
-      // Get the current/next contest
       const now = new Date().toISOString();
       
       const { data: contestData, error: contestError } = await supabase
@@ -93,7 +95,7 @@ const WeeklyContest = () => {
       if (contestData) {
         setContest(contestData);
         
-        // Fetch participants
+        // Fetch participants with combat names
         const { data: participantsData } = await supabase
           .from("contest_participants")
           .select("*")
@@ -101,6 +103,27 @@ const WeeklyContest = () => {
           .order("rank", { ascending: true, nullsFirst: false });
         
         setParticipants(participantsData || []);
+
+        // Fetch combat names for participants
+        if (participantsData && participantsData.length > 0) {
+          const userIds = participantsData.map(p => p.user_id).filter(Boolean);
+          if (userIds.length > 0) {
+            const { data: usersData } = await supabase
+              .from("users")
+              .select("id, combat_name")
+              .in("id", userIds);
+            
+            if (usersData) {
+              const names: Record<string, string> = {};
+              usersData.forEach(u => {
+                if (u.combat_name) {
+                  names[u.id] = u.combat_name;
+                }
+              });
+              setCombatNames(names);
+            }
+          }
+        }
         
         // Check if current user is registered
         const { data: { user } } = await supabase.auth.getUser();
@@ -159,11 +182,8 @@ const WeeklyContest = () => {
       const secs = secsLeft % 60;
       setCountdown(`${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`);
     } else if (isAfter(now, end) && isBefore(now, result)) {
-      setContestStatus("ended");
-      const secsLeft = differenceInSeconds(result, now);
-      const mins = Math.floor(secsLeft / 60);
-      const secs = secsLeft % 60;
-      setCountdown(`Results in ${mins}m ${secs}s`);
+      setContestStatus("results");
+      setCountdown("Results Available!");
     } else {
       setContestStatus("results");
       setCountdown("");
@@ -243,6 +263,46 @@ const WeeklyContest = () => {
     }
   };
 
+  const canAccessContest = () => {
+    return contestStatus === "live" || isTester;
+  };
+
+  const getDisplayName = (participant: Participant) => {
+    // Use combat name if available, otherwise use display_name
+    if (participant.user_id && combatNames[participant.user_id]) {
+      return combatNames[participant.user_id];
+    }
+    return participant.display_name;
+  };
+
+  // Check subscription access
+  if (!subLoading && !hasAccess) {
+    return (
+      <div className="min-h-screen bg-background pt-14">
+        <Navbar />
+        <div className="container mx-auto px-4 py-20 text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+          >
+            <Lock className="w-20 h-20 text-primary mx-auto mb-6" />
+            <h2 className="text-3xl font-bold mb-4">Premium Feature</h2>
+            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+              Weekly Contest is a premium feature. Subscribe to compete with other students and test your skills!
+            </p>
+            <Button 
+              onClick={() => navigate("/subscription")}
+              className="bg-gradient-to-r from-primary to-crimson text-white px-8 py-6 text-lg"
+            >
+              <Crown className="w-5 h-5 mr-2" />
+              Subscribe Now
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -284,21 +344,61 @@ const WeeklyContest = () => {
           </Badge>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">{contest.title}</h1>
           <p className="text-muted-foreground">
-            {format(new Date(contest.start_time), "EEEE, MMMM d, yyyy")}
+            {format(new Date(contest.start_time), "EEEE, MMMM d, yyyy")} • {format(new Date(contest.start_time), "h:mm a")} - {format(new Date(contest.end_time), "h:mm a")}
           </p>
           {isTester && (
             <Badge className="mt-2 bg-purple-500">🧪 Tester Access Enabled</Badge>
           )}
         </motion.div>
 
+        {/* Mock Test Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8 max-w-lg mx-auto"
+        >
+          <Card className="overflow-hidden bg-card border border-border">
+            <div className="relative h-48 bg-gradient-to-br from-gray-800 to-gray-900">
+              <img 
+                src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=400&fit=crop"
+                alt="JEE Main Mock Test"
+                className="w-full h-full object-cover opacity-80"
+              />
+              <div className="absolute top-4 left-4">
+                <Badge className="bg-red-500 text-white border-0 px-3 py-1">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  Trending
+                </Badge>
+              </div>
+              {contestStatus === "live" && (
+                <div className="absolute top-4 right-4">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                  </span>
+                </div>
+              )}
+            </div>
+            <div className="p-6">
+              <h3 className="text-2xl font-bold mb-2">JEE Main 2025</h3>
+              <p className="text-muted-foreground mb-3">Full Mock Test - 3 Hours</p>
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Clock className="w-4 h-4" />
+                <span>3 hrs</span>
+              </div>
+            </div>
+          </Card>
+        </motion.div>
+
         {/* Countdown Timer */}
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.2 }}
           className="mb-8"
         >
-          <Card className={`p-6 text-center ${
+          <Card className={`p-6 text-center max-w-2xl mx-auto ${
             contestStatus === "live" 
               ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50" 
               : contestStatus === "upcoming"
@@ -318,11 +418,6 @@ const WeeklyContest = () => {
                 <>
                   <Timer className="w-5 h-5 text-orange-500" />
                   <span className="text-orange-500 font-bold">STARTS IN</span>
-                </>
-              ) : contestStatus === "ended" ? (
-                <>
-                  <Clock className="w-5 h-5 text-purple-500" />
-                  <span className="text-purple-500 font-bold">CALCULATING RESULTS</span>
                 </>
               ) : (
                 <>
@@ -351,14 +446,14 @@ const WeeklyContest = () => {
           </Card>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Registration / Join Section */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.3 }}
           >
-            <Card className="p-6">
+            <Card className="p-6 h-full">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Star className="w-5 h-5 text-yellow-500" />
                 {isRegistered ? "You're Registered!" : "Join Contest"}
@@ -393,26 +488,36 @@ const WeeklyContest = () => {
                   <div className="flex items-center gap-3 p-4 bg-green-500/10 rounded-lg border border-green-500/20">
                     <CheckCircle className="w-8 h-8 text-green-500" />
                     <div>
-                      <p className="font-bold">{userParticipation?.display_name}</p>
+                      <p className="font-bold">{getDisplayName(userParticipation!)}</p>
                       <p className="text-sm text-muted-foreground">You're all set!</p>
                     </div>
                   </div>
 
-                  {(contestStatus === "live" || isTester) && (
+                  {canAccessContest() ? (
                     <Button 
                       onClick={handleStartContest}
                       className="w-full bg-gradient-to-r from-green-500 to-emerald-500"
                       size="lg"
                     >
                       <Play className="w-5 h-5 mr-2" />
-                      {userParticipation?.submitted_at ? "View Contest" : "Start Contest"}
+                      {userParticipation?.submitted_at ? "View Results" : "Start Contest"}
                     </Button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-muted-foreground p-4 bg-muted/50 rounded-lg">
+                      <Lock className="w-4 h-4" />
+                      <span>Contest opens at {format(new Date(contest.start_time), "h:mm a 'on' EEEE")}</span>
+                    </div>
                   )}
 
-                  {contestStatus === "upcoming" && !isTester && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Lock className="w-4 h-4" />
-                      <span>Contest starts at {format(new Date(contest.start_time), "h:mm a")}</span>
+                  {userParticipation?.submitted_at && (
+                    <div className="p-4 bg-primary/10 rounded-lg border border-primary/20">
+                      <p className="text-sm text-muted-foreground">Your Score</p>
+                      <p className="text-3xl font-bold text-primary">{userParticipation.total_marks}/300</p>
+                      {userParticipation.rank && (
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Rank: #{userParticipation.rank}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -424,15 +529,15 @@ const WeeklyContest = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.4 }}
           >
-            <Card className="p-6">
+            <Card className="p-6 h-full">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                 <Zap className="w-5 h-5 text-orange-500" />
                 Contest Details
               </h3>
               
-              <div className="space-y-4">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <span className="text-muted-foreground">Total Questions</span>
                   <span className="font-bold">75</span>
@@ -449,78 +554,139 @@ const WeeklyContest = () => {
                   <span className="text-muted-foreground">Negative Marking</span>
                   <span className="font-bold">-1 per wrong</span>
                 </div>
+                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <span className="text-muted-foreground">Results Until</span>
+                  <span className="font-bold">{format(new Date(contest.result_time), "h:mm a")}</span>
+                </div>
               </div>
             </Card>
           </motion.div>
         </div>
 
-        {/* Leaderboard */}
-        {(contestStatus === "results" || participants.length > 0) && (
+        {/* Leaderboard - Show only during results or when there are submitted participants */}
+        {(contestStatus === "results" || participants.some(p => p.submitted_at)) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="mt-8"
+            transition={{ delay: 0.5 }}
+            className="mt-8 max-w-4xl mx-auto"
+          >
+            <Card className="p-6">
+              <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+                <Medal className="w-5 h-5 text-yellow-500" />
+                Leaderboard
+              </h3>
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Rank</th>
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-muted-foreground">Combat Name</th>
+                      <th className="text-right py-3 px-4 text-sm font-semibold text-muted-foreground">Score</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {participants
+                      .filter(p => p.submitted_at)
+                      .sort((a, b) => (b.total_marks || 0) - (a.total_marks || 0))
+                      .map((participant, index) => {
+                        const rank = index + 1;
+                        const isCurrentUser = participant.user_id === userId;
+                        
+                        return (
+                          <motion.tr
+                            key={participant.id}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.05 * index }}
+                            className={`border-b border-border/50 ${
+                              isCurrentUser ? "bg-primary/10" : ""
+                            }`}
+                          >
+                            <td className="py-4 px-4">
+                              <div className="flex items-center gap-2">
+                                {rank === 1 ? (
+                                  <div className="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                                    <Crown className="w-4 h-4 text-yellow-500" />
+                                  </div>
+                                ) : rank === 2 ? (
+                                  <div className="w-8 h-8 rounded-full bg-gray-400/20 flex items-center justify-center">
+                                    <Medal className="w-4 h-4 text-gray-400" />
+                                  </div>
+                                ) : rank === 3 ? (
+                                  <div className="w-8 h-8 rounded-full bg-amber-600/20 flex items-center justify-center">
+                                    <Medal className="w-4 h-4 text-amber-600" />
+                                  </div>
+                                ) : (
+                                  <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center text-sm font-bold">
+                                    {rank}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4">
+                              <span className={`font-semibold ${isCurrentUser ? "text-primary" : ""}`}>
+                                {getDisplayName(participant)}
+                                {isCurrentUser && <span className="text-xs ml-2 text-primary">(You)</span>}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              <span className={`font-bold text-lg ${
+                                rank === 1 ? "text-yellow-500" : 
+                                rank === 2 ? "text-gray-400" : 
+                                rank === 3 ? "text-amber-600" : ""
+                              }`}>
+                                {participant.total_marks}/300
+                              </span>
+                            </td>
+                          </motion.tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+
+                {participants.filter(p => p.submitted_at).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No submissions yet
+                  </div>
+                )}
+              </div>
+            </Card>
+          </motion.div>
+        )}
+
+        {/* Registered but not submitted - show registered list */}
+        {contestStatus !== "results" && participants.length > 0 && !participants.some(p => p.submitted_at) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="mt-8 max-w-4xl mx-auto"
           >
             <Card className="p-6">
               <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                <Medal className="w-5 h-5 text-yellow-500" />
-                {contestStatus === "results" ? "Final Leaderboard" : "Registered Participants"}
+                <Users className="w-5 h-5 text-primary" />
+                Registered Participants ({participants.length})
               </h3>
 
-              <div className="space-y-2">
-                {participants.slice(0, 10).map((participant, index) => (
-                  <motion.div
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {participants.slice(0, 12).map((participant, index) => (
+                  <div 
                     key={participant.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * index }}
-                    className={`flex items-center justify-between p-3 rounded-lg ${
+                    className={`p-3 rounded-lg ${
                       participant.user_id === userId 
-                        ? "bg-orange-500/20 border border-orange-500/50" 
+                        ? "bg-primary/20 border border-primary/30" 
                         : "bg-muted/50"
                     }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
-                        index === 0 ? "bg-yellow-500 text-black" :
-                        index === 1 ? "bg-gray-300 text-black" :
-                        index === 2 ? "bg-amber-700 text-white" :
-                        "bg-muted text-muted-foreground"
-                      }`}>
-                        {contestStatus === "results" && participant.rank 
-                          ? participant.rank 
-                          : index + 1}
-                      </div>
-                      <div>
-                        <p className="font-medium">{participant.display_name}</p>
-                        {participant.submitted_at && (
-                          <p className="text-xs text-muted-foreground">
-                            Submitted
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {contestStatus === "results" && (
-                      <div className="text-right">
-                        <p className="font-bold text-lg">{participant.total_marks}</p>
-                        <p className="text-xs text-muted-foreground">/300</p>
-                      </div>
-                    )}
-                  </motion.div>
+                    <span className="font-medium text-sm">{getDisplayName(participant)}</span>
+                  </div>
                 ))}
-
-                {participants.length > 10 && (
-                  <p className="text-center text-muted-foreground text-sm pt-2">
-                    +{participants.length - 10} more participants
-                  </p>
-                )}
-
-                {participants.length === 0 && (
-                  <p className="text-center text-muted-foreground py-4">
-                    No participants yet. Be the first to join!
-                  </p>
+                {participants.length > 12 && (
+                  <div className="p-3 rounded-lg bg-muted/30 flex items-center justify-center">
+                    <span className="text-muted-foreground text-sm">+{participants.length - 12} more</span>
+                  </div>
                 )}
               </div>
             </Card>
