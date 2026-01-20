@@ -13,9 +13,19 @@ serve(async (req) => {
   try {
     const { userPrompt, conversationHistory, questionText, options, correctAnswer, solution } = await req.json();
     
-    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
-    if (!GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    // Smart options handling - convert to string regardless of type
+    let optionsText = '';
+    if (Array.isArray(options)) {
+      optionsText = options.join(', ');
+    } else if (typeof options === 'object' && options !== null) {
+      optionsText = Object.values(options).join(', ');
+    } else if (typeof options === 'string') {
+      optionsText = options;
     }
 
     // Build system prompt with question context
@@ -23,7 +33,7 @@ serve(async (req) => {
 
 CURRENT QUESTION CONTEXT:
 Question: ${questionText || "Not provided"}
-Options: ${options ? JSON.stringify(options) : "Not provided"}
+Options: ${optionsText || "Not provided"}
 Correct Answer: ${correctAnswer || "Not provided"}
 Solution: ${solution || "Not provided"}
 
@@ -35,69 +45,61 @@ INSTRUCTIONS:
 5. Provide hints rather than direct answers when appropriate
 6. Break down complex problems into smaller steps
 7. Use analogies and real-world examples when helpful
-8. Keep responses concise but thorough`;
+8. Keep responses concise but thorough
+9. Always respond in a friendly, encouraging tone
+10. If asked to "solve", provide a complete step-by-step solution`;
 
-    // Build conversation for Gemini
-    const contents = [];
-    
-    // Add system instruction as first user turn
-    contents.push({
-      role: "user",
-      parts: [{ text: systemPrompt + "\n\nPlease acknowledge and begin helping." }]
-    });
-    contents.push({
-      role: "model", 
-      parts: [{ text: "I understand. I'm PARTH, your JEE tutor AI. I'm ready to help you with this question. What would you like to know?" }]
-    });
+    // Build messages for Lovable AI Gateway
+    const messages = [
+      { role: "system", content: systemPrompt }
+    ];
 
     // Add conversation history
     if (conversationHistory && conversationHistory.length > 0) {
       for (const msg of conversationHistory) {
-        contents.push({
-          role: msg.role === "user" ? "user" : "model",
-          parts: [{ text: msg.content }]
+        messages.push({
+          role: msg.role === "assistant" ? "assistant" : "user",
+          content: msg.content
         });
       }
     }
 
     // Add current user message
-    contents.push({
-      role: "user",
-      parts: [{ text: userPrompt }]
-    });
+    messages.push({ role: "user", content: userPrompt });
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 2048,
-          },
-        }),
-      }
-    );
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages,
+      }),
+    });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Gemini API error:", response.status, errorText);
+      console.error("Lovable AI Gateway error:", response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw new Error(`Gemini API error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted. Please try again later." }), {
+          status: 402,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      throw new Error(`AI Gateway error: ${response.status}`);
     }
 
     const data = await response.json();
-    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate a response.";
+    const reply = data.choices?.[0]?.message?.content || "Sorry, I couldn't generate a response.";
 
     return new Response(JSON.stringify({ reply }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
