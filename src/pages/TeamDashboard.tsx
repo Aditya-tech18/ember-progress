@@ -14,7 +14,7 @@ import {
   Users, Crown, Zap, Trophy, Plus, 
   UserPlus, Swords, Target, Calendar, CheckCircle,
   ChevronRight, Medal, Star, Flame, Eye, X,
-  Bell, Shield, AlertCircle, Lock
+  Bell, Shield, AlertCircle, Lock, LogOut
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, nextSunday, setHours, setMinutes } from "date-fns";
@@ -96,6 +96,8 @@ const TeamDashboard = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [showNoTeamView, setShowNoTeamView] = useState(false);
+  const [showLeaveDialog, setShowLeaveDialog] = useState(false);
+  const [isLeaving, setIsLeaving] = useState(false);
 
   // Check subscription access
   if (!subLoading && !hasAccess) {
@@ -535,6 +537,41 @@ const TeamDashboard = () => {
     }
   };
 
+  const handleLeaveTeam = async () => {
+    if (!userId || !userTeam) return;
+
+    setIsLeaving(true);
+    try {
+      const { error } = await supabase
+        .from("team_members")
+        .delete()
+        .eq("user_id", userId)
+        .eq("team_id", userTeam.team_id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Left team successfully",
+        description: "You have left the team. You can join or create a new one.",
+      });
+
+      setUserTeam(null);
+      setTeamMembers([]);
+      setChallenges([]);
+      setShowNoTeamView(true);
+      setShowLeaveDialog(false);
+      await fetchAllTeams();
+    } catch (error) {
+      console.error("Error leaving team:", error);
+      toast({
+        title: "Failed to leave team",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLeaving(false);
+    }
+  };
+
   const getLeader = () => {
     if (teamMembers.length === 0) return null;
     return teamMembers.reduce((prev, current) => 
@@ -672,7 +709,7 @@ const TeamDashboard = () => {
           /* Team Dashboard */
           <>
             {/* Quick Actions Bar */}
-            <div className="flex justify-center gap-3 mb-6">
+            <div className="flex justify-center gap-3 mb-6 flex-wrap">
               <Button 
                 variant="outline" 
                 onClick={() => setShowTeamsDialog(true)}
@@ -694,6 +731,44 @@ const TeamDashboard = () => {
                   </span>
                 )}
               </Button>
+              <Dialog open={showLeaveDialog} onOpenChange={setShowLeaveDialog}>
+                <DialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="gap-2 border-red-500/50 text-red-500 hover:bg-red-500/10"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Leave Team
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Leave Team?</DialogTitle>
+                  </DialogHeader>
+                  <div className="pt-4 space-y-4">
+                    <p className="text-muted-foreground">
+                      Are you sure you want to leave <span className="font-bold text-foreground">{userTeam?.team_name}</span>? 
+                      You'll lose access to team challenges and battle history.
+                    </p>
+                    <div className="flex gap-3">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setShowLeaveDialog(false)}
+                        className="flex-1"
+                      >
+                        Cancel
+                      </Button>
+                      <Button 
+                        onClick={handleLeaveTeam}
+                        disabled={isLeaving}
+                        className="flex-1 bg-red-500 hover:bg-red-600"
+                      >
+                        {isLeaving ? "Leaving..." : "Leave Team"}
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
 
             <Tabs defaultValue="team" className="space-y-6">
