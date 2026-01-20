@@ -23,8 +23,8 @@ const mockTests = [
 const Index = () => {
   return (
     <div className="min-h-screen pt-14">
-      <NoticeBanner />
       <DownloadAppBanner />
+      <NoticeBanner />
       <Navbar />
       <CombatNameModal />
       <HeroSection />
