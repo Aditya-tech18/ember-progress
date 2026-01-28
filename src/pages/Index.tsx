@@ -10,6 +10,7 @@ import { DownloadAppBanner } from "@/components/DownloadAppBanner";
 import { GameCards } from "@/components/GameCards";
 import { NoticeBanner } from "@/components/NoticeBanner";
 import { CombatNameModal } from "@/components/CombatNameModal";
+import { SocialFeedButton } from "@/components/social/SocialFeedButton";
 
 const trendingPYQs = [
   { id: "1", title: "JEE Main 2024", subtitle: "All Subjects PYQs", image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=600&fit=crop", duration: "2000+ Qs", trending: true, year: 2024, type: "pyq" as const },
@@ -27,6 +28,7 @@ const Index = () => {
       <NoticeBanner />
       <Navbar />
       <CombatNameModal />
+      <SocialFeedButton />
       <HeroSection />
       <ProgressSection />
       <CategoryPills />
