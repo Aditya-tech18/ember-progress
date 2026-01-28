@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator, Play, Zap, X } from "lucide-react";
+import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator, Play, Zap, X, PenSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityHeatmap } from "./ActivityHeatmap";
+import { CreatePostModal } from "./social/CreatePostModal";
 
 export const HeroSection = () => {
   const navigate = useNavigate();
   const [showHeatmap, setShowHeatmap] = useState(false);
+  const [showCreatePost, setShowCreatePost] = useState(false);
 
   const handleStartPracticing = () => {
     // Navigate to first subject by default, or show subject selector
@@ -122,6 +124,15 @@ export const HeroSection = () => {
               <BarChart3 className="w-5 h-5 mr-2" />
               View Progress
             </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => setShowCreatePost(true)}
+              className="w-full sm:w-auto border-primary/50 bg-primary/10 hover:bg-primary/20 text-foreground font-semibold px-8 py-6 text-lg rounded-xl hover:border-primary transition-colors"
+            >
+              <PenSquare className="w-5 h-5 mr-2" />
+              Share Achievement
+            </Button>
           </motion.div>
 
           {/* Heatmap Modal */}
@@ -156,6 +167,13 @@ export const HeroSection = () => {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Create Post Modal */}
+          <CreatePostModal
+            isOpen={showCreatePost}
+            onClose={() => setShowCreatePost(false)}
+            onPostCreated={() => {}}
+          />
 
           {/* Stats */}
           <motion.div
