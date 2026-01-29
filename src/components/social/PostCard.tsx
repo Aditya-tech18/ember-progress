@@ -1,8 +1,24 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Flame, MessageCircle, Share2, MoreHorizontal, Loader2 } from "lucide-react";
+import { Flame, MessageCircle, Share2, MoreHorizontal, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
@@ -30,15 +46,22 @@ interface PostCardProps {
   onRefresh: () => void;
   onProfileClick: (userId: string) => void;
   currentUserId?: string;
+  currentUserEmail?: string;
 }
 
-export const PostCard = ({ post, onRefresh, onProfileClick, currentUserId }: PostCardProps) => {
+export const PostCard = ({ post, onRefresh, onProfileClick, currentUserId, currentUserEmail }: PostCardProps) => {
   const [isLiking, setIsLiking] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [localLiked, setLocalLiked] = useState(post.is_liked);
   const [localLikesCount, setLocalLikesCount] = useState(post.likes_count);
   const { toast } = useToast();
 
+  const ADMIN_EMAILS = ['tomacwin9961@gmail.com', 'prepixo.official@gmail.com'];
+  const isAdmin = currentUserEmail && ADMIN_EMAILS.includes(currentUserEmail);
+  const isOwner = currentUserId === post.user.id;
+  const canDelete = isOwner || isAdmin;
   const handleLike = async () => {
     if (!currentUserId) {
       toast({
@@ -100,6 +123,36 @@ export const PostCard = ({ post, onRefresh, onProfileClick, currentUserId }: Pos
     }
   };
 
+  const handleDelete = async () => {
+    if (!canDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      // Delete the post (RLS policy handles admin check)
+      const { error } = await supabase
+        .from("posts")
+        .delete()
+        .eq("id", post.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Post deleted",
+        description: "The post has been removed",
+      });
+      onRefresh();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting post",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   const handleShare = async () => {
     try {
       await navigator.share({
@@ -142,9 +195,28 @@ export const PostCard = ({ post, onRefresh, onProfileClick, currentUserId }: Pos
             </p>
           </div>
         </button>
-        <Button variant="ghost" size="icon" className="rounded-full">
-          <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
-        </Button>
+        {canDelete ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-card border-border/50">
+              <DropdownMenuItem 
+                onClick={() => setShowDeleteDialog(true)}
+                className="text-destructive focus:text-destructive cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {isAdmin && !isOwner ? "Delete (Admin)" : "Delete Post"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button variant="ghost" size="icon" className="rounded-full">
+            <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
+          </Button>
+        )}
       </div>
 
       {/* Content */}
@@ -227,6 +299,33 @@ export const PostCard = ({ post, onRefresh, onProfileClick, currentUserId }: Pos
           onRefresh={onRefresh}
         />
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="bg-card border-border/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Post</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this post? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border/50">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="w-4 h-4 mr-2" />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </motion.div>
   );
 };
