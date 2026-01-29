@@ -36,8 +36,12 @@ export const PostCloudModal = ({ isOpen, onClose }: PostCloudModalProps) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [combatNameSearch, setCombatNameSearch] = useState("");
+  const [showCombatSuggestions, setShowCombatSuggestions] = useState(false);
+  const [combatSuggestions, setCombatSuggestions] = useState<{ id: string; combat_name: string }[]>([]);
   const [activeFilter, setActiveFilter] = useState<FeedFilter>("latest");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -78,6 +82,28 @@ export const PostCloudModal = ({ isOpen, onClose }: PostCloudModalProps) => {
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     setCurrentUserId(user?.id || null);
+    setCurrentUserEmail(user?.email || null);
+  };
+
+  // Search combat names with live filtering
+  const searchCombatNames = async (query: string) => {
+    if (query.length < 2) {
+      setCombatSuggestions([]);
+      setShowCombatSuggestions(false);
+      return;
+    }
+    
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, combat_name")
+      .ilike("combat_name", `%${query}%`)
+      .limit(10);
+
+    if (!error && data) {
+      const filtered = data.filter(u => u.combat_name) as { id: string; combat_name: string }[];
+      setCombatSuggestions(filtered);
+      setShowCombatSuggestions(filtered.length > 0);
+    }
   };
 
   const fetchUnreadCount = async () => {
@@ -243,11 +269,47 @@ export const PostCloudModal = ({ isOpen, onClose }: PostCloudModalProps) => {
               </div>
             </div>
 
-            {/* Search */}
+            {/* Combat Name Search */}
+            <div className="relative mb-3">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search combat names..."
+                value={combatNameSearch}
+                onChange={(e) => {
+                  setCombatNameSearch(e.target.value);
+                  searchCombatNames(e.target.value);
+                }}
+                className="pl-10 bg-muted/30 border-border/30"
+              />
+              
+              {/* Combat Name Suggestions Dropdown */}
+              {showCombatSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border/50 rounded-lg shadow-xl z-20 max-h-48 overflow-y-auto">
+                  {combatSuggestions.map((user) => (
+                    <button
+                      key={user.id}
+                      onClick={() => {
+                        setSelectedProfileId(user.id);
+                        setCombatNameSearch("");
+                        setShowCombatSuggestions(false);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors text-left"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-crimson flex items-center justify-center text-primary-foreground text-sm font-bold">
+                        {user.combat_name?.[0]?.toUpperCase()}
+                      </div>
+                      <span className="font-medium text-foreground">{user.combat_name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Post Content Search */}
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search posts or combat names..."
+                placeholder="Search posts by content..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 bg-muted/30 border-border/30"
@@ -303,6 +365,7 @@ export const PostCloudModal = ({ isOpen, onClose }: PostCloudModalProps) => {
                   onRefresh={fetchPosts}
                   onProfileClick={setSelectedProfileId}
                   currentUserId={currentUserId || undefined}
+                  currentUserEmail={currentUserEmail || undefined}
                 />
               ))}
             </div>
