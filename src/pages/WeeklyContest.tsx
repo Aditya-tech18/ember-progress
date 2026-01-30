@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSubscription } from "@/hooks/useSubscription";
+import { UserProfileModal } from "@/components/social/UserProfileModal";
 import { 
   Trophy, Clock, Users, Medal, Crown, 
   Play, Lock, CheckCircle, AlertCircle, Timer,
@@ -52,6 +53,8 @@ const WeeklyContest = () => {
   const [isTester, setIsTester] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [combatNames, setCombatNames] = useState<Record<string, string>>({});
+  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     fetchContestData();
@@ -273,6 +276,13 @@ const WeeklyContest = () => {
       return combatNames[participant.user_id];
     }
     return participant.display_name;
+  };
+
+  const handleProfileClick = (participantUserId: string | null) => {
+    if (participantUserId && contestStatus === "results") {
+      setSelectedProfileId(participantUserId);
+      setShowProfileModal(true);
+    }
   };
 
   // Check subscription access
@@ -626,10 +636,18 @@ const WeeklyContest = () => {
                               </div>
                             </td>
                             <td className="py-4 px-4">
-                              <span className={`font-semibold ${isCurrentUser ? "text-primary" : ""}`}>
+                              <button
+                                onClick={() => handleProfileClick(participant.user_id)}
+                                className={`font-semibold ${isCurrentUser ? "text-primary" : ""} ${
+                                  contestStatus === "results" && participant.user_id
+                                    ? "hover:text-primary cursor-pointer underline-offset-2 hover:underline"
+                                    : ""
+                                }`}
+                                disabled={contestStatus !== "results" || !participant.user_id}
+                              >
                                 {getDisplayName(participant)}
                                 {isCurrentUser && <span className="text-xs ml-2 text-primary">(You)</span>}
-                              </span>
+                              </button>
                             </td>
                             <td className="py-4 px-4 text-right">
                               <span className={`font-bold text-lg ${
@@ -693,6 +711,18 @@ const WeeklyContest = () => {
           </motion.div>
         )}
       </div>
+
+      {/* User Profile Modal */}
+      {selectedProfileId && (
+        <UserProfileModal
+          userId={selectedProfileId}
+          isOpen={showProfileModal}
+          onClose={() => {
+            setShowProfileModal(false);
+            setSelectedProfileId(null);
+          }}
+        />
+      )}
     </div>
   );
 };

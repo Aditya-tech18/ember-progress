@@ -16,7 +16,11 @@ import {
   Loader2,
   ArrowLeft,
   Shield,
+  Gift,
+  Share2,
+  Copy,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 declare global {
   interface Window {
@@ -27,6 +31,19 @@ declare global {
 const RAZORPAY_KEY = "rzp_live_S2pjg3bXzQnV1q";
 
 const plans = [
+  {
+    name: "Trial Plan",
+    description: "Try Prepixo for a day! 🎯",
+    duration: "1 day",
+    months: 0,
+    days: 1,
+    amount: 100, // paise (₹1)
+    price: "₹1",
+    oldPrice: "₹9",
+    icon: Zap,
+    popular: false,
+    isTrial: true,
+  },
   {
     name: "Start Your Big Journey",
     description: "Begin small, dream big! 🚀",
@@ -86,6 +103,11 @@ const Subscription = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<string | null>(null);
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [applyingReferral, setApplyingReferral] = useState(false);
+  const [referralApplied, setReferralApplied] = useState<string | null>(null);
+  const [userReferralCode, setUserReferralCode] = useState<string | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
 
   useEffect(() => {
     // Load Razorpay script
@@ -95,12 +117,253 @@ const Subscription = () => {
     script.onload = () => setRazorpayLoaded(true);
     document.body.appendChild(script);
 
+    // Fetch user's referral code if they have one
+    fetchUserReferralCode();
+
     return () => {
       document.body.removeChild(script);
     };
   }, []);
 
+  const fetchUserReferralCode = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("referral_codes")
+      .select("code")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (data) {
+      setUserReferralCode(data.code);
+    }
+  };
+
+  const generateUserReferralCode = async () => {
+    setGeneratingCode(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please login first");
+        return;
+      }
+
+      // Check if user has an active subscription
+      const { data: subData } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("valid_until", new Date().toISOString())
+        .maybeSingle();
+
+      if (!subData) {
+        toast.error("You need an active subscription to generate a referral code");
+        return;
+      }
+
+      // Check if user has combat name
+      const { data: userData } = await supabase
+        .from("users")
+        .select("combat_name")
+        .eq("id", user.id)
+        .single();
+
+      if (!userData?.combat_name) {
+        toast.error("Please set your combat name first");
+        return;
+      }
+
+      // Generate code using the database function
+      const { data: codeData, error } = await supabase.rpc("generate_referral_code", {
+        p_user_id: user.id,
+      });
+
+      if (error) throw error;
+
+      // Insert the code
+      const { error: insertError } = await supabase
+        .from("referral_codes")
+        .insert({
+          user_id: user.id,
+          code: codeData,
+          uses_remaining: 1,
+        });
+
+      if (insertError) throw insertError;
+
+      setUserReferralCode(codeData);
+      toast.success("Referral code generated! Share it with friends.");
+    } catch (error: any) {
+      console.error("Error generating code:", error);
+      toast.error(error.message || "Failed to generate code");
+    } finally {
+      setGeneratingCode(false);
+    }
+  };
+
+  const applyReferralCode = async () => {
+    if (!referralCode.trim()) {
+      toast.error("Please enter a referral code");
+      return;
+    }
+
+    setApplyingReferral(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please login first");
+        navigate("/auth");
+        return;
+      }
+
+      // Check if user already used a referral code
+      const { data: existingReward } = await supabase
+        .from("referral_rewards")
+        .select("id")
+        .eq("referred_id", user.id)
+        .maybeSingle();
+
+      if (existingReward) {
+        toast.error("You have already used a referral code");
+        return;
+      }
+
+      // Find the referral code
+      const { data: codeData, error: codeError } = await supabase
+        .from("referral_codes")
+        .select("*")
+        .eq("code", referralCode.trim())
+        .maybeSingle();
+
+      if (codeError || !codeData) {
+        toast.error("Invalid referral code");
+        return;
+      }
+
+      if (codeData.uses_remaining <= 0) {
+        toast.error("This referral code has already been used");
+        return;
+      }
+
+      if (codeData.user_id === user.id) {
+        toast.error("You cannot use your own referral code");
+        return;
+      }
+
+      setReferralApplied(referralCode.trim());
+      toast.success("Referral code applied! You'll get 1 month free access.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to apply code");
+    } finally {
+      setApplyingReferral(false);
+    }
+  };
+
+  const processReferralReward = async (userId: string, referralCodeUsed: string) => {
+    try {
+      // Find the referral code
+      const { data: codeData } = await supabase
+        .from("referral_codes")
+        .select("*")
+        .eq("code", referralCodeUsed)
+        .single();
+
+      if (!codeData) return;
+
+      // Create referral reward entry
+      await supabase.from("referral_rewards").insert({
+        referrer_id: codeData.user_id,
+        referred_id: userId,
+        referral_code: referralCodeUsed,
+        referrer_months_awarded: 3,
+        referred_months_awarded: 1,
+      });
+
+      // Update the code as used
+      await supabase
+        .from("referral_codes")
+        .update({
+          uses_remaining: 0,
+          used_by: userId,
+          used_at: new Date().toISOString(),
+        })
+        .eq("id", codeData.id);
+
+      // Give referred user 1 month free (9rs plan)
+      const now = new Date();
+      const validUntil = new Date(now);
+      validUntil.setMonth(validUntil.getMonth() + 1);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from("subscriptions").upsert({
+        user_id: userId,
+        email: user?.email || "",
+        plan_name: "Referral Bonus - 1 Month",
+        paid_on: now.toISOString(),
+        valid_until: validUntil.toISOString(),
+        payment_id: `referral_${referralCodeUsed}`,
+      }, { onConflict: "user_id" });
+
+      // Give referrer 3 months free
+      const { data: referrerSub } = await supabase
+        .from("subscriptions")
+        .select("valid_until")
+        .eq("user_id", codeData.user_id)
+        .maybeSingle();
+
+      const referrerValidFrom = referrerSub?.valid_until
+        ? new Date(referrerSub.valid_until)
+        : new Date();
+      
+      const referrerValidUntil = new Date(referrerValidFrom);
+      referrerValidUntil.setMonth(referrerValidUntil.getMonth() + 3);
+
+      const { data: referrerUser } = await supabase
+        .from("users")
+        .select("email")
+        .eq("id", codeData.user_id)
+        .single();
+
+      await supabase.from("subscriptions").upsert({
+        user_id: codeData.user_id,
+        email: referrerUser?.email || "",
+        plan_name: "Referral Reward - 3 Months",
+        paid_on: now.toISOString(),
+        valid_until: referrerValidUntil.toISOString(),
+        payment_id: `referral_reward_${Date.now()}`,
+      }, { onConflict: "user_id" });
+
+      toast.success("🎉 Referral applied! You got 1 month free.");
+    } catch (error) {
+      console.error("Error processing referral:", error);
+    }
+  };
+
   const handleSubscribe = async (plan: typeof plans[0]) => {
+    // If referral code is applied and not yet processed, process it
+    if (referralApplied) {
+      setLoading(plan.name);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("Please login first");
+          navigate("/auth");
+          return;
+        }
+
+        await processReferralReward(user.id, referralApplied);
+        setReferralApplied(null);
+        setReferralCode("");
+        navigate("/");
+      } catch (error: any) {
+        toast.error(error.message || "Failed to apply referral");
+      } finally {
+        setLoading(null);
+      }
+      return;
+    }
+
     setLoading(plan.name);
 
     try {
@@ -130,7 +393,13 @@ const Subscription = () => {
             // Payment successful - save subscription
             const now = new Date();
             const validUntil = new Date(now);
-            validUntil.setMonth(validUntil.getMonth() + plan.months);
+            
+            // Handle trial plan (1 day) vs regular plans (months)
+            if ((plan as any).isTrial) {
+              validUntil.setDate(validUntil.getDate() + ((plan as any).days || 1));
+            } else {
+              validUntil.setMonth(validUntil.getMonth() + plan.months);
+            }
 
             const { error } = await supabase
               .from("subscriptions")
@@ -242,8 +511,115 @@ const Subscription = () => {
             </div>
           </motion.div>
 
+          {/* Referral Code Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="glass-card p-6 rounded-2xl mb-10 max-w-xl mx-auto"
+          >
+            <h3 className="text-lg font-semibold text-foreground mb-4 text-center flex items-center justify-center gap-2">
+              <Gift className="w-5 h-5 text-primary" />
+              Have a Referral Code?
+            </h3>
+            {referralApplied ? (
+              <div className="text-center">
+                <div className="bg-success/20 border border-success/30 rounded-lg p-4 mb-4">
+                  <Check className="w-8 h-8 text-success mx-auto mb-2" />
+                  <p className="text-success font-medium">Code Applied: {referralApplied}</p>
+                  <p className="text-sm text-muted-foreground">You'll get 1 month free access!</p>
+                </div>
+                <Button
+                  onClick={async () => {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user && referralApplied) {
+                      await processReferralReward(user.id, referralApplied);
+                      navigate("/");
+                    }
+                  }}
+                  className="bg-gradient-to-r from-primary to-crimson"
+                >
+                  Claim Free Access
+                </Button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter referral code"
+                  value={referralCode}
+                  onChange={(e) => setReferralCode(e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  onClick={applyReferralCode}
+                  disabled={applyingReferral || !referralCode.trim()}
+                  variant="outline"
+                >
+                  {applyingReferral ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
+                </Button>
+              </div>
+            )}
+          </motion.div>
+
+          {/* Your Referral Code Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="glass-card p-6 rounded-2xl mb-10 max-w-xl mx-auto"
+          >
+            <h3 className="text-lg font-semibold text-foreground mb-4 text-center flex items-center justify-center gap-2">
+              <Share2 className="w-5 h-5 text-primary" />
+              Share & Earn
+            </h3>
+            {userReferralCode ? (
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-2">Your Referral Code:</p>
+                <div className="bg-primary/20 border border-primary/30 rounded-lg p-4 mb-4">
+                  <p className="text-2xl font-bold text-primary">{userReferralCode}</p>
+                </div>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Share this code with friends! When they use it, you get 3 months free and they get 1 month free.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(userReferralCode);
+                    toast.success("Copied to clipboard!");
+                  }}
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Code
+                </Button>
+              </div>
+            ) : (
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground mb-4">
+                  Generate your referral code to earn 3 months free when friends subscribe!
+                </p>
+                <Button
+                  onClick={generateUserReferralCode}
+                  disabled={generatingCode}
+                  className="bg-gradient-to-r from-primary to-crimson"
+                >
+                  {generatingCode ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Gift className="w-4 h-4 mr-2" />
+                      Generate Referral Code
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </motion.div>
+
           {/* Plans */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 max-w-7xl mx-auto">
             {plans.map((plan, index) => (
               <motion.div
                 key={plan.name}
