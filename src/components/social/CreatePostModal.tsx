@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Image, Send, AtSign, Loader2 } from "lucide-react";
+import { X, Image, Send, AtSign, Loader2, Lock, Crown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -20,6 +22,9 @@ interface UserSuggestion {
 }
 
 export const CreatePostModal = ({ isOpen, onClose, onPostCreated }: CreatePostModalProps) => {
+  const navigate = useNavigate();
+  const { hasAccess, loading: subLoading } = useSubscription();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [content, setContent] = useState("");
   const [caption, setCaption] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -31,6 +36,16 @@ export const CreatePostModal = ({ isOpen, onClose, onPostCreated }: CreatePostMo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
+    };
+    if (isOpen) {
+      checkAuth();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     if (tagSearch.length >= 2) {
@@ -190,6 +205,60 @@ export const CreatePostModal = ({ isOpen, onClose, onPostCreated }: CreatePostMo
   };
 
   if (!isOpen) return null;
+
+  // Show login/subscribe prompt if user doesn't have access
+  if (isLoggedIn === false || (!subLoading && !hasAccess)) {
+    return (
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={onClose}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-card border border-border/50 rounded-2xl overflow-hidden p-8 text-center"
+          >
+            <Lock className="w-16 h-16 text-primary mx-auto mb-4" />
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              {isLoggedIn === false ? "Login Required" : "Premium Feature"}
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              {isLoggedIn === false
+                ? "Please login or sign up to share your achievements with the community."
+                : "Become a Prepixo member to share achievements and connect with fellow JEE aspirants!"}
+            </p>
+            <div className="flex flex-col gap-3">
+              <Button
+                onClick={() => {
+                  onClose();
+                  navigate(isLoggedIn === false ? "/auth" : "/subscription");
+                }}
+                className="bg-gradient-to-r from-primary to-crimson text-white"
+              >
+                {isLoggedIn === false ? (
+                  "Login / Sign Up"
+                ) : (
+                  <>
+                    <Crown className="w-4 h-4 mr-2" />
+                    Subscribe Now
+                  </>
+                )}
+              </Button>
+              <Button variant="ghost" onClick={onClose}>
+                Maybe Later
+              </Button>
+            </div>
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    );
+  }
 
   return (
     <AnimatePresence>

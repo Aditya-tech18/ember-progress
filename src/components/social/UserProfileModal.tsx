@@ -124,6 +124,41 @@ export const UserProfileModal = ({ userId, isOpen, onClose }: UserProfileModalPr
     }
   };
 
+  const generateMonthlyHeatmapGrid = () => {
+    const months = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Generate last 6 months
+    for (let m = 5; m >= 0; m--) {
+      const monthDate = new Date(today.getFullYear(), today.getMonth() - m, 1);
+      const monthName = monthDate.toLocaleString('default', { month: 'short' });
+      const year = monthDate.getFullYear();
+      const daysInMonth = new Date(year, monthDate.getMonth() + 1, 0).getDate();
+      
+      const days = [];
+      for (let d = 1; d <= daysInMonth; d++) {
+        const date = new Date(year, monthDate.getMonth(), d);
+        if (date > today) continue; // Skip future dates
+        
+        const dateStr = date.toISOString().split("T")[0];
+        const count = heatmapData[dateStr] || 0;
+        
+        let intensity = 0;
+        if (count >= 10) intensity = 4;
+        else if (count >= 6) intensity = 3;
+        else if (count >= 3) intensity = 2;
+        else if (count >= 1) intensity = 1;
+        
+        days.push({ date: dateStr, count, intensity, day: d });
+      }
+      
+      months.push({ name: monthName, year, days });
+    }
+    
+    return months;
+  };
+
   const generateHeatmapGrid = () => {
     const weeks = [];
     const today = new Date();
@@ -261,25 +296,33 @@ export const UserProfileModal = ({ userId, isOpen, onClose }: UserProfileModalPr
                   </div>
                 </div>
 
-                {/* Heatmap */}
+                {/* Monthly Heatmap */}
                 <div className="space-y-3">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    Consistency Tracker
+                    Consistency Tracker (Month-wise)
                   </h3>
-                  <div className="bg-muted/20 rounded-xl p-4">
-                    <div className="flex gap-1 justify-center">
-                      {generateHeatmapGrid().map((week, weekIndex) => (
-                        <div key={weekIndex} className="flex flex-col gap-1">
-                          {week.map((day, dayIndex) => (
+                  <div className="bg-muted/20 rounded-xl p-4 space-y-4">
+                    {generateMonthlyHeatmapGrid().map((month, monthIndex) => (
+                      <div key={monthIndex} className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-medium text-muted-foreground">
+                            {month.name} {month.year}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {month.days.reduce((sum, d) => sum + d.count, 0)} solved
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {month.days.map((day, dayIndex) => (
                             <div
-                              key={`${weekIndex}-${dayIndex}`}
+                              key={dayIndex}
                               className={`w-3 h-3 rounded-sm ${getIntensityColor(day.intensity)}`}
                               title={`${day.date}: ${day.count} questions`}
                             />
                           ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
                     <div className="flex items-center justify-end gap-2 mt-3 text-xs text-muted-foreground">
                       <span>Less</span>
                       <div className="flex gap-1">

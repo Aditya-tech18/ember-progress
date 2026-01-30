@@ -506,6 +506,96 @@ export type Database = {
           },
         ]
       }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          used_at: string | null
+          used_by: string | null
+          user_id: string
+          uses_remaining: number | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          used_at?: string | null
+          used_by?: string | null
+          user_id: string
+          uses_remaining?: number | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          used_at?: string | null
+          used_by?: string | null
+          user_id?: string
+          uses_remaining?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_codes_used_by_fkey"
+            columns: ["used_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_codes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_rewards: {
+        Row: {
+          created_at: string | null
+          id: string
+          referral_code: string
+          referred_id: string
+          referred_months_awarded: number | null
+          referrer_id: string
+          referrer_months_awarded: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          referral_code: string
+          referred_id: string
+          referred_months_awarded?: number | null
+          referrer_id: string
+          referrer_months_awarded?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          referral_code?: string
+          referred_id?: string
+          referred_months_awarded?: number | null
+          referrer_id?: string
+          referrer_months_awarded?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_rewards_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_rewards_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_notifications: {
         Row: {
           comment_id: string | null
@@ -1019,6 +1109,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: { Args: { p_user_id: string }; Returns: string }
       get_submissions_grouped: {
         Args: { p_start_date: string }
         Returns: {
