@@ -160,6 +160,91 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_aggregates: {
+        Row: {
+          completion_score: number | null
+          created_at: string | null
+          date: string
+          focus_minutes: number | null
+          id: string
+          pyqs_solved: number | null
+          tasks_completed: number | null
+          tasks_total: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completion_score?: number | null
+          created_at?: string | null
+          date: string
+          focus_minutes?: number | null
+          id?: string
+          pyqs_solved?: number | null
+          tasks_completed?: number | null
+          tasks_total?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completion_score?: number | null
+          created_at?: string | null
+          date?: string
+          focus_minutes?: number | null
+          id?: string
+          pyqs_solved?: number | null
+          tasks_completed?: number | null
+          tasks_total?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_aggregates_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      focus_sessions: {
+        Row: {
+          completed_at: string | null
+          duration_minutes: number | null
+          focus_points: number | null
+          id: string
+          started_at: string | null
+          subject: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          duration_minutes?: number | null
+          focus_points?: number | null
+          id?: string
+          started_at?: string | null
+          subject?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          duration_minutes?: number | null
+          focus_points?: number | null
+          id?: string
+          started_at?: string | null
+          subject?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "focus_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mock_test_results: {
         Row: {
           chemistry_correct: number
@@ -303,6 +388,56 @@ export type Database = {
           used?: boolean | null
         }
         Relationships: []
+      }
+      planner_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          due_date: string
+          id: string
+          is_backlog: boolean | null
+          original_date: string | null
+          status: string | null
+          subject: string
+          task_name: string
+          task_type: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          due_date: string
+          id?: string
+          is_backlog?: boolean | null
+          original_date?: string | null
+          status?: string | null
+          subject: string
+          task_name: string
+          task_type?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          due_date?: string
+          id?: string
+          is_backlog?: boolean | null
+          original_date?: string | null
+          status?: string | null
+          subject?: string
+          task_name?: string
+          task_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "planner_tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_comments: {
         Row: {
@@ -720,6 +855,60 @@ export type Database = {
         }
         Relationships: []
       }
+      syllabus_mastery: {
+        Row: {
+          chapter_id: string | null
+          chapter_name: string
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          mastery_status: string | null
+          next_revision_date: string | null
+          subject: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          chapter_id?: string | null
+          chapter_name: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          mastery_status?: string | null
+          next_revision_date?: string | null
+          subject: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          chapter_id?: string | null
+          chapter_name?: string
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          mastery_status?: string | null
+          next_revision_date?: string | null
+          subject?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "syllabus_mastery_chapter_id_fkey"
+            columns: ["chapter_id"]
+            isOneToOne: false
+            referencedRelation: "chapters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "syllabus_mastery_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_challenge_results: {
         Row: {
           challenge_id: string | null
@@ -1068,6 +1257,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_goals: {
+        Row: {
+          created_at: string | null
+          exam_date: string | null
+          id: string
+          target_exam: string | null
+          target_percentile: number | null
+          target_session: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          exam_date?: string | null
+          id?: string
+          target_exam?: string | null
+          target_percentile?: number | null
+          target_session?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          exam_date?: string | null
+          id?: string
+          target_exam?: string | null
+          target_percentile?: number | null
+          target_session?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_goals_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -1117,6 +1347,7 @@ export type Database = {
           submitted_date: string
         }[]
       }
+      migrate_backlog_tasks: { Args: never; Returns: undefined }
       update_contest_ranks: {
         Args: { p_contest_id: string }
         Returns: undefined

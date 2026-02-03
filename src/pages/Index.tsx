@@ -9,6 +9,7 @@ import { Footer } from "@/components/Footer";
 import { DownloadAppBanner } from "@/components/DownloadAppBanner";
 import { GameCards } from "@/components/GameCards";
 import { NoticeBanner } from "@/components/NoticeBanner";
+import { JeeCountdown } from "@/components/JeeCountdown";
 import { CombatNameModal } from "@/components/CombatNameModal";
 import { SocialFeedButton } from "@/components/social/SocialFeedButton";
 
@@ -23,12 +24,14 @@ const mockTests = [
 
 const Index = () => {
   return (
-    <div className="min-h-screen pt-14">
-      <DownloadAppBanner />
-      <NoticeBanner />
-      <Navbar />
-      <CombatNameModal />
-      <SocialFeedButton />
+    <div className="min-h-screen">
+      <JeeCountdown />
+      <div className="pt-14">
+        <DownloadAppBanner />
+        <NoticeBanner />
+        <Navbar />
+        <CombatNameModal />
+        <SocialFeedButton />
       <HeroSection />
       <ProgressSection />
       <CategoryPills />
@@ -36,8 +39,9 @@ const Index = () => {
       <ContentCarousel title="🔥 Trending PYQs" items={trendingPYQs} />
       <ContentCarousel title="📝 Mock Tests" items={mockTests} variant="large" />
       <SubjectsSection />
-      <RankSection />
-      <Footer />
+        <RankSection />
+        <Footer />
+      </div>
     </div>
   );
 };
