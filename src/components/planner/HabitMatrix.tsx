@@ -364,23 +364,28 @@ export const HabitMatrix = ({
 
       {/* Habit Matrix Grid */}
       <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border overflow-hidden">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h3 className="text-lg font-semibold">DAILY HABITS</h3>
-            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
-              {currentHabitCount}/{maxHabits} habits
-            </span>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
+        <div className="flex items-center gap-4 mb-4">
+          {/* Add Habit Button - Left side, colorful and prominent */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => setShowAddHabit(!showAddHabit)}
-            className="gap-2"
             disabled={currentHabitCount >= maxHabits}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg ${
+              currentHabitCount >= maxHabits
+                ? "bg-muted text-muted-foreground cursor-not-allowed"
+                : "bg-gradient-to-r from-primary to-orange hover:from-primary/90 hover:to-orange/90 text-primary-foreground"
+            }`}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
             Add Habit
-          </Button>
+          </motion.button>
+
+          <h3 className="text-lg font-semibold">DAILY HABITS</h3>
+          
+          <span className="text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border">
+            {currentHabitCount}/{maxHabits} habits
+          </span>
         </div>
 
         {/* Add Habit Form */}
