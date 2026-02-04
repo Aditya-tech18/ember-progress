@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Check, AlertCircle, Flame, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -257,197 +257,143 @@ export const HabitMatrix = ({
 
   return (
     <div className="space-y-6">
-      {/* Overview Section */}
-      <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border overflow-hidden">
-        <h3 className="text-lg font-semibold mb-4">OVERVIEW</h3>
-        
-        {/* Week Headers */}
-        <div className="overflow-x-auto">
-          <div className="min-w-[800px]">
-            {/* Week labels row */}
-            <div className="flex mb-2">
-              <div className="w-32 shrink-0" />
-              {weeks.map((week, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 text-center py-2 px-1 rounded-lg bg-gradient-to-r ${WEEK_COLORS[i]} mx-0.5`}
-                >
-                  <span className="text-xs font-semibold">WEEK {i + 1}</span>
-                </div>
-              ))}
-            </div>
+      {/* Habit Matrix Grid - Main Section */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm rounded-2xl p-6 border border-border shadow-lg overflow-hidden"
+      >
+        {/* Header with Add Button */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-4">
+            {/* Add Habit Button - Prominent with glow */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              animate={{
+                boxShadow: currentHabitCount >= maxHabits 
+                  ? "none" 
+                  : [
+                      "0 0 15px hsl(var(--primary) / 0.4)",
+                      "0 0 30px hsl(var(--primary) / 0.7)",
+                      "0 0 15px hsl(var(--primary) / 0.4)",
+                    ],
+              }}
+              transition={{
+                boxShadow: {
+                  duration: 1.5,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                },
+              }}
+              onClick={() => setShowAddHabit(!showAddHabit)}
+              disabled={currentHabitCount >= maxHabits}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all ${
+                currentHabitCount >= maxHabits
+                  ? "bg-muted text-muted-foreground cursor-not-allowed"
+                  : "bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 text-white hover:from-emerald-600 hover:via-teal-600 hover:to-emerald-600 shadow-lg"
+              }`}
+            >
+              <Plus className="h-5 w-5" />
+              <span>Add New Habit</span>
+            </motion.button>
 
-            {/* Day headers row */}
-            <div className="flex mb-1">
-              <div className="w-32 shrink-0" />
-              {daysInMonth.map((day, i) => (
-                <div
-                  key={day.date}
-                  className={`flex-1 text-center text-[10px] text-muted-foreground px-0.5 ${
-                    day.date === todayIST ? "bg-primary/20 rounded-t" : ""
-                  }`}
-                >
-                  <div className="font-medium">{day.dayOfWeek}</div>
-                  <div className="font-bold text-foreground">{day.dayNum}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Stats rows */}
-            <div className="space-y-1 text-xs">
-              {/* Global Progress */}
-              <div className="flex items-center py-2 bg-muted/30 rounded">
-                <div className="w-32 shrink-0 px-3 font-semibold">GLOBAL PROGRESS</div>
-                <div className="flex-1 text-center font-bold text-primary">
-                  {globalProgress.completed}/{globalProgress.total} ({globalProgress.percentage.toFixed(1)}%)
-                </div>
-              </div>
-
-              {/* Completed Row */}
-              <div className="flex items-center">
-                <div className="w-32 shrink-0 px-3 text-muted-foreground">COMPLETED</div>
-                {dailyStats.map((stat) => (
-                  <div
-                    key={stat.date}
-                    className={`flex-1 text-center ${stat.date === todayIST ? "bg-primary/10" : ""}`}
-                  >
-                    {stat.completed}
-                  </div>
-                ))}
-              </div>
-
-              {/* Goal Row */}
-              <div className="flex items-center">
-                <div className="w-32 shrink-0 px-3 text-muted-foreground">GOAL</div>
-                {dailyStats.map((stat) => (
-                  <div
-                    key={stat.date}
-                    className={`flex-1 text-center ${stat.date === todayIST ? "bg-primary/10" : ""}`}
-                  >
-                    {stat.goal}
-                  </div>
-                ))}
-              </div>
-
-              {/* Left Row */}
-              <div className="flex items-center">
-                <div className="w-32 shrink-0 px-3 text-muted-foreground">LEFT</div>
-                {dailyStats.map((stat) => (
-                  <div
-                    key={stat.date}
-                    className={`flex-1 text-center ${stat.date === todayIST ? "bg-primary/10" : ""} ${
-                      stat.left > 0 ? "text-destructive" : "text-green-400"
-                    }`}
-                  >
-                    {stat.left}
-                  </div>
-                ))}
-              </div>
-
-              {/* Weekly Progress Row */}
-              <div className="flex items-center py-2 bg-muted/30 rounded mt-2">
-                <div className="w-32 shrink-0 px-3 font-semibold">WEEKLY PROGRESS</div>
-                {weeks.map((week, i) => (
-                  <div
-                    key={i}
-                    className={`flex-1 text-center mx-0.5 py-1 rounded bg-gradient-to-r ${WEEK_COLORS[i]}`}
-                  >
-                    <div className="font-bold">{weeklyProgress[i]?.completed}/{weeklyProgress[i]?.total}</div>
-                    <div className="text-[10px]">{weeklyProgress[i]?.percentage.toFixed(1)}%</div>
-                  </div>
-                ))}
-              </div>
+            <div>
+              <h3 className="text-xl font-bold text-foreground">Daily Habits</h3>
+              <p className="text-xs text-muted-foreground">Click cells to mark as complete</p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Habit Matrix Grid */}
-      <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border overflow-hidden">
-        <div className="flex items-center gap-4 mb-4">
-          {/* Add Habit Button - Left side, glowing and prominent */}
-          <motion.button
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.95 }}
-            animate={{
-              boxShadow: currentHabitCount >= maxHabits 
-                ? "none" 
-                : [
-                    "0 0 10px hsl(var(--primary) / 0.5)",
-                    "0 0 25px hsl(var(--primary) / 0.8)",
-                    "0 0 10px hsl(var(--primary) / 0.5)",
-                  ],
-            }}
-            transition={{
-              boxShadow: {
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-              },
-            }}
-            onClick={() => setShowAddHabit(!showAddHabit)}
-            disabled={currentHabitCount >= maxHabits}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all ${
-              currentHabitCount >= maxHabits
-                ? "bg-muted text-muted-foreground cursor-not-allowed"
-                : "bg-gradient-to-r from-primary via-crimson to-primary text-primary-foreground hover:from-primary/90 hover:via-crimson/90 hover:to-primary/90"
-            }`}
-          >
-            <Plus className="h-5 w-5" />
-            Add Habit
-          </motion.button>
-
-          <h3 className="text-lg font-semibold">DAILY HABITS</h3>
-          
-          <span className="text-xs text-muted-foreground bg-muted/50 px-3 py-1.5 rounded-full border border-border">
-            {currentHabitCount}/{maxHabits} habits
-          </span>
+          {/* Habit Counter */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-xl border border-border">
+            <div className="flex gap-1">
+              {Array.from({ length: maxHabits }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-2 h-2 rounded-full ${
+                    i < currentHabitCount ? "bg-primary" : "bg-muted"
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-sm font-medium text-muted-foreground ml-2">
+              {currentHabitCount}/{maxHabits}
+            </span>
+          </div>
         </div>
 
-        {/* Add Habit Form */}
-        {showAddHabit && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mb-4 p-4 bg-muted/30 rounded-lg flex gap-3 items-end flex-wrap"
-          >
-            <div className="flex-1 min-w-[200px]">
-              <label className="text-xs text-muted-foreground mb-1 block">Habit Name</label>
-              <Input
-                placeholder="e.g., Physics PYQs"
-                value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-              />
-            </div>
-            <div className="w-40">
-              <label className="text-xs text-muted-foreground mb-1 block">Category</label>
-              <Select value={newHabitSubject} onValueChange={setNewHabitSubject}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(SUBJECT_EMOJIS).map((subj) => (
-                    <SelectItem key={subj} value={subj}>
-                      {SUBJECT_EMOJIS[subj]} {subj}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-24">
-              <label className="text-xs text-muted-foreground mb-1 block">Monthly Goal</label>
-              <Input
-                type="number"
-                value={newHabitGoal}
-                onChange={(e) => setNewHabitGoal(parseInt(e.target.value) || 30)}
-              />
-            </div>
-            <Button onClick={handleAddHabit} className="bg-primary">
-              Add
-            </Button>
-          </motion.div>
-        )}
+        {/* Enhanced Add Habit Form */}
+        <AnimatePresence>
+          {showAddHabit && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="mb-6 p-5 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-cyan-500/10 rounded-xl border border-emerald-500/20">
+                <div className="flex flex-col lg:flex-row gap-4 items-end">
+                  <div className="flex-1 min-w-0">
+                    <label className="text-sm font-medium text-foreground mb-2 block">
+                      🎯 What habit do you want to build?
+                    </label>
+                    <Input
+                      placeholder="e.g., Practice 20 PYQs, Morning Workout, 30 min Reading..."
+                      value={newHabitName}
+                      onChange={(e) => setNewHabitName(e.target.value)}
+                      className="bg-background/80 border-border h-12 text-base"
+                    />
+                  </div>
+                  <div className="w-full lg:w-44">
+                    <label className="text-sm font-medium text-foreground mb-2 block">Category</label>
+                    <Select value={newHabitSubject} onValueChange={setNewHabitSubject}>
+                      <SelectTrigger className="h-12 bg-background/80">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.keys(SUBJECT_EMOJIS).map((subj) => (
+                          <SelectItem key={subj} value={subj}>
+                            {SUBJECT_EMOJIS[subj]} {subj}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-full lg:w-28">
+                    <label className="text-sm font-medium text-foreground mb-2 block">Days/Month</label>
+                    <Input
+                      type="number"
+                      value={newHabitGoal}
+                      onChange={(e) => setNewHabitGoal(parseInt(e.target.value) || 30)}
+                      className="bg-background/80 border-border h-12 text-center text-base"
+                      min={1}
+                      max={31}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={handleAddHabit} 
+                      className="h-12 px-6 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold shadow-lg"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Habit
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      onClick={() => setShowAddHabit(false)}
+                      className="h-12"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-3">
+                  💡 Tip: Start small with achievable goals. Consistency beats intensity!
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Matrix Grid */}
         <div className="overflow-x-auto">
@@ -580,9 +526,7 @@ export const HabitMatrix = ({
             )}
           </div>
         </div>
-      </div>
-
-      {/* Top 10 Habits Sidebar would go here in full layout */}
+      </motion.div>
     </div>
   );
 };

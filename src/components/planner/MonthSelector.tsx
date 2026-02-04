@@ -1,6 +1,6 @@
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
+import { ChevronLeft, ChevronRight, Calendar, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface MonthSelectorProps {
   selectedMonth: Date;
@@ -12,11 +12,13 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-const YEARS = [2024, 2025, 2026, 2027];
+const SHORT_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 export const MonthSelector = ({ selectedMonth, onMonthChange }: MonthSelectorProps) => {
   const currentMonth = selectedMonth.getMonth();
   const currentYear = selectedMonth.getFullYear();
+  const today = new Date();
+  const isCurrentMonth = currentMonth === today.getMonth() && currentYear === today.getFullYear();
 
   const handlePrevMonth = () => {
     const newDate = new Date(selectedMonth);
@@ -30,85 +32,112 @@ export const MonthSelector = ({ selectedMonth, onMonthChange }: MonthSelectorPro
     onMonthChange(newDate);
   };
 
-  const handleMonthSelect = (month: string) => {
+  const handleMonthClick = (monthIndex: number) => {
     const newDate = new Date(selectedMonth);
-    newDate.setMonth(MONTHS.indexOf(month));
+    newDate.setMonth(monthIndex);
     onMonthChange(newDate);
   };
 
-  const handleYearSelect = (year: string) => {
-    const newDate = new Date(selectedMonth);
-    newDate.setFullYear(parseInt(year));
-    onMonthChange(newDate);
+  const handleGoToToday = () => {
+    onMonthChange(new Date());
   };
 
   return (
-    <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-4 border border-border">
-      <div className="flex items-center justify-between gap-4">
-        {/* Title */}
-        <div className="flex items-center gap-2">
-          <Calendar className="h-5 w-5 text-primary" />
-          <h2 className="text-xl font-bold">HABIT TRACKER</h2>
+    <motion.div 
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gradient-to-r from-card/80 to-card/60 backdrop-blur-sm rounded-2xl p-5 border border-border shadow-lg"
+    >
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        {/* Title with Icon */}
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/20 rounded-xl">
+            <Calendar className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Habit Tracker</h2>
+            <p className="text-xs text-muted-foreground">Track your daily progress</p>
+          </div>
         </div>
 
-        {/* Controls */}
+        {/* Navigation Controls */}
         <div className="flex items-center gap-2">
+          {/* Previous Button */}
           <Button
             variant="ghost"
             size="icon"
             onClick={handlePrevMonth}
-            className="h-8 w-8"
+            className="h-10 w-10 rounded-xl hover:bg-muted/80 transition-colors"
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5" />
           </Button>
 
-          <div className="flex items-center gap-2">
-            <div className="text-xs text-muted-foreground">YEAR</div>
-            <Select value={currentYear.toString()} onValueChange={handleYearSelect}>
-              <SelectTrigger className="w-24 h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {YEARS.map((year) => (
-                  <SelectItem key={year} value={year.toString()}>
-                    {year}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          {/* Month/Year Display */}
+          <motion.div 
+            key={`${currentMonth}-${currentYear}`}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="px-6 py-2 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl border border-primary/20 min-w-[180px] text-center"
+          >
+            <p className="text-lg font-bold text-foreground">{MONTHS[currentMonth]}</p>
+            <p className="text-xs text-muted-foreground">{currentYear}</p>
+          </motion.div>
 
-            <div className="text-xs text-muted-foreground ml-2">MONTH</div>
-            <Select value={MONTHS[currentMonth]} onValueChange={handleMonthSelect}>
-              <SelectTrigger className="w-32 h-8">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {MONTHS.map((month) => (
-                  <SelectItem key={month} value={month}>
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
+          {/* Next Button */}
           <Button
             variant="ghost"
             size="icon"
             onClick={handleNextMonth}
-            className="h-8 w-8"
+            className="h-10 w-10 rounded-xl hover:bg-muted/80 transition-colors"
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-5 w-5" />
           </Button>
+
+          {/* Go to Today Button */}
+          {!isCurrentMonth && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGoToToday}
+                className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10"
+              >
+                <Sparkles className="h-4 w-4" />
+                Today
+              </Button>
+            </motion.div>
+          )}
         </div>
       </div>
 
-      {/* Current month display */}
-      <div className="mt-2 text-center">
-        <span className="text-sm text-muted-foreground">
-          - {MONTHS[currentMonth].toUpperCase()} {currentYear} -
-        </span>
+      {/* Quick Month Navigation - Pill Buttons */}
+      <div className="mt-4 flex flex-wrap justify-center gap-2">
+        {SHORT_MONTHS.map((month, index) => {
+          const isSelected = index === currentMonth;
+          const isToday = index === today.getMonth() && currentYear === today.getFullYear();
+          
+          return (
+            <motion.button
+              key={month}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleMonthClick(index)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                isSelected
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
+                  : isToday
+                  ? "bg-primary/20 text-primary border border-primary/30"
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {month}
+            </motion.button>
+          );
+        })}
       </div>
-    </div>
+    </motion.div>
   );
 };
