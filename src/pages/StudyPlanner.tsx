@@ -13,11 +13,12 @@ import { ConsistencyGraph } from "@/components/planner/ConsistencyGraph";
 import { SyllabusProgress } from "@/components/planner/SyllabusProgress";
 import { PomodoroTimer } from "@/components/planner/PomodoroTimer";
 import { GoalSetup } from "@/components/planner/GoalSetup";
-import { Target, Calendar, TrendingUp, BookOpen, Loader2, Flame, Clock, CheckCircle2 } from "lucide-react";
+import { Target, Calendar, TrendingUp, Clock, CheckCircle2, Loader2, Flame, Settings } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 // IST timezone offset
 const IST_OFFSET = 5.5 * 60 * 60 * 1000;
@@ -28,11 +29,14 @@ const getISTDate = () => {
   return new Date(utc + IST_OFFSET);
 };
 
+const MAX_HABITS = 10;
+
 const StudyPlanner = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(getISTDate());
   const [userId, setUserId] = useState<string | null>(null);
+  const [showGoalSetup, setShowGoalSetup] = useState(false);
 
   const {
     tasks,
@@ -40,9 +44,7 @@ const StudyPlanner = () => {
     dailyAggregates,
     userGoal,
     loading,
-    addTask,
     completeTask,
-    deleteTask,
     saveUserGoal,
     addFocusSession,
     refetch,
@@ -71,6 +73,12 @@ const StudyPlanner = () => {
   const todaysCompleted = useMemo(() => {
     return todaysTasks.filter((t) => t.status === "completed").length;
   }, [todaysTasks]);
+
+  // Get unique habits count
+  const uniqueHabits = useMemo(() => {
+    const habitNames = new Set(tasks.map(t => t.task_name));
+    return habitNames.size;
+  }, [tasks]);
 
   // Generate daily stats for the area chart
   const dailyStats = useMemo(() => {
@@ -126,14 +134,12 @@ const StudyPlanner = () => {
   // Handle habit toggle
   const handleToggleTask = useCallback(async (taskId: string, date: string, completed: boolean) => {
     if (taskId === "new") {
-      // This is a new task entry - should be handled by the habit matrix
       return;
     }
     
     if (completed) {
       await completeTask(taskId);
     } else {
-      // Mark as pending again
       const { error } = await supabase
         .from("planner_tasks")
         .update({ status: "pending", completed_at: null })
@@ -147,9 +153,18 @@ const StudyPlanner = () => {
     }
   }, [completeTask, refetch]);
 
-  // Handle add habit
+  // Handle add habit - now works independently of userGoal
   const handleAddHabit = useCallback(async (habitName: string, subject: string, goalCount: number) => {
-    if (!userId) return;
+    if (!userId) {
+      toast.error("Please login to add habits");
+      return;
+    }
+
+    // Check max habits limit
+    if (uniqueHabits >= MAX_HABITS) {
+      toast.error(`Maximum ${MAX_HABITS} habits allowed. Delete some to add new ones.`);
+      return;
+    }
     
     // Create tasks for the entire month
     const year = selectedMonth.getFullYear();
@@ -174,12 +189,13 @@ const StudyPlanner = () => {
       .insert(tasksToInsert);
     
     if (error) {
-      toast.error("Failed to add habit");
+      console.error("Error adding habit:", error);
+      toast.error("Failed to add habit: " + error.message);
     } else {
       toast.success(`Added "${habitName}" to your habits!`);
       refetch();
     }
-  }, [userId, selectedMonth, refetch]);
+  }, [userId, selectedMonth, refetch, uniqueHabits]);
 
   // Handle delete habit
   const handleDeleteHabit = useCallback(async (habitName: string) => {
@@ -207,10 +223,10 @@ const StudyPlanner = () => {
     );
   }
 
-  // Calculate days until JEE
-  const jeeDate = new Date("2026-04-02");
+  // Calculate days until target (JEE or custom)
+  const targetDate = userGoal?.exam_date ? new Date(userGoal.exam_date) : new Date("2026-04-02");
   const today = new Date();
-  const daysUntilJEE = Math.ceil((jeeDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  const daysUntilTarget = Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
   return (
     <div className="min-h-screen bg-background">
@@ -218,7 +234,7 @@ const StudyPlanner = () => {
 
       <main className="pt-20 pb-12 px-4">
         <div className="max-w-[1600px] mx-auto">
-          {/* Header with JEE Countdown */}
+          {/* Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -231,140 +247,158 @@ const StudyPlanner = () => {
                 </div>
                 <div>
                   <h1 className="text-3xl font-bold gradient-text">Success Engine</h1>
-                  <p className="text-muted-foreground">Your personalized JEE habit & goal tracker</p>
+                  <p className="text-muted-foreground">Your personalized habit & goal tracker</p>
                 </div>
               </div>
 
-              {/* JEE Countdown Badge */}
-              <motion.div
-                animate={{ scale: [1, 1.02, 1] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-                className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-primary/20 to-crimson/20 border border-primary/30"
-              >
-                <Flame className="h-6 w-6 text-primary" />
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-primary">{daysUntilJEE}</p>
-                  <p className="text-xs text-muted-foreground">Days to JEE 2026</p>
-                </div>
-                <Calendar className="h-6 w-6 text-primary" />
-              </motion.div>
+              <div className="flex items-center gap-3">
+                {/* Goal Settings Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowGoalSetup(!showGoalSetup)}
+                  className="gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  {userGoal ? "Edit Goal" : "Set Goal"}
+                </Button>
+
+                {/* Countdown Badge */}
+                {userGoal && (
+                  <motion.div
+                    animate={{ scale: [1, 1.02, 1] }}
+                    transition={{ repeat: Infinity, duration: 2 }}
+                    className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-primary/20 to-crimson/20 border border-primary/30"
+                  >
+                    <Flame className="h-6 w-6 text-primary" />
+                    <div className="text-center">
+                      <p className="text-2xl font-bold text-primary">{daysUntilTarget}</p>
+                      <p className="text-xs text-muted-foreground">Days to {userGoal.target_exam || "Goal"}</p>
+                    </div>
+                    <Calendar className="h-6 w-6 text-primary" />
+                  </motion.div>
+                )}
+              </div>
             </div>
           </motion.div>
 
-          {/* Goal Setup (if no goal set) */}
-          {!userGoal && (
-            <div className="mb-8">
+          {/* Goal Setup (collapsible) */}
+          {showGoalSetup && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-8"
+            >
               <GoalSetup userGoal={userGoal} onSaveGoal={saveUserGoal} />
-            </div>
+            </motion.div>
           )}
 
-          {/* Main Dashboard */}
-          {userGoal && (
-            <>
-              {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                {[
-                  { label: "Days Left", value: daysUntilJEE, icon: Calendar, color: "text-primary" },
-                  { label: "Today's Tasks", value: `${todaysCompleted}/${todaysTasks.length}`, icon: CheckCircle2, color: "text-green-400" },
-                  { label: "Streak", value: `${dailyAggregates.filter((a) => a.completion_score >= 50).length}d`, icon: TrendingUp, color: "text-orange-400" },
-                  { label: "Focus Hours", value: `${Math.round(dailyAggregates.reduce((acc, a) => acc + a.focus_minutes, 0) / 60)}h`, icon: Clock, color: "text-purple-400" },
-                ].map((stat, i) => (
-                  <motion.div
-                    key={stat.label}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 + i * 0.05 }}
-                    className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border hover:border-primary/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                      <span className="text-xs text-muted-foreground">{stat.label}</span>
-                    </div>
-                    <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                  </motion.div>
-                ))}
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+            {[
+              { label: "Days Left", value: userGoal ? daysUntilTarget : "-", icon: Calendar, color: "text-primary" },
+              { label: "Today's Tasks", value: `${todaysCompleted}/${todaysTasks.length}`, icon: CheckCircle2, color: "text-green-400" },
+              { label: "Active Habits", value: `${uniqueHabits}/${MAX_HABITS}`, icon: Target, color: "text-blue-400" },
+              { label: "Streak", value: `${dailyAggregates.filter((a) => a.completion_score >= 50).length}d`, icon: TrendingUp, color: "text-orange-400" },
+              { label: "Focus Hours", value: `${Math.round(dailyAggregates.reduce((acc, a) => acc + a.focus_minutes, 0) / 60)}h`, icon: Clock, color: "text-purple-400" },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + i * 0.05 }}
+                className="bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border hover:border-primary/50 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                  <span className="text-xs text-muted-foreground">{stat.label}</span>
+                </div>
+                <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Tabs for different views */}
+          <Tabs defaultValue="matrix" className="space-y-6">
+            <TabsList className="bg-card/50 border border-border">
+              <TabsTrigger value="matrix" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                Habit Matrix
+              </TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="syllabus">Syllabus</TabsTrigger>
+              <TabsTrigger value="focus">Focus Mode</TabsTrigger>
+            </TabsList>
+
+            {/* Habit Matrix Tab */}
+            <TabsContent value="matrix" className="space-y-6">
+              {/* Month Selector */}
+              <MonthSelector
+                selectedMonth={selectedMonth}
+                onMonthChange={setSelectedMonth}
+              />
+
+              {/* Z-Pattern Layout */}
+              <div className="grid lg:grid-cols-4 gap-6">
+                {/* Left: Area Chart (spans 3 cols) */}
+                <div className="lg:col-span-3">
+                  <MonthlyAreaChart
+                    dailyStats={dailyStats}
+                    selectedMonth={selectedMonth}
+                  />
+                </div>
+
+                {/* Right: Daily Progress Donut */}
+                <div className="lg:col-span-1">
+                  <DailyProgressDonut
+                    completed={todaysCompleted}
+                    total={todaysTasks.length || 1}
+                  />
+                </div>
               </div>
 
-              {/* Tabs for different views */}
-              <Tabs defaultValue="matrix" className="space-y-6">
-                <TabsList className="bg-card/50 border border-border">
-                  <TabsTrigger value="matrix" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                    Habit Matrix
-                  </TabsTrigger>
-                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                  <TabsTrigger value="syllabus">Syllabus</TabsTrigger>
-                  <TabsTrigger value="focus">Focus Mode</TabsTrigger>
-                </TabsList>
-
-                {/* Habit Matrix Tab */}
-                <TabsContent value="matrix" className="space-y-6">
-                  {/* Month Selector */}
-                  <MonthSelector
+              {/* Habit Matrix Grid */}
+              <div className="grid lg:grid-cols-4 gap-6">
+                <div className="lg:col-span-3">
+                  <HabitMatrix
+                    tasks={tasks}
+                    dailyAggregates={dailyAggregates}
                     selectedMonth={selectedMonth}
-                    onMonthChange={setSelectedMonth}
+                    onToggleTask={handleToggleTask}
+                    onAddHabit={handleAddHabit}
+                    onDeleteHabit={handleDeleteHabit}
+                    maxHabits={MAX_HABITS}
+                    currentHabitCount={uniqueHabits}
                   />
+                </div>
 
-                  {/* Z-Pattern Layout */}
-                  <div className="grid lg:grid-cols-4 gap-6">
-                    {/* Left: Area Chart (spans 3 cols) */}
-                    <div className="lg:col-span-3">
-                      <MonthlyAreaChart
-                        dailyStats={dailyStats}
-                        selectedMonth={selectedMonth}
-                      />
-                    </div>
+                {/* Right Sidebar: Top Habits */}
+                <div className="lg:col-span-1">
+                  <TopHabitsRanking habits={topHabits} />
+                </div>
+              </div>
+            </TabsContent>
 
-                    {/* Right: Daily Progress Donut */}
-                    <div className="lg:col-span-1">
-                      <DailyProgressDonut
-                        completed={todaysCompleted}
-                        total={todaysTasks.length || 1}
-                      />
-                    </div>
-                  </div>
+            {/* Analytics Tab */}
+            <TabsContent value="analytics" className="space-y-6">
+              <div className="grid lg:grid-cols-2 gap-6">
+                <ConsistencyGraph dailyAggregates={dailyAggregates} />
+                <GrowthHeatmap dailyAggregates={dailyAggregates} />
+              </div>
+            </TabsContent>
 
-                  {/* Habit Matrix Grid */}
-                  <div className="grid lg:grid-cols-4 gap-6">
-                    <div className="lg:col-span-3">
-                      <HabitMatrix
-                        tasks={tasks}
-                        dailyAggregates={dailyAggregates}
-                        selectedMonth={selectedMonth}
-                        onToggleTask={handleToggleTask}
-                        onAddHabit={handleAddHabit}
-                        onDeleteHabit={handleDeleteHabit}
-                      />
-                    </div>
+            {/* Syllabus Tab */}
+            <TabsContent value="syllabus">
+              <SyllabusProgress syllabusMastery={syllabusMastery} />
+            </TabsContent>
 
-                    {/* Right Sidebar: Top Habits */}
-                    <div className="lg:col-span-1">
-                      <TopHabitsRanking habits={topHabits} />
-                    </div>
-                  </div>
-                </TabsContent>
-
-                {/* Analytics Tab */}
-                <TabsContent value="analytics" className="space-y-6">
-                  <div className="grid lg:grid-cols-2 gap-6">
-                    <ConsistencyGraph dailyAggregates={dailyAggregates} />
-                    <GrowthHeatmap dailyAggregates={dailyAggregates} />
-                  </div>
-                </TabsContent>
-
-                {/* Syllabus Tab */}
-                <TabsContent value="syllabus">
-                  <SyllabusProgress syllabusMastery={syllabusMastery} />
-                </TabsContent>
-
-                {/* Focus Mode Tab */}
-                <TabsContent value="focus">
-                  <div className="max-w-md mx-auto">
-                    <PomodoroTimer onSessionComplete={addFocusSession} />
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </>
-          )}
+            {/* Focus Mode Tab */}
+            <TabsContent value="focus">
+              <div className="max-w-md mx-auto">
+                <PomodoroTimer onSessionComplete={addFocusSession} />
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </main>
 
