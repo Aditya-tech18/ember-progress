@@ -106,23 +106,26 @@ export const RankSection = () => {
         else if (subject === "Mathematics") userStats[userId].mathematics++;
       });
 
-      // Create leaderboard entries
-      const entries: LeaderboardEntry[] = Object.entries(userStats).map(([userId, stats]) => {
-        const user = users?.find(u => u.id === userId);
-        const total = stats.physics + stats.chemistry + stats.mathematics;
-        const rankInfo = getRankForScore(total);
-        
-        return {
-          rank: 0,
-          user_id: userId,
-          combat_name: user?.combat_name || user?.full_name || "Anonymous",
-          physics: stats.physics,
-          chemistry: stats.chemistry,
-          mathematics: stats.mathematics,
-          total,
-          rankTitle: rankInfo.name
-        };
-      });
+      // Create leaderboard entries - FILTER OUT ANONYMOUS USERS
+      const entries: LeaderboardEntry[] = Object.entries(userStats)
+        .map(([userId, stats]) => {
+          const user = users?.find(u => u.id === userId);
+          const total = stats.physics + stats.chemistry + stats.mathematics;
+          const rankInfo = getRankForScore(total);
+          
+          return {
+            rank: 0,
+            user_id: userId,
+            combat_name: user?.combat_name || user?.full_name || "",
+            physics: stats.physics,
+            chemistry: stats.chemistry,
+            mathematics: stats.mathematics,
+            total,
+            rankTitle: rankInfo.name
+          };
+        })
+        // Filter out users without combat_name or full_name (Anonymous users)
+        .filter(entry => entry.combat_name && entry.combat_name.trim() !== "" && entry.combat_name !== "Anonymous");
 
       // Sort by total and assign ranks
       entries.sort((a, b) => b.total - a.total);

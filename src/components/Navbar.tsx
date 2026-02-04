@@ -97,6 +97,16 @@ export const Navbar = () => {
     }
   };
 
+  const handleLeaderboardClick = () => {
+    navigate("/");
+    setTimeout(() => {
+      const element = document.getElementById("rank-section");
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 100);
+  };
+
   return (
     <>
       <motion.nav
@@ -120,6 +130,26 @@ export const Navbar = () => {
                 Prepixo
               </span>
             </motion.div>
+
+            {/* See Plans Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/subscription")}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg text-white text-sm font-semibold shadow-lg hover:shadow-emerald-500/30 transition-shadow"
+            >
+              See Plans
+            </motion.button>
+
+            {/* Global Leaderboard Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleLeaderboardClick}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg text-white text-sm font-semibold shadow-lg hover:shadow-yellow-500/30 transition-shadow"
+            >
+              🏆 Leaderboard
+            </motion.button>
 
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-8">

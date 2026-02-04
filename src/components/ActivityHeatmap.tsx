@@ -67,11 +67,11 @@ export const ActivityHeatmap = () => {
     return "hsl(20, 90%, 55%, 0.7)";
   };
 
-  // Generate last 12 months
+  // Generate last 12 months - Current month on LEFT, oldest on right
   const months = useMemo(() => {
     const now = new Date();
     return Array.from({ length: 12 }, (_, i) => {
-      const date = subMonths(now, 11 - i);
+      const date = subMonths(now, i);
       return startOfMonth(date);
     });
   }, []);

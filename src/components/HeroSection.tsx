@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 import { CreatePostModal } from "./social/CreatePostModal";
 
+// JEE Mains 2026 Session 2 - April 2, 2026 at 9:00 AM IST
 const JEE_DATE = new Date("2026-04-02T09:00:00+05:30");
 
 interface TimeLeft {
@@ -117,7 +118,7 @@ export const HeroSection = () => {
             <div className="inline-flex flex-col items-center gap-3 px-6 py-4 rounded-2xl glass-card border border-primary/20">
               <div className="flex items-center gap-2">
                 <Target className="h-5 w-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">JEE Mains 2026 Countdown</span>
+                <span className="text-sm font-semibold text-foreground">JEE Mains 2026 Session 2 Countdown</span>
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
                 <TimeBlock value={timeLeft.days} label="Days" />
@@ -144,7 +145,7 @@ export const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/planner")}
-              className="inline-flex items-center gap-3 bg-gradient-to-r from-primary via-crimson to-orange-500 text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-2xl shadow-primary/40 hover:shadow-primary/60 transition-all animate-glow-pulse"
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-2xl shadow-emerald-500/40 hover:shadow-emerald-500/60 transition-all animate-glow-pulse"
             >
               <Flame className="h-6 w-6" />
               <span>Open Success Planner</span>

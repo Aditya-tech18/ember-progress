@@ -365,16 +365,32 @@ export const HabitMatrix = ({
       {/* Habit Matrix Grid */}
       <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border overflow-hidden">
         <div className="flex items-center gap-4 mb-4">
-          {/* Add Habit Button - Left side, colorful and prominent */}
+          {/* Add Habit Button - Left side, glowing and prominent */}
           <motion.button
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
+            animate={{
+              boxShadow: currentHabitCount >= maxHabits 
+                ? "none" 
+                : [
+                    "0 0 10px hsl(var(--primary) / 0.5)",
+                    "0 0 25px hsl(var(--primary) / 0.8)",
+                    "0 0 10px hsl(var(--primary) / 0.5)",
+                  ],
+            }}
+            transition={{
+              boxShadow: {
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut",
+              },
+            }}
             onClick={() => setShowAddHabit(!showAddHabit)}
             disabled={currentHabitCount >= maxHabits}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg ${
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all ${
               currentHabitCount >= maxHabits
                 ? "bg-muted text-muted-foreground cursor-not-allowed"
-                : "bg-gradient-to-r from-primary to-orange hover:from-primary/90 hover:to-orange/90 text-primary-foreground"
+                : "bg-gradient-to-r from-primary via-crimson to-primary text-primary-foreground hover:from-primary/90 hover:via-crimson/90 hover:to-primary/90"
             }`}
           >
             <Plus className="h-5 w-5" />
