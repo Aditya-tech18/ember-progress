@@ -1,20 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator, Play, Zap, X, PenSquare } from "lucide-react";
+import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator, Play, Zap, X, PenSquare, Flame, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 import { CreatePostModal } from "./social/CreatePostModal";
+
+const JEE_DATE = new Date("2026-04-02T09:00:00+05:30");
+
+interface TimeLeft {
+  days: number;
+  hours: number;
+  minutes: number;
+  seconds: number;
+}
 
 export const HeroSection = () => {
   const navigate = useNavigate();
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const difference = JEE_DATE.getTime() - now.getTime();
+
+      if (difference > 0) {
+        setTimeLeft({
+          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        });
+      }
+    };
+
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleStartPracticing = () => {
-    // Navigate to first subject by default, or show subject selector
     navigate("/chapters/Physics");
   };
+
+  const TimeBlock = ({ value, label }: { value: number; label: string }) => (
+    <div className="flex flex-col items-center">
+      <motion.div
+        key={value}
+        initial={{ scale: 1.05, opacity: 0.8 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="bg-gradient-to-br from-primary/20 to-crimson/10 backdrop-blur-sm border border-primary/30 rounded-xl px-4 py-2 min-w-[60px] sm:min-w-[70px]"
+      >
+        <span className="text-2xl sm:text-3xl font-bold text-primary font-mono">
+          {value.toString().padStart(2, "0")}
+        </span>
+      </motion.div>
+      <span className="text-[10px] sm:text-xs text-muted-foreground mt-1 uppercase tracking-wider">{label}</span>
+    </div>
+  );
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
@@ -62,19 +107,49 @@ export const HeroSection = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Rank Badge */}
+          {/* JEE Countdown Timer */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-8 border border-primary/20"
+            className="mb-6"
           >
-            <Sparkles className="w-4 h-4 text-primary" />
-            <span className="text-sm font-medium text-muted-foreground">
-              Current Rank:
-            </span>
-            <span className="text-sm font-bold text-primary">Major</span>
-            <span className="text-xs text-muted-foreground">• 847 Questions Solved</span>
+            <div className="inline-flex flex-col items-center gap-3 px-6 py-4 rounded-2xl glass-card border border-primary/20">
+              <div className="flex items-center gap-2">
+                <Target className="h-5 w-5 text-primary" />
+                <span className="text-sm font-semibold text-foreground">JEE Mains 2026 Countdown</span>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <TimeBlock value={timeLeft.days} label="Days" />
+                <span className="text-primary text-2xl font-bold mt-[-20px]">:</span>
+                <TimeBlock value={timeLeft.hours} label="Hours" />
+                <span className="text-primary text-2xl font-bold mt-[-20px]">:</span>
+                <TimeBlock value={timeLeft.minutes} label="Mins" />
+                <span className="text-primary text-2xl font-bold mt-[-20px] hidden sm:block">:</span>
+                <div className="hidden sm:block">
+                  <TimeBlock value={timeLeft.seconds} label="Secs" />
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Open Planner Button */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="mb-8"
+          >
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/planner")}
+              className="inline-flex items-center gap-3 bg-gradient-to-r from-primary via-crimson to-orange-500 text-primary-foreground px-8 py-4 rounded-full font-bold text-lg shadow-2xl shadow-primary/40 hover:shadow-primary/60 transition-all animate-glow-pulse"
+            >
+              <Flame className="h-6 w-6" />
+              <span>Open Success Planner</span>
+              <Calendar className="h-6 w-6" />
+            </motion.button>
           </motion.div>
 
           {/* Title */}

@@ -9,7 +9,6 @@ import { Footer } from "@/components/Footer";
 import { DownloadAppBanner } from "@/components/DownloadAppBanner";
 import { GameCards } from "@/components/GameCards";
 import { NoticeBanner } from "@/components/NoticeBanner";
-import { JeeCountdown } from "@/components/JeeCountdown";
 import { CombatNameModal } from "@/components/CombatNameModal";
 import { SocialFeedButton } from "@/components/social/SocialFeedButton";
 
@@ -25,8 +24,7 @@ const mockTests = [
 const Index = () => {
   return (
     <div className="min-h-screen">
-      <JeeCountdown />
-      <div className="pt-14">
+      <div className="pt-0">
         <DownloadAppBanner />
         <NoticeBanner />
         <Navbar />

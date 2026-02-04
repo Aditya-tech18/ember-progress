@@ -263,6 +263,17 @@ export const usePlanner = () => {
     await fetchDailyAggregates(userId);
   };
 
+  const refetch = async () => {
+    if (userId) {
+      await Promise.all([
+        fetchTasks(userId),
+        fetchSyllabusMastery(userId),
+        fetchDailyAggregates(userId),
+        fetchUserGoal(userId),
+      ]);
+    }
+  };
+
   return {
     tasks,
     syllabusMastery,
@@ -276,6 +287,6 @@ export const usePlanner = () => {
     updateSyllabusMastery,
     saveUserGoal,
     addFocusSession,
-    refetchTasks: () => userId && fetchTasks(userId),
+    refetch,
   };
 };
