@@ -1,41 +1,33 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-
-const categories = [
-  { id: "all", name: "All", active: true },
-  { id: "physics", name: "Physics", active: false },
-  { id: "chemistry", name: "Chemistry", active: false },
-  { id: "maths", name: "Mathematics", active: false },
-  { id: "pyqs", name: "PYQs", active: false },
-  { id: "mock-tests", name: "Mock Tests", active: false },
-  { id: "chapters", name: "Chapters", active: false },
-];
+import { Cloud } from "lucide-react";
+import { PostCloudModal } from "./social/PostCloudModal";
 
 export const CategoryPills = () => {
-  const [activeCategory, setActiveCategory] = useState("all");
+  const [showPostCloud, setShowPostCloud] = useState(false);
 
   return (
     <section className="py-6">
       <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {categories.map((category, index) => (
-            <motion.button
-              key={category.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              onClick={() => setActiveCategory(category.id)}
-              className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
-                activeCategory === category.id
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              {category.name}
-            </motion.button>
-          ))}
+        <div className="flex items-center justify-center">
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowPostCloud(true)}
+            className="flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-primary/90 to-crimson/90 hover:from-primary hover:to-crimson text-primary-foreground font-bold text-lg shadow-2xl shadow-primary/40 transition-all"
+          >
+            <Cloud className="w-6 h-6" />
+            View Post Cloud
+          </motion.button>
         </div>
       </div>
+
+      <PostCloudModal
+        isOpen={showPostCloud}
+        onClose={() => setShowPostCloud(false)}
+      />
     </section>
   );
 };
