@@ -14,6 +14,8 @@ interface HabitMatrixProps {
   onToggleTask: (taskId: string, date: string, completed: boolean) => void;
   onAddHabit: (habitName: string, subject: string, goalCount: number) => void;
   onDeleteHabit: (habitName: string) => void;
+  maxHabits?: number;
+  currentHabitCount?: number;
 }
 
 // IST timezone offset
@@ -34,12 +36,27 @@ const WEEK_COLORS = [
 ];
 
 const SUBJECT_EMOJIS: Record<string, string> = {
+  // Study categories
   Physics: "⚛️",
   Chemistry: "🧪",
   Mathematics: "📐",
   Study: "📚",
+  Coding: "💻",
+  Language: "🗣️",
+  // Health & Fitness
   Gym: "💪",
+  Meditation: "🧘",
+  Sleep: "😴",
+  Diet: "🥗",
+  // Personal Development
   Reading: "📖",
+  Writing: "✍️",
+  Music: "🎵",
+  Art: "🎨",
+  // Productivity
+  Work: "💼",
+  Finance: "💰",
+  Hobby: "🎯",
   Other: "✨",
 };
 
@@ -50,6 +67,8 @@ export const HabitMatrix = ({
   onToggleTask,
   onAddHabit,
   onDeleteHabit,
+  maxHabits = 10,
+  currentHabitCount = 0,
 }: HabitMatrixProps) => {
   const [newHabitName, setNewHabitName] = useState("");
   const [newHabitSubject, setNewHabitSubject] = useState("Study");
@@ -223,11 +242,17 @@ export const HabitMatrix = ({
   }, [completionMap, tasks, onToggleTask]);
 
   const handleAddHabit = () => {
-    if (!newHabitName.trim()) return;
+    if (!newHabitName.trim()) {
+      toast.error("Please enter a habit name");
+      return;
+    }
+    if (currentHabitCount >= maxHabits) {
+      toast.error(`Maximum ${maxHabits} habits allowed. Delete some to add new ones.`);
+      return;
+    }
     onAddHabit(newHabitName.trim(), newHabitSubject, newHabitGoal);
     setNewHabitName("");
     setShowAddHabit(false);
-    toast.success("Habit added successfully!");
   };
 
   return (
@@ -340,12 +365,18 @@ export const HabitMatrix = ({
       {/* Habit Matrix Grid */}
       <div className="bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border overflow-hidden">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">DAILY HABITS</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold">DAILY HABITS</h3>
+            <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+              {currentHabitCount}/{maxHabits} habits
+            </span>
+          </div>
           <Button
             size="sm"
             variant="outline"
             onClick={() => setShowAddHabit(!showAddHabit)}
             className="gap-2"
+            disabled={currentHabitCount >= maxHabits}
           >
             <Plus className="h-4 w-4" />
             Add Habit
