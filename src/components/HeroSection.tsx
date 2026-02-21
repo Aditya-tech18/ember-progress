@@ -145,8 +145,8 @@ export const HeroSection = () => {
               whileHover={{ scale: 1.06, boxShadow: "0 0 40px rgba(16,185,129,0.5), 0 20px 60px rgba(6,95,70,0.4)" }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/planner")}
-              className="relative inline-flex items-center gap-3 bg-gradient-to-r from-green-800 via-emerald-700 to-green-900 text-white px-10 py-5 rounded-2xl font-bold text-lg border border-emerald-500/30 transition-all duration-300"
-              style={{ boxShadow: "0 0 25px rgba(16,185,129,0.3), 0 10px 40px rgba(6,95,70,0.35), inset 0 1px 0 rgba(255,255,255,0.1)" }}
+              className="relative inline-flex items-center gap-3 bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white px-10 py-5 rounded-2xl font-bold text-lg border border-blue-500/30 transition-all duration-300"
+              style={{ boxShadow: "0 0 25px rgba(59,130,246,0.3), 0 10px 40px rgba(30,58,138,0.35), inset 0 1px 0 rgba(255,255,255,0.1)" }}
             >
               <span className="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent to-white/5 pointer-events-none" />
               <Flame className="h-6 w-6 drop-shadow-lg" />
