@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserProfileModal } from "@/components/social/UserProfileModal";
+import { LeaderboardModal } from "@/components/LeaderboardModal";
 
 // Feature definitions for search
 const searchableFeatures = [
@@ -38,6 +39,7 @@ export const Navbar = () => {
   const [user, setUser] = useState<any>(null);
   const [userData, setUserData] = useState<any>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -98,13 +100,7 @@ export const Navbar = () => {
   };
 
   const handleLeaderboardClick = () => {
-    navigate("/");
-    setTimeout(() => {
-      const element = document.getElementById("rank-section");
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-      }
-    }, 100);
+    setShowLeaderboard(true);
   };
 
   return (
@@ -326,6 +322,12 @@ export const Navbar = () => {
           userId={user?.id || ""}
         />
       )}
+
+      {/* Leaderboard Modal */}
+      <LeaderboardModal
+        isOpen={showLeaderboard}
+        onClose={() => setShowLeaderboard(false)}
+      />
     </>
   );
 };
