@@ -113,56 +113,59 @@ export const Navbar = () => {
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-white/5"
+        className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/40 shadow-lg shadow-black/10"
       >
         <div className="container mx-auto px-4 lg:px-8">
-          <div className="flex items-center justify-between h-16 lg:h-20">
+          <div className="flex items-center justify-between h-16 lg:h-[68px]">
             {/* Logo */}
             <motion.div
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/")}
-              className="flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-2.5 cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">P</span>
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-crimson flex items-center justify-center shadow-md shadow-primary/20">
+                <span className="text-primary-foreground font-bold text-lg">P</span>
               </div>
-              <span className="text-xl font-bold text-foreground hidden sm:block">
+              <span className="text-lg font-bold text-foreground hidden sm:block tracking-tight">
                 Prepixo
               </span>
             </motion.div>
 
-            {/* See Plans Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate("/subscription")}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg text-white text-sm font-semibold shadow-lg hover:shadow-emerald-500/30 transition-shadow"
-            >
-              See Plans
-            </motion.button>
-
-            {/* Global Leaderboard Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleLeaderboardClick}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg text-white text-sm font-semibold shadow-lg hover:shadow-yellow-500/30 transition-shadow"
-            >
-              🏆 Leaderboard
-            </motion.button>
-
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-8">
+            {/* Center Navigation */}
+            <div className="hidden lg:flex items-center gap-1 bg-muted/40 rounded-xl px-1.5 py-1 border border-border/30">
               {navLinks.map((link) => (
                 <motion.a
                   key={link.name}
                   href={link.href}
-                  whileHover={{ scale: 1.05 }}
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-200 font-medium"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-background/60 transition-all duration-200 font-medium"
                 >
+                  <link.icon className="w-4 h-4" />
                   {link.name}
                 </motion.a>
               ))}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="hidden sm:flex items-center gap-2">
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => navigate("/subscription")}
+                className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600/15 border border-emerald-500/30 rounded-xl text-emerald-400 text-sm font-semibold hover:bg-emerald-600/25 hover:border-emerald-500/50 transition-all"
+              >
+                See Plans
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={handleLeaderboardClick}
+                className="flex items-center gap-1.5 px-4 py-2 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-400 text-sm font-semibold hover:bg-amber-500/25 hover:border-amber-500/50 transition-all"
+              >
+                🏆 Leaderboard
+              </motion.button>
             </div>
 
             {/* Right Section */}
