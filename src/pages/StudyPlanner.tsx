@@ -297,6 +297,19 @@ const StudyPlanner = () => {
                   <span className="text-sm font-medium">{userGoal ? "Edit Goal" : "Set Goal"}</span>
                 </motion.button>
 
+                {/* Track Study Hours Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigate("/study-hours")}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-white"
+                  style={{ background: "linear-gradient(90deg, hsl(358 84% 50%), hsl(30 90% 50%))" }}
+                  title="Track your study sessions and build consistency!"
+                >
+                  <Timer className="h-4 w-4" />
+                  <span>Track Study Hours</span>
+                </motion.button>
+
                 {/* Countdown Badge */}
                 <motion.div
                   animate={{ scale: [1, 1.02, 1] }}

@@ -796,6 +796,88 @@ export type Database = {
           },
         ]
       }
+      study_sessions: {
+        Row: {
+          created_at: string
+          date: string
+          duration_minutes: number | null
+          end_time: string | null
+          id: string
+          start_time: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          duration_minutes?: number | null
+          end_time?: string | null
+          id?: string
+          start_time?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          duration_minutes?: number | null
+          end_time?: string | null
+          id?: string
+          start_time?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_study_sessions_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_stats_daily: {
+        Row: {
+          completion_pct: number | null
+          created_at: string
+          date: string
+          goal_minutes: number | null
+          id: string
+          streak_count: number | null
+          total_minutes: number | null
+          user_id: string
+        }
+        Insert: {
+          completion_pct?: number | null
+          created_at?: string
+          date: string
+          goal_minutes?: number | null
+          id?: string
+          streak_count?: number | null
+          total_minutes?: number | null
+          user_id: string
+        }
+        Update: {
+          completion_pct?: number | null
+          created_at?: string
+          date?: string
+          goal_minutes?: number | null
+          id?: string
+          streak_count?: number | null
+          total_minutes?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_study_stats_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           id: number
