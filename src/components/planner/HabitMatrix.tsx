@@ -11,7 +11,7 @@ interface HabitMatrixProps {
   tasks: any[];
   dailyAggregates: any[];
   selectedMonth: Date;
-  onToggleTask: (taskId: string, date: string, completed: boolean) => void;
+  onToggleTask: (taskId: string, date: string, completed: boolean, habitName?: string, subject?: string) => void;
   onAddHabit: (habitName: string, subject: string, goalCount: number) => void;
   onDeleteHabit: (habitName: string) => void;
   maxHabits?: number;
@@ -72,7 +72,9 @@ export const HabitMatrix = ({
 }: HabitMatrixProps) => {
   const [newHabitName, setNewHabitName] = useState("");
   const [newHabitSubject, setNewHabitSubject] = useState("Study");
-  const [newHabitGoal, setNewHabitGoal] = useState(30);
+  // Default goal = days in selected month
+  const daysInSelectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).getDate();
+  const [newHabitGoal, setNewHabitGoal] = useState(daysInSelectedMonth);
   const [showAddHabit, setShowAddHabit] = useState(false);
 
   const todayIST = getISTDate().toISOString().split("T")[0];
@@ -227,6 +229,9 @@ export const HabitMatrix = ({
   }, [habits, habitStats]);
 
   const handleToggle = useCallback((habitName: string, date: string) => {
+    // Only allow toggling for today and past days
+    if (date > todayIST) return;
+    
     const key = `${habitName}_${date}`;
     const isCompleted = completionMap.get(key) || false;
     
@@ -236,10 +241,13 @@ export const HabitMatrix = ({
     if (task) {
       onToggleTask(task.id, date, !isCompleted);
     } else {
-      // Create new task entry
-      onToggleTask("new", date, true);
+      // Find habit's subject to create a new task for this date
+      const habit = habits.find((h) => h.name === habitName);
+      if (habit) {
+        onToggleTask("create_new", date, true, habitName, habit.subject);
+      }
     }
-  }, [completionMap, tasks, onToggleTask]);
+  }, [completionMap, tasks, onToggleTask, todayIST, habits]);
 
   const handleAddHabit = () => {
     if (!newHabitName.trim()) {
@@ -469,15 +477,20 @@ export const HabitMatrix = ({
                       const isBacklog = isPastDue(day.date);
                       const isToday = day.date === todayIST;
                       
+                      const isFuture = day.date > todayIST;
+                      
                       return (
                         <motion.button
                           key={day.date}
-                          whileHover={{ scale: 1.2 }}
-                          whileTap={{ scale: 0.9 }}
+                          whileHover={!isFuture ? { scale: 1.2 } : undefined}
+                          whileTap={!isFuture ? { scale: 0.9 } : undefined}
                           onClick={() => handleToggle(habit.name, day.date)}
+                          disabled={isFuture}
                           className={`w-6 h-6 flex items-center justify-center rounded transition-all ${
                             isCompleted
                               ? "bg-primary text-primary-foreground"
+                              : isFuture
+                              ? "bg-muted/10 border border-border/30 cursor-not-allowed opacity-40"
                               : isBacklog
                               ? "bg-destructive/30 border border-destructive/50"
                               : isToday

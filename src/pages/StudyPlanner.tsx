@@ -143,10 +143,33 @@ const StudyPlanner = () => {
   }, [tasks]);
 
   // Handle habit toggle
-  const handleToggleTask = useCallback(async (taskId: string, date: string, completed: boolean) => {
-    if (taskId === "new") {
+  const handleToggleTask = useCallback(async (taskId: string, date: string, completed: boolean, habitName?: string, subject?: string) => {
+    if (taskId === "create_new" && habitName && subject && userId) {
+      // Create a new task for this habit on this date, then mark it completed
+      const { data, error } = await supabase
+        .from("planner_tasks")
+        .insert({
+          user_id: userId,
+          task_name: habitName,
+          subject: subject,
+          due_date: date,
+          status: "completed",
+          task_type: "habit",
+          completed_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        toast.error("Failed to create task");
+      } else {
+        toast.success("Habit marked!");
+        refetch();
+      }
       return;
     }
+    
+    if (taskId === "new") return;
     
     if (completed) {
       await completeTask(taskId);
@@ -162,7 +185,7 @@ const StudyPlanner = () => {
         refetch();
       }
     }
-  }, [completeTask, refetch]);
+  }, [completeTask, refetch, userId]);
 
   // Handle add habit
   const handleAddHabit = useCallback(async (habitName: string, subject: string, goalCount: number) => {
