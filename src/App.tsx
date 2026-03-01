@@ -29,6 +29,7 @@ import SundayResults from "./pages/SundayResults";
 import ContestPage from "./pages/ContestPage";
 import StudyPlanner from "./pages/StudyPlanner";
 import StudyHours from "./pages/StudyHours";
+import FocusRoom from "./pages/FocusRoom";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +66,7 @@ const App = () => (
           <Route path="/sunday-results" element={<SundayResults />} />
           <Route path="/planner" element={<StudyPlanner />} />
           <Route path="/study-hours" element={<StudyHours />} />
+          <Route path="/focus-room" element={<FocusRoom />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
