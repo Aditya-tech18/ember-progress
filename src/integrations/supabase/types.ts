@@ -207,6 +207,115 @@ export type Database = {
           },
         ]
       }
+      focus_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          room_id: string
+          sender_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          room_id: string
+          sender_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          room_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "focus_messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "focus_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      focus_participants: {
+        Row: {
+          id: string
+          is_leader: boolean
+          joined_at: string
+          left_at: string | null
+          room_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_leader?: boolean
+          joined_at?: string
+          left_at?: string | null
+          room_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_leader?: boolean
+          joined_at?: string
+          left_at?: string | null
+          room_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "focus_participants_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "focus_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      focus_rooms: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string
+          duration_minutes: number
+          ends_at: string | null
+          id: string
+          is_public: boolean
+          max_participants: number
+          room_name: string
+          room_type: string
+          started_at: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by: string
+          duration_minutes?: number
+          ends_at?: string | null
+          id?: string
+          is_public?: boolean
+          max_participants?: number
+          room_name: string
+          room_type?: string
+          started_at?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string
+          duration_minutes?: number
+          ends_at?: string | null
+          id?: string
+          is_public?: boolean
+          max_participants?: number
+          room_name?: string
+          room_type?: string
+          started_at?: string | null
+        }
+        Relationships: []
+      }
       focus_sessions: {
         Row: {
           completed_at: string | null
