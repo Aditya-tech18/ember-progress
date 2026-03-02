@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { useFocusRoom, FocusRoom as FocusRoomType } from "@/hooks/useFocusRoom";
+import { LiveKitVideo } from "@/components/LiveKitVideo";
 import { useNavigate } from "react-router-dom";
 import {
   Video, Users, Plus, Clock, Globe, Lock, Send, LogOut, Crown, MessageSquare,
@@ -177,69 +178,15 @@ const FocusRoom = () => {
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          {/* Main Area - Participant Grid */}
-          <div className="flex-1 p-6 overflow-y-auto">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {participants.map((p, i) => (
-                <motion.div
-                  key={p.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: i * 0.05 }}
-                  className={`relative rounded-2xl overflow-hidden aspect-square flex flex-col items-center justify-center gap-3 border transition-all ${
-                    p.is_leader
-                      ? "bg-gradient-to-br from-primary/20 to-primary/5 border-primary/40 shadow-lg shadow-primary/10"
-                      : "bg-card/60 border-border hover:border-primary/20"
-                  }`}
-                >
-                  {p.is_leader && (
-                    <div className="absolute top-2 right-2">
-                      <Crown className="h-4 w-4 text-accent" />
-                    </div>
-                  )}
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-secondary/30 flex items-center justify-center text-2xl font-bold text-foreground border-2 border-border">
-                      {p.combat_name?.[0]?.toUpperCase() || "W"}
-                    </div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-card" />
-                  </div>
-                  <span className="text-sm font-medium text-foreground truncate max-w-[90%]">
-                    {p.combat_name || "Warrior"}
-                  </span>
-                  {p.is_leader && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">
-                      Leader
-                    </span>
-                  )}
-                </motion.div>
-              ))}
-
-              {/* Motivational empty state */}
-              {participants.length < 3 && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5 }}
-                  className="rounded-2xl border border-dashed border-border/50 aspect-square flex flex-col items-center justify-center gap-2 text-muted-foreground"
-                >
-                  <Users className="h-8 w-8 opacity-30" />
-                  <span className="text-xs text-center px-4">Share the link to invite others</span>
-                </motion.div>
-              )}
-            </div>
-
-            {/* Motivational Quote */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="mt-8 text-center"
-            >
-              <p className="text-muted-foreground/60 italic text-sm">
-                "Focus now, future you will thank you." ✨
-              </p>
-            </motion.div>
-          </div>
+          {/* Main Area - LiveKit Video */}
+          <LiveKitVideo
+            roomId={activeRoomId}
+            roomName={currentRoom.room_name}
+            userId={userId!}
+            userName={participants.find(p => p.user_id === userId)?.combat_name || "Warrior"}
+            isLeader={isLeader}
+            onDisconnect={handleLeaveRoom}
+          />
 
           {/* Right Sidebar - Chat (leaders only can send) */}
           <div className="w-80 border-l border-border bg-card/40 flex flex-col hidden lg:flex">
