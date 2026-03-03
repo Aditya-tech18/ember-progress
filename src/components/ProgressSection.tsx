@@ -23,7 +23,7 @@ const ProgressRing = ({ progress, color, label, solved, total }: ProgressRingPro
       transition={{ duration: 0.5 }}
       className="flex flex-col items-center"
     >
-      <div className="relative w-28 h-28 sm:w-32 sm:h-32">
+      <div className="relative w-24 h-24 sm:w-32 sm:h-32">
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
           {/* Background Circle */}
           <circle
@@ -54,7 +54,7 @@ const ProgressRing = ({ progress, color, label, solved, total }: ProgressRingPro
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-2xl font-bold text-foreground">{progress}%</span>
+          <span className="text-xl sm:text-2xl font-bold text-foreground">{progress}%</span>
         </div>
       </div>
       <span className="mt-3 font-semibold text-foreground">{label}</span>
@@ -98,8 +98,8 @@ export const ProgressSection = () => {
 
   if (loading) {
     return (
-      <section className="py-20 relative">
-        <div className="container mx-auto px-4 lg:px-8">
+      <section className="py-12 sm:py-20 relative">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-8">
           <div className="glass-card p-6 sm:p-10 rounded-2xl flex items-center justify-center min-h-[300px]">
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -112,8 +112,8 @@ export const ProgressSection = () => {
   }
 
   return (
-    <section className="py-20 relative">
-      <div className="container mx-auto px-4 lg:px-8">
+      <section className="py-12 sm:py-20 relative">
+        <div className="container mx-auto px-3 sm:px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -128,10 +128,10 @@ export const ProgressSection = () => {
           </p>
         </motion.div>
 
-        <div className="glass-card p-6 sm:p-10 rounded-2xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+        <div className="glass-card p-4 sm:p-6 lg:p-10 rounded-2xl">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-10 items-center">
             {/* Progress Rings */}
-            <div className="flex justify-center gap-6 sm:gap-10 flex-wrap">
+            <div className="flex justify-center gap-4 sm:gap-10 flex-wrap">
               {subjects.map((subject, index) => (
                 <ProgressRing key={index} {...subject} />
               ))}

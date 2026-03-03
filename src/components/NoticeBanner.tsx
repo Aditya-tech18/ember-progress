@@ -104,19 +104,19 @@ export const NoticeBanner = () => {
           />
         </div>
 
-        <div className="container mx-auto px-4 py-3 relative">
+        <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-3 relative">
           <div 
-            className="flex items-center justify-center gap-4 cursor-pointer"
+            className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 cursor-pointer pr-8"
             onClick={() => navigate("/weekly-contest")}
           >
             <div className="flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-300" />
-              <span className="font-bold text-white">
+              <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-300 flex-shrink-0" />
+              <span className="font-bold text-white text-xs sm:text-base">
                 {isLive ? "🔴 LIVE NOW" : "📢 NOTICE"}
               </span>
             </div>
             
-            <span className="text-white/90 text-sm md:text-base">
+            <span className="text-white/90 text-xs sm:text-base text-center line-clamp-2 sm:line-clamp-1">
               {contest.title} scheduled for{" "}
               <span className="font-bold">
                 {format(new Date(contest.start_time), "EEEE, MMMM d 'at' h:mm a")}
@@ -124,14 +124,14 @@ export const NoticeBanner = () => {
             </span>
 
             {countdown && (
-              <span className={`font-mono font-bold px-3 py-1 rounded-full ${
+              <span className={`font-mono font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm whitespace-nowrap ${
                 isLive ? "bg-white/20 text-white" : "bg-yellow-400 text-black"
               }`}>
                 {isLive ? countdown : `Starts in ${countdown}`}
               </span>
             )}
 
-            <ChevronRight className="w-5 h-5 text-white/70" />
+            <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-white/70 hidden sm:block" />
           </div>
 
           <button

@@ -24,8 +24,8 @@ export const Footer = () => {
 
   return (
     <footer className="border-t border-border/50 bg-card/30 backdrop-blur-sm">
-      <div className="container mx-auto px-4 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           {/* Logo & Description */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
