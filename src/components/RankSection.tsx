@@ -152,16 +152,16 @@ export const RankSection = () => {
   const questionsToNextRank = nextRank ? nextRank.min - userSolvedCount : 0;
 
   return (
-    <section className="py-20 relative overflow-hidden">
-      <div className="container mx-auto px-4 lg:px-8">
+    <section className="py-12 sm:py-20 relative overflow-hidden">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           className="text-center mb-12"
         >
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-4">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground">
               Your Rank Journey
             </h2>
             <motion.button
@@ -181,7 +181,7 @@ export const RankSection = () => {
         </motion.div>
 
         {/* Rank Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
           {ranks.map((rank, index) => {
             const Icon = rank.icon;
             const isPast = index < currentRankIndex;
@@ -199,28 +199,28 @@ export const RankSection = () => {
                 className={`relative group cursor-pointer`}
               >
                 <div
-                  className={`glass-card rounded-2xl p-4 text-center transition-all duration-300 h-full
+                  className={`glass-card rounded-xl sm:rounded-2xl p-2.5 sm:p-4 text-center transition-all duration-300 h-full
                     ${isCurrent ? "ring-2 ring-primary animate-glow-pulse" : ""}
                     ${isPast ? "opacity-60" : ""}
                     ${isFuture ? "opacity-40" : ""}
                   `}
                 >
                   <div
-                    className={`w-12 h-12 mx-auto rounded-xl flex items-center justify-center mb-3 transition-colors
+                    className={`w-8 h-8 sm:w-12 sm:h-12 mx-auto rounded-lg sm:rounded-xl flex items-center justify-center mb-2 sm:mb-3 transition-colors
                       ${isCurrent ? "bg-gradient-to-br from-primary to-orange" : "bg-muted"}
                       ${isPast ? "bg-accent/30" : ""}
                     `}
                   >
                     <Icon
-                      className={`w-6 h-6 ${isCurrent ? "text-primary-foreground" : isPast ? "text-accent" : "text-muted-foreground"}`}
+                      className={`w-4 h-4 sm:w-6 sm:h-6 ${isCurrent ? "text-primary-foreground" : isPast ? "text-accent" : "text-muted-foreground"}`}
                     />
                   </div>
 
-                  <h4 className={`font-bold text-sm mb-1 ${isCurrent ? "text-primary" : "text-foreground"}`}>
+                  <h4 className={`font-bold text-[10px] sm:text-sm mb-0.5 sm:mb-1 ${isCurrent ? "text-primary" : "text-foreground"} truncate`}>
                     {rank.name}
                   </h4>
 
-                  <div className="text-xs text-muted-foreground mb-2">
+                  <div className="text-[9px] sm:text-xs text-muted-foreground mb-1 sm:mb-2">
                     {rank.range} Qs
                   </div>
 
@@ -267,7 +267,7 @@ export const RankSection = () => {
 
       {/* Leaderboard Dialog */}
       <Dialog open={showLeaderboard} onOpenChange={setShowLeaderboard}>
-        <DialogContent className="max-w-4xl max-h-[85vh] p-0 bg-background/95 backdrop-blur-xl border-border/50 overflow-hidden">
+        <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[85vh] p-0 bg-background/95 backdrop-blur-xl border-border/50 overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-border/50">
             <DialogTitle className="flex items-center gap-3 text-2xl">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-yellow-500 via-orange-500 to-red-500 flex items-center justify-center">

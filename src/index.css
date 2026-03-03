@@ -64,6 +64,12 @@
     --glow-gold: 0 0 30px hsl(42 95% 55% / 0.4);
     --glow-success: 0 0 30px hsl(142 70% 45% / 0.4);
 
+    /* Safe areas */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+
     --sidebar-background: 0 0% 8%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 358 84% 50%;
@@ -78,10 +84,13 @@
 @layer base {
   * {
     @apply border-border;
+    box-sizing: border-box;
   }
 
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -89,6 +98,29 @@
     font-family: 'Poppins', sans-serif;
     background: linear-gradient(180deg, hsl(0 0% 5%) 0%, hsl(0 0% 8%) 100%);
     min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+    padding-top: var(--safe-area-top);
+    padding-bottom: var(--safe-area-bottom);
+    padding-left: var(--safe-area-left);
+    padding-right: var(--safe-area-right);
+  }
+
+  /* Responsive base font sizing */
+  html {
+    font-size: 16px;
+  }
+
+  @media (max-width: 360px) {
+    html {
+      font-size: 14px;
+    }
+  }
+
+  @media (min-width: 1440px) {
+    html {
+      font-size: 18px;
+    }
   }
 }
 
@@ -142,6 +174,7 @@
   .carousel-scroll {
     @apply flex gap-4 overflow-x-auto pb-4 scrollbar-hide;
     scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
   }
 
   .carousel-scroll::-webkit-scrollbar {
@@ -175,7 +208,7 @@
 
   /* Question option styles */
   .option-card {
-    @apply glass-card p-4 cursor-pointer transition-all duration-200 border-2 border-transparent;
+    @apply glass-card p-3 sm:p-4 cursor-pointer transition-all duration-200 border-2 border-transparent;
   }
 
   .option-card:hover:not(.selected):not(.disabled) {
@@ -211,6 +244,23 @@
   .katex {
     font-size: 1em;
   }
+
+  /* Safe area utilities */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Responsive container override for very small screens */
+  @media (max-width: 374px) {
+    .container {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+  }
 }
 
 /* Custom scrollbar for question content */
@@ -231,4 +281,12 @@
 
 .question-scroll::-webkit-scrollbar-thumb:hover {
   background: hsl(358 84% 50% / 0.8);
+}
+
+/* Prevent horizontal overflow globally */
+#root {
+  overflow-x: hidden;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
 }

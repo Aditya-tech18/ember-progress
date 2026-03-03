@@ -52,18 +52,18 @@ export const HeroSection = () => {
         key={value}
         initial={{ scale: 1.05, opacity: 0.8 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-gradient-to-br from-primary/20 to-crimson/10 backdrop-blur-sm border border-primary/30 rounded-xl px-4 py-2 min-w-[60px] sm:min-w-[70px]"
+        className="bg-gradient-to-br from-primary/20 to-crimson/10 backdrop-blur-sm border border-primary/30 rounded-lg sm:rounded-xl px-2.5 py-1.5 sm:px-4 sm:py-2 min-w-[48px] sm:min-w-[70px]"
       >
-        <span className="text-2xl sm:text-3xl font-bold text-primary font-mono">
+        <span className="text-xl sm:text-3xl font-bold text-primary font-mono">
           {value.toString().padStart(2, "0")}
         </span>
       </motion.div>
-      <span className="text-[10px] sm:text-xs text-muted-foreground mt-1 uppercase tracking-wider">{label}</span>
+      <span className="text-[9px] sm:text-xs text-muted-foreground mt-1 uppercase tracking-wider">{label}</span>
     </div>
   );
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
+    <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden pt-16 sm:pt-20 pb-8">
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" />
@@ -106,8 +106,8 @@ export const HeroSection = () => {
       </motion.div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 lg:px-8 relative z-10">
-        <div className="max-w-4xl mx-auto text-center">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
+        <div className="max-w-4xl mx-auto text-center w-full">
           {/* JEE Countdown Timer */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
@@ -115,10 +115,10 @@ export const HeroSection = () => {
             transition={{ duration: 0.5 }}
             className="mb-6"
           >
-            <div className="inline-flex flex-col items-center gap-3 px-6 py-4 rounded-2xl glass-card border border-primary/20">
+            <div className="inline-flex flex-col items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl glass-card border border-primary/20 max-w-full">
               <div className="flex items-center gap-2">
-                <Target className="h-5 w-5 text-primary" />
-                <span className="text-sm font-semibold text-foreground">JEE Mains 2026 Session 2 Countdown</span>
+                <Target className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-semibold text-foreground whitespace-nowrap">JEE Mains 2026 Session 2</span>
               </div>
               <div className="flex items-center gap-2 sm:gap-3">
                 <TimeBlock value={timeLeft.days} label="Days" />
@@ -145,7 +145,7 @@ export const HeroSection = () => {
               whileHover={{ scale: 1.06, boxShadow: "0 0 40px rgba(16,185,129,0.5), 0 20px 60px rgba(6,95,70,0.4)" }}
               whileTap={{ scale: 0.97 }}
               onClick={() => navigate("/planner")}
-              className="relative inline-flex items-center gap-3 bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white px-10 py-5 rounded-2xl font-bold text-lg border border-blue-500/30 transition-all duration-300"
+              className="relative inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white px-6 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg border border-blue-500/30 transition-all duration-300 w-full sm:w-auto justify-center"
               style={{ boxShadow: "0 0 25px rgba(59,130,246,0.3), 0 10px 40px rgba(30,58,138,0.35), inset 0 1px 0 rgba(255,255,255,0.1)" }}
             >
               <span className="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent to-white/5 pointer-events-none" />
@@ -160,7 +160,7 @@ export const HeroSection = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-4xl sm:text-5xl lg:text-7xl font-bold text-foreground mb-6 leading-tight"
+            className="text-3xl sm:text-5xl lg:text-7xl font-bold text-foreground mb-4 sm:mb-6 leading-tight"
           >
             Discipline Today,
             <br />
@@ -172,7 +172,7 @@ export const HeroSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-lg sm:text-xl text-muted-foreground mb-10 max-w-2xl mx-auto"
+            className="text-base sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto px-2"
           >
             Track your progress, test your skills, and rise through ranks.
             Master Physics, Chemistry, and Mathematics with our gamified learning platform.
@@ -188,7 +188,7 @@ export const HeroSection = () => {
             <Button
               size="lg"
               onClick={handleStartPracticing}
-              className="w-full sm:w-auto bg-gradient-to-r from-primary to-crimson hover:opacity-90 text-primary-foreground font-semibold px-8 py-6 text-lg rounded-xl animate-glow-pulse group"
+              className="w-full sm:w-auto bg-gradient-to-r from-primary to-crimson hover:opacity-90 text-primary-foreground font-semibold px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg rounded-xl animate-glow-pulse group"
             >
               <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
               Start Practicing
@@ -197,7 +197,7 @@ export const HeroSection = () => {
               size="lg"
               variant="outline"
               onClick={() => setShowHeatmap(true)}
-              className="w-full sm:w-auto border-border/50 hover:bg-muted/50 text-foreground font-semibold px-8 py-6 text-lg rounded-xl hover:border-primary/50 transition-colors"
+              className="w-full sm:w-auto border-border/50 hover:bg-muted/50 text-foreground font-semibold px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg rounded-xl hover:border-primary/50 transition-colors"
             >
               <BarChart3 className="w-5 h-5 mr-2" />
               View Progress
@@ -206,7 +206,7 @@ export const HeroSection = () => {
               size="lg"
               variant="outline"
               onClick={() => setShowCreatePost(true)}
-              className="w-full sm:w-auto border-primary/50 bg-primary/10 hover:bg-primary/20 text-foreground font-semibold px-8 py-6 text-lg rounded-xl hover:border-primary transition-colors"
+              className="w-full sm:w-auto border-primary/50 bg-primary/10 hover:bg-primary/20 text-foreground font-semibold px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg rounded-xl hover:border-primary transition-colors"
             >
               <PenSquare className="w-5 h-5 mr-2" />
               Share Achievement
@@ -258,7 +258,7 @@ export const HeroSection = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.8 }}
-            className="grid grid-cols-3 gap-4 sm:gap-8 mt-16 max-w-2xl mx-auto"
+            className="grid grid-cols-3 gap-3 sm:gap-8 mt-10 sm:mt-16 max-w-2xl mx-auto"
           >
             {[
               { value: "50K+", label: "Questions", icon: Zap },
@@ -267,11 +267,11 @@ export const HeroSection = () => {
             ].map((stat, index) => (
               <motion.div 
                 key={index} 
-                className="text-center glass-card p-4 rounded-xl"
+                className="text-center glass-card p-3 sm:p-4 rounded-xl"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
               >
-                <div className="text-2xl sm:text-3xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-xl sm:text-3xl font-bold text-foreground">{stat.value}</div>
                 <div className="text-sm text-muted-foreground">{stat.label}</div>
               </motion.div>
             ))}

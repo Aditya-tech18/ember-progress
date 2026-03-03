@@ -110,14 +110,14 @@ export const GameCards = () => {
   };
 
   return (
-    <section className="px-4 py-8">
+    <section className="px-3 sm:px-4 py-6 sm:py-8">
       <div className="container mx-auto">
-        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <Zap className="w-6 h-6 text-yellow-500" />
+        <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+          <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />
           Compete & Prepare
         </h2>
 
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {/* Weekly Contest Card */}
           <motion.div
             whileHover={{ scale: 1.02 }}
@@ -125,7 +125,7 @@ export const GameCards = () => {
             onClick={() => navigate("/weekly-contest")}
             className="cursor-pointer"
           >
-            <Card className="p-6 bg-gradient-to-br from-orange-500/20 via-red-500/10 to-pink-500/20 border-orange-500/30 hover:border-orange-500/50 transition-all overflow-hidden relative">
+            <Card className="p-4 sm:p-6 bg-gradient-to-br from-orange-500/20 via-red-500/10 to-pink-500/20 border-orange-500/30 hover:border-orange-500/50 transition-all overflow-hidden relative">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-red-500/20 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -180,7 +180,7 @@ export const GameCards = () => {
             onClick={() => navigate("/team")}
             className="cursor-pointer"
           >
-            <Card className="p-6 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-indigo-500/20 border-blue-500/30 hover:border-blue-500/50 transition-all overflow-hidden relative">
+            <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-indigo-500/20 border-blue-500/30 hover:border-blue-500/50 transition-all overflow-hidden relative">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-500/20 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />

@@ -27,22 +27,24 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen relative">
-      <div className="pt-0">
+    <div className="min-h-[100dvh] relative w-full overflow-x-hidden">
+      <div className="flex flex-col min-h-[100dvh]">
         <DownloadAppBanner />
         <NoticeBanner />
         <Navbar />
         <CombatNameModal />
-        <HeroSection />
-        <ProgressSection />
-        <CategoryPills />
-        <GameCards />
-        <ContentCarousel title="🔥 Trending PYQs" items={trendingPYQs} />
-        <ContentCarousel title="📝 Mock Tests" items={mockTests} variant="large" />
-        <SubjectsSection />
-        <div id="rank-section">
-          <RankSection />
-        </div>
+        <main className="flex-1">
+          <HeroSection />
+          <ProgressSection />
+          <CategoryPills />
+          <GameCards />
+          <ContentCarousel title="🔥 Trending PYQs" items={trendingPYQs} />
+          <ContentCarousel title="📝 Mock Tests" items={mockTests} variant="large" />
+          <SubjectsSection />
+          <div id="rank-section">
+            <RankSection />
+          </div>
+        </main>
         <Footer />
       </div>
 
@@ -59,10 +61,11 @@ const Index = () => {
           ],
         }}
         transition={{ boxShadow: { duration: 2, repeat: Infinity } }}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center shadow-2xl"
+        className="fixed z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-r from-primary to-secondary flex items-center justify-center shadow-2xl"
+        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 0px))', right: '1.5rem' }}
         title="Join or Create Focus Room 🎥"
       >
-        <Video className="h-6 w-6 text-primary-foreground" />
+        <Video className="h-5 w-5 sm:h-6 sm:w-6 text-primary-foreground" />
       </motion.button>
     </div>
   );

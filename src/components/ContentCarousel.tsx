@@ -44,7 +44,7 @@ export const ContentCarousel = ({ title, items, variant = "default" }: ContentCa
 
   return (
     <section className="py-8">
-      <div className="container mx-auto px-4 lg:px-8">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <motion.h3
             initial={{ opacity: 0, x: -20 }}
@@ -72,7 +72,7 @@ export const ContentCarousel = ({ title, items, variant = "default" }: ContentCa
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className={`flex-shrink-0 ${variant === "large" ? "w-72 sm:w-80" : "w-48 sm:w-56"}`}
+              className={`flex-shrink-0 ${variant === "large" ? "w-64 sm:w-80" : "w-40 sm:w-56"}`}
             >
               <div
                 onClick={() => handleItemClick(item)}
