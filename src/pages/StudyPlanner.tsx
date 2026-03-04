@@ -280,7 +280,7 @@ const StudyPlanner = () => {
     : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20">
       <Navbar />
 
       <main className="pt-20 pb-12 px-4">
@@ -469,44 +469,31 @@ const StudyPlanner = () => {
                   onMonthChange={setSelectedMonth}
                 />
 
-                {/* Z-Pattern Layout */}
-                <div className="grid lg:grid-cols-4 gap-6">
-                  {/* Left: Area Chart (spans 3 cols) */}
-                  <div className="lg:col-span-3">
-                    <MonthlyAreaChart
-                      dailyStats={dailyStats}
-                      selectedMonth={selectedMonth}
-                    />
-                  </div>
+                {/* 1. Daily Task Completion Trend (Area Chart) */}
+                <MonthlyAreaChart
+                  dailyStats={dailyStats}
+                  selectedMonth={selectedMonth}
+                />
 
-                  {/* Right: Daily Progress Donut */}
-                  <div className="lg:col-span-1">
-                    <DailyProgressDonut
-                      completed={todaysCompleted}
-                      total={todaysTasks.length || 1}
-                    />
-                  </div>
-                </div>
+                {/* 2. Daily Habits Matrix */}
+                <HabitMatrix
+                  tasks={tasks}
+                  dailyAggregates={dailyAggregates}
+                  selectedMonth={selectedMonth}
+                  onToggleTask={handleToggleTask}
+                  onAddHabit={handleAddHabit}
+                  onDeleteHabit={handleDeleteHabit}
+                  maxHabits={MAX_HABITS}
+                  currentHabitCount={uniqueHabits}
+                />
 
-                {/* Habit Matrix Grid */}
-                <div className="grid lg:grid-cols-4 gap-6">
-                  <div className="lg:col-span-3">
-                    <HabitMatrix
-                      tasks={tasks}
-                      dailyAggregates={dailyAggregates}
-                      selectedMonth={selectedMonth}
-                      onToggleTask={handleToggleTask}
-                      onAddHabit={handleAddHabit}
-                      onDeleteHabit={handleDeleteHabit}
-                      maxHabits={MAX_HABITS}
-                      currentHabitCount={uniqueHabits}
-                    />
-                  </div>
-
-                  {/* Right Sidebar: Top Habits */}
-                  <div className="lg:col-span-1">
-                    <TopHabitsRanking habits={topHabits} />
-                  </div>
+                {/* 3. Habit Ranking + 4. Today's Progress side by side */}
+                <div className="grid lg:grid-cols-2 gap-6">
+                  <TopHabitsRanking habits={topHabits} />
+                  <DailyProgressDonut
+                    completed={todaysCompleted}
+                    total={todaysTasks.length || 1}
+                  />
                 </div>
               </motion.div>
             )}

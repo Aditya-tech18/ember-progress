@@ -117,11 +117,13 @@ export const Navbar = () => {
             <motion.div
               whileHover={{ scale: 1.05 }}
               onClick={() => navigate("/")}
-              className="flex items-center gap-2.5 cursor-pointer"
+              className="flex items-center gap-2 cursor-pointer"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-crimson flex items-center justify-center shadow-md shadow-primary/20">
-                <span className="text-primary-foreground font-bold text-lg">P</span>
-              </div>
+              <img 
+                src="/images/prepixo-splash.jpg" 
+                alt="Prepixo" 
+                className="w-9 h-9 rounded-xl shadow-md shadow-primary/20 object-cover"
+              />
               <span className="text-lg font-bold text-foreground hidden sm:block tracking-tight">
                 Prepixo
               </span>
