@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, BarChart3, Sparkles, BookOpen, Atom, Calculator, Play, Zap, X, PenSquare, Flame, Calendar } from "lucide-react";
+import { Target, BarChart3, Sparkles, Play, Zap, X, Flame, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityHeatmap } from "./ActivityHeatmap";
-import { CreatePostModal } from "./social/CreatePostModal";
 
 // JEE Mains 2026 Session 2 - April 2, 2026 at 9:00 AM IST
 const JEE_DATE = new Date("2026-04-02T09:00:00+05:30");
@@ -19,14 +18,12 @@ interface TimeLeft {
 export const HeroSection = () => {
   const navigate = useNavigate();
   const [showHeatmap, setShowHeatmap] = useState(false);
-  const [showCreatePost, setShowCreatePost] = useState(false);
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date();
       const difference = JEE_DATE.getTime() - now.getTime();
-
       if (difference > 0) {
         setTimeLeft({
           days: Math.floor(difference / (1000 * 60 * 60 * 24)),
@@ -36,15 +33,10 @@ export const HeroSection = () => {
         });
       }
     };
-
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
     return () => clearInterval(timer);
   }, []);
-
-  const handleStartPracticing = () => {
-    navigate("/chapters/Physics");
-  };
 
   const TimeBlock = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center">
@@ -52,235 +44,156 @@ export const HeroSection = () => {
         key={value}
         initial={{ scale: 1.05, opacity: 0.8 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="bg-gradient-to-br from-primary/20 to-crimson/10 backdrop-blur-sm border border-primary/30 rounded-lg sm:rounded-xl px-2.5 py-1.5 sm:px-4 sm:py-2 min-w-[48px] sm:min-w-[70px]"
+        className="bg-gradient-to-br from-primary/20 to-crimson/10 backdrop-blur-sm border border-primary/30 rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 min-w-[40px] sm:min-w-[56px]"
       >
-        <span className="text-xl sm:text-3xl font-bold text-primary font-mono">
+        <span className="text-lg sm:text-2xl font-bold text-primary font-mono">
           {value.toString().padStart(2, "0")}
         </span>
       </motion.div>
-      <span className="text-[9px] sm:text-xs text-muted-foreground mt-1 uppercase tracking-wider">{label}</span>
+      <span className="text-[8px] sm:text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wider">{label}</span>
     </div>
   );
 
   return (
-    <section className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden pt-16 sm:pt-20 pb-8">
-      {/* Animated Background */}
+    <section className="relative flex items-center justify-center overflow-hidden pt-16 sm:pt-20 pb-4 sm:pb-6">
+      {/* Minimal Background */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-crimson/10 rounded-full blur-3xl animate-float" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-gold/5 rounded-full blur-3xl animate-float" style={{ animationDelay: "2s" }} />
-        
-        {/* Netflix-style gradient overlay */}
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/8 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-crimson/8 rounded-full blur-3xl" />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50" />
       </div>
 
-      {/* Floating Icons */}
-      <motion.div
-        animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-32 left-[15%] hidden lg:block"
-      >
-        <div className="w-16 h-16 glass-card flex items-center justify-center rounded-2xl glow-primary">
-          <BookOpen className="w-8 h-8 text-primary" />
-        </div>
-      </motion.div>
-
-      <motion.div
-        animate={{ y: [0, 15, 0], rotate: [0, -5, 0] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-48 right-[10%] hidden lg:block"
-      >
-        <div className="w-20 h-20 glass-card flex items-center justify-center rounded-2xl">
-          <Atom className="w-10 h-10 text-electric-blue" />
-        </div>
-      </motion.div>
-
-      <motion.div
-        animate={{ y: [0, -10, 0], rotate: [0, 3, 0] }}
-        transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-32 left-[10%] hidden lg:block"
-      >
-        <div className="w-14 h-14 glass-card flex items-center justify-center rounded-2xl glow-gold">
-          <Calculator className="w-7 h-7 text-gold" />
-        </div>
-      </motion.div>
-
-      {/* Main Content */}
       <div className="container mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
-        <div className="max-w-4xl mx-auto text-center w-full">
-          {/* JEE Countdown Timer */}
+        <div className="max-w-3xl mx-auto text-center w-full">
+          {/* Compact JEE Countdown */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-6"
+            className="mb-4"
           >
-            <div className="inline-flex flex-col items-center gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 rounded-2xl glass-card border border-primary/20 max-w-full">
-              <div className="flex items-center gap-2">
-                <Target className="h-4 w-4 sm:h-5 sm:w-5 text-primary flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-semibold text-foreground whitespace-nowrap">JEE Mains 2026 Session 2</span>
+            <div className="inline-flex flex-col items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-3 rounded-xl glass-card border border-primary/20">
+              <div className="flex items-center gap-1.5">
+                <Target className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                <span className="text-[10px] sm:text-xs font-semibold text-foreground">JEE Mains 2026</span>
               </div>
-              <div className="flex items-center gap-2 sm:gap-3">
+              <div className="flex items-center gap-1.5 sm:gap-2">
                 <TimeBlock value={timeLeft.days} label="Days" />
-                <span className="text-primary text-2xl font-bold mt-[-20px]">:</span>
-                <TimeBlock value={timeLeft.hours} label="Hours" />
-                <span className="text-primary text-2xl font-bold mt-[-20px]">:</span>
-                <TimeBlock value={timeLeft.minutes} label="Mins" />
-                <span className="text-primary text-2xl font-bold mt-[-20px] hidden sm:block">:</span>
+                <span className="text-primary text-lg font-bold">:</span>
+                <TimeBlock value={timeLeft.hours} label="Hrs" />
+                <span className="text-primary text-lg font-bold">:</span>
+                <TimeBlock value={timeLeft.minutes} label="Min" />
+                <span className="text-primary text-lg font-bold hidden sm:block">:</span>
                 <div className="hidden sm:block">
-                  <TimeBlock value={timeLeft.seconds} label="Secs" />
+                  <TimeBlock value={timeLeft.seconds} label="Sec" />
                 </div>
               </div>
             </div>
           </motion.div>
 
-          {/* Open Planner Button */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="mb-8"
-          >
-            <motion.button
-              whileHover={{ scale: 1.06, boxShadow: "0 0 40px rgba(16,185,129,0.5), 0 20px 60px rgba(6,95,70,0.4)" }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => navigate("/planner")}
-              className="relative inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white px-6 sm:px-10 py-4 sm:py-5 rounded-2xl font-bold text-base sm:text-lg border border-blue-500/30 transition-all duration-300 w-full sm:w-auto justify-center"
-              style={{ boxShadow: "0 0 25px rgba(59,130,246,0.3), 0 10px 40px rgba(30,58,138,0.35), inset 0 1px 0 rgba(255,255,255,0.1)" }}
-            >
-              <span className="absolute inset-0 rounded-2xl bg-gradient-to-t from-transparent to-white/5 pointer-events-none" />
-              <Flame className="h-6 w-6 drop-shadow-lg" />
-              <span className="drop-shadow-md tracking-wide">Open Success Planner</span>
-              <Calendar className="h-6 w-6 drop-shadow-lg" />
-            </motion.button>
-          </motion.div>
-
-          {/* Title */}
+          {/* Compact Title */}
           <motion.h1
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-3xl sm:text-5xl lg:text-7xl font-bold text-foreground mb-4 sm:mb-6 leading-tight"
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-2xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-2 sm:mb-3 leading-tight"
           >
-            Discipline Today,
-            <br />
-            <span className="gradient-text">Rank Tomorrow</span>
+            Discipline Today, <span className="gradient-text">Rank Tomorrow</span>
           </motion.h1>
 
-          {/* Subtitle */}
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-base sm:text-xl text-muted-foreground mb-8 sm:mb-10 max-w-2xl mx-auto px-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="text-sm sm:text-base text-muted-foreground mb-4 sm:mb-5 max-w-lg mx-auto"
           >
-            Track your progress, test your skills, and rise through ranks.
-            Master Physics, Chemistry, and Mathematics with our gamified learning platform.
+            Master JEE with gamified learning. Track, compete & rise.
           </motion.p>
 
-          {/* CTA Buttons */}
+          {/* Compact CTA Row */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            transition={{ delay: 0.3 }}
+            className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-4"
           >
             <Button
-              size="lg"
-              onClick={handleStartPracticing}
-              className="w-full sm:w-auto bg-gradient-to-r from-primary to-crimson hover:opacity-90 text-primary-foreground font-semibold px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg rounded-xl animate-glow-pulse group"
+              onClick={() => navigate("/planner")}
+              className="bg-gradient-to-r from-blue-900 via-blue-800 to-indigo-900 text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold text-sm border border-blue-500/30"
+              style={{ boxShadow: "0 0 20px rgba(59,130,246,0.25)" }}
             >
-              <Play className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-              Start Practicing
+              <Flame className="h-4 w-4 mr-1.5" />
+              Success Planner
             </Button>
             <Button
-              size="lg"
+              onClick={() => navigate("/chapters/Physics")}
+              className="bg-gradient-to-r from-primary to-crimson text-primary-foreground px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-semibold text-sm"
+            >
+              <Play className="w-4 h-4 mr-1.5" />
+              Practice PYQs
+            </Button>
+            <Button
               variant="outline"
               onClick={() => setShowHeatmap(true)}
-              className="w-full sm:w-auto border-border/50 hover:bg-muted/50 text-foreground font-semibold px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg rounded-xl hover:border-primary/50 transition-colors"
+              className="border-border/50 px-4 py-2.5 sm:py-3 rounded-xl text-sm"
             >
-              <BarChart3 className="w-5 h-5 mr-2" />
-              View Progress
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => setShowCreatePost(true)}
-              className="w-full sm:w-auto border-primary/50 bg-primary/10 hover:bg-primary/20 text-foreground font-semibold px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg rounded-xl hover:border-primary transition-colors"
-            >
-              <PenSquare className="w-5 h-5 mr-2" />
-              Share Achievement
+              <BarChart3 className="w-4 h-4 mr-1.5" />
+              Progress
             </Button>
           </motion.div>
 
-          {/* Heatmap Modal */}
-          <AnimatePresence>
-            {showHeatmap && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-                onClick={() => setShowHeatmap(false)}
-              >
-                <motion.div
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  onClick={(e) => e.stopPropagation()}
-                  className="max-w-4xl w-full max-h-[80vh] overflow-auto"
-                >
-                  <div className="relative">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setShowHeatmap(false)}
-                      className="absolute top-2 right-2 z-10 rounded-full bg-background/80 hover:bg-background"
-                    >
-                      <X className="w-5 h-5" />
-                    </Button>
-                    <ActivityHeatmap />
-                  </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Create Post Modal */}
-          <CreatePostModal
-            isOpen={showCreatePost}
-            onClose={() => setShowCreatePost(false)}
-            onPostCreated={() => {}}
-          />
-
-          {/* Stats */}
+          {/* Compact Stats Row */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.8 }}
-            className="grid grid-cols-3 gap-3 sm:gap-8 mt-10 sm:mt-16 max-w-2xl mx-auto"
+            transition={{ delay: 0.4 }}
+            className="flex items-center justify-center gap-6 sm:gap-10"
           >
             {[
-              { value: "50K+", label: "Questions", icon: Zap },
-              { value: "12", label: "Ranks", icon: Target },
-              { value: "10K+", label: "Students", icon: Sparkles },
-            ].map((stat, index) => (
-              <motion.div 
-                key={index} 
-                className="text-center glass-card p-3 sm:p-4 rounded-xl"
-                whileHover={{ scale: 1.05 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <div className="text-xl sm:text-3xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-sm text-muted-foreground">{stat.label}</div>
-              </motion.div>
+              { value: "50K+", label: "Questions" },
+              { value: "12", label: "Ranks" },
+              { value: "10K+", label: "Students" },
+            ].map((stat, i) => (
+              <div key={i} className="text-center">
+                <div className="text-lg sm:text-xl font-bold text-foreground">{stat.value}</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground">{stat.label}</div>
+              </div>
             ))}
           </motion.div>
         </div>
       </div>
 
-      {/* Bottom Gradient Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+      {/* Heatmap Modal */}
+      <AnimatePresence>
+        {showHeatmap && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowHeatmap(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="max-w-4xl w-full max-h-[80vh] overflow-auto"
+            >
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowHeatmap(false)}
+                  className="absolute top-2 right-2 z-10 rounded-full bg-background/80 hover:bg-background"
+                >
+                  <X className="w-5 h-5" />
+                </Button>
+                <ActivityHeatmap />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };
