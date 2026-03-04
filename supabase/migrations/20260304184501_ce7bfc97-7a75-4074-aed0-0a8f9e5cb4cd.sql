@@ -1,0 +1,1 @@
+INSERT INTO public.contests (title, start_time, end_time, result_time) VALUES ('JEE Main 2025 Mock Test - March 8, 2026', '2026-03-08T14:00:00+05:30', '2026-03-08T17:00:00+05:30', '2026-03-08T22:00:00+05:30');
