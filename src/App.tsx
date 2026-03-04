@@ -1,8 +1,13 @@
+import { useState, useCallback } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BottomNavBar } from "@/components/BottomNavBar";
+import { SplashScreen } from "@/components/SplashScreen";
+import { useHabitReminder } from "@/hooks/useHabitReminder";
+import { useBackButton } from "@/hooks/useBackButton";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import OtpVerification from "./pages/OtpVerification";
@@ -33,45 +38,64 @@ import FocusRoom from "./pages/FocusRoom";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/otp-verification" element={<OtpVerification />} />
-          <Route path="/password-reset" element={<PasswordReset />} />
-          <Route path="/chapters/:subject" element={<ChapterSelect />} />
-          <Route path="/questions/:chapterName" element={<QuestionList />} />
-          <Route path="/question/:questionId" element={<QuestionScreen />} />
-          <Route path="/subscription" element={<Subscription />} />
-          <Route path="/mock-tests" element={<MockTestList />} />
-          <Route path="/mock-test/instructions/:testId" element={<MockTestInstructions />} />
-          <Route path="/mock-test/:testId" element={<MockTest />} />
-          <Route path="/mock-test/result/:resultId" element={<MockTestResult />} />
-          <Route path="/ai-chat" element={<AIChat />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/terms" element={<TermsConditions />} />
-          <Route path="/refund" element={<RefundPolicy />} />
-          <Route path="/about" element={<AboutUs />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/weekly-contest" element={<WeeklyContest />} />
-          <Route path="/contest/:contestId" element={<ContestPage />} />
-          <Route path="/team" element={<TeamDashboard />} />
-          <Route path="/team/:teamId" element={<TeamDashboard />} />
-          <Route path="/team-battle/:challengeId" element={<TeamBattleMockTest />} />
-          <Route path="/sunday-results" element={<SundayResults />} />
-          <Route path="/planner" element={<StudyPlanner />} />
-          <Route path="/study-hours" element={<StudyHours />} />
-          <Route path="/focus-room" element={<FocusRoom />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const AppContent = () => {
+  useHabitReminder();
+  useBackButton();
+  
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/otp-verification" element={<OtpVerification />} />
+        <Route path="/password-reset" element={<PasswordReset />} />
+        <Route path="/chapters/:subject" element={<ChapterSelect />} />
+        <Route path="/questions/:chapterName" element={<QuestionList />} />
+        <Route path="/question/:questionId" element={<QuestionScreen />} />
+        <Route path="/subscription" element={<Subscription />} />
+        <Route path="/mock-tests" element={<MockTestList />} />
+        <Route path="/mock-test/instructions/:testId" element={<MockTestInstructions />} />
+        <Route path="/mock-test/:testId" element={<MockTest />} />
+        <Route path="/mock-test/result/:resultId" element={<MockTestResult />} />
+        <Route path="/ai-chat" element={<AIChat />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/terms" element={<TermsConditions />} />
+        <Route path="/refund" element={<RefundPolicy />} />
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/weekly-contest" element={<WeeklyContest />} />
+        <Route path="/contest/:contestId" element={<ContestPage />} />
+        <Route path="/team" element={<TeamDashboard />} />
+        <Route path="/team/:teamId" element={<TeamDashboard />} />
+        <Route path="/team-battle/:challengeId" element={<TeamBattleMockTest />} />
+        <Route path="/sunday-results" element={<SundayResults />} />
+        <Route path="/planner" element={<StudyPlanner />} />
+        <Route path="/study-hours" element={<StudyHours />} />
+        <Route path="/focus-room" element={<FocusRoom />} />
+        <Route path="/pyq" element={<ChapterSelect />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <BottomNavBar />
+    </>
+  );
+};
+
+const App = () => {
+  const [splashDone, setSplashDone] = useState(false);
+  const handleSplashComplete = useCallback(() => setSplashDone(true), []);
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
