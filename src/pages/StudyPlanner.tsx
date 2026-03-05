@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { usePlanner } from "@/hooks/usePlanner";
 import { HabitMatrix } from "@/components/planner/HabitMatrix";
 import { MonthlyAreaChart } from "@/components/planner/MonthlyAreaChart";
-import { DailyProgressDonut } from "@/components/planner/DailyProgressDonut";
+import { DailyTodoList } from "@/components/planner/DailyTodoList";
 import { TopHabitsRanking } from "@/components/planner/TopHabitsRanking";
 import { MonthSelector } from "@/components/planner/MonthSelector";
 import { GrowthHeatmap } from "@/components/planner/GrowthHeatmap";
@@ -487,12 +487,14 @@ const StudyPlanner = () => {
                   currentHabitCount={uniqueHabits}
                 />
 
-                {/* 3. Habit Ranking + 4. Today's Progress side by side */}
+                {/* 3. Habit Ranking + 4. Today's To-Do List side by side */}
                 <div className="grid lg:grid-cols-2 gap-6">
                   <TopHabitsRanking habits={topHabits} />
-                  <DailyProgressDonut
-                    completed={todaysCompleted}
-                    total={todaysTasks.length || 1}
+                  <DailyTodoList
+                    userId={userId}
+                    todayIST={todayIST}
+                    onRefetch={refetch}
+                    tasks={tasks}
                   />
                 </div>
               </motion.div>
