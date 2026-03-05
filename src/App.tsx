@@ -35,6 +35,7 @@ import ContestPage from "./pages/ContestPage";
 import StudyPlanner from "./pages/StudyPlanner";
 import StudyHours from "./pages/StudyHours";
 import FocusRoom from "./pages/FocusRoom";
+import RankJourney from "./pages/RankJourney";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const AppContent = () => {
         <Route path="/planner" element={<StudyPlanner />} />
         <Route path="/study-hours" element={<StudyHours />} />
         <Route path="/focus-room" element={<FocusRoom />} />
+        <Route path="/rank-journey" element={<RankJourney />} />
         <Route path="/pyq" element={<ChapterSelect />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

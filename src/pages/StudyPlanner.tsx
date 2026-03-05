@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { usePlanner } from "@/hooks/usePlanner";
 import { HabitMatrix } from "@/components/planner/HabitMatrix";
 import { MonthlyAreaChart } from "@/components/planner/MonthlyAreaChart";
-import { DailyProgressDonut } from "@/components/planner/DailyProgressDonut";
+import { DailyTodoList } from "@/components/planner/DailyTodoList";
 import { TopHabitsRanking } from "@/components/planner/TopHabitsRanking";
 import { MonthSelector } from "@/components/planner/MonthSelector";
 import { GrowthHeatmap } from "@/components/planner/GrowthHeatmap";
@@ -247,6 +247,22 @@ const StudyPlanner = () => {
     }
   }, [userId, refetch]);
 
+  // Handle rename habit
+  const handleRenameHabit = useCallback(async (oldName: string, newName: string) => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("planner_tasks")
+      .update({ task_name: newName })
+      .eq("user_id", userId)
+      .eq("task_name", oldName);
+    if (error) {
+      toast.error("Failed to rename habit");
+    } else {
+      toast.success(`Renamed to "${newName}"`);
+      refetch();
+    }
+  }, [userId, refetch]);
+
   if (isAuthenticated === null || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -483,16 +499,19 @@ const StudyPlanner = () => {
                   onToggleTask={handleToggleTask}
                   onAddHabit={handleAddHabit}
                   onDeleteHabit={handleDeleteHabit}
+                  onRenameHabit={handleRenameHabit}
                   maxHabits={MAX_HABITS}
                   currentHabitCount={uniqueHabits}
                 />
 
-                {/* 3. Habit Ranking + 4. Today's Progress side by side */}
+                {/* 3. Habit Ranking + 4. Today's To-Do List side by side */}
                 <div className="grid lg:grid-cols-2 gap-6">
                   <TopHabitsRanking habits={topHabits} />
-                  <DailyProgressDonut
-                    completed={todaysCompleted}
-                    total={todaysTasks.length || 1}
+                  <DailyTodoList
+                    userId={userId}
+                    todayIST={todayIST}
+                    onRefetch={refetch}
+                    tasks={tasks}
                   />
                 </div>
               </motion.div>

@@ -76,10 +76,10 @@ export const NoticeBanner = () => {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -50 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -50 }}
-        className={`relative overflow-hidden ${
+        exit={{ opacity: 0, y: -10 }}
+        className={`relative overflow-hidden z-30 ${
           isLive 
             ? "bg-gradient-to-r from-green-600 via-emerald-500 to-green-600" 
             : "bg-gradient-to-r from-orange-600 via-red-500 to-orange-600"

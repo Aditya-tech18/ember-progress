@@ -22,9 +22,9 @@ const Index = () => {
   return (
     <div className="min-h-[100dvh] relative w-full overflow-x-hidden pb-16">
       <div className="flex flex-col min-h-[100dvh]">
+        <Navbar />
         <SaleBanner />
         <NoticeBanner />
-        <Navbar />
         <CombatNameModal />
         <main className="flex-1">
           <HeroSection />
