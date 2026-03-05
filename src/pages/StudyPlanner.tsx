@@ -247,6 +247,22 @@ const StudyPlanner = () => {
     }
   }, [userId, refetch]);
 
+  // Handle rename habit
+  const handleRenameHabit = useCallback(async (oldName: string, newName: string) => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("planner_tasks")
+      .update({ task_name: newName })
+      .eq("user_id", userId)
+      .eq("task_name", oldName);
+    if (error) {
+      toast.error("Failed to rename habit");
+    } else {
+      toast.success(`Renamed to "${newName}"`);
+      refetch();
+    }
+  }, [userId, refetch]);
+
   if (isAuthenticated === null || loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
