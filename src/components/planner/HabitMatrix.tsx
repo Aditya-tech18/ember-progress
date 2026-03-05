@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, AlertCircle, Flame, Plus, Trash2 } from "lucide-react";
+import { Check, AlertCircle, Flame, Plus, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -12,6 +12,7 @@ interface HabitMatrixProps {
   dailyAggregates: any[];
   selectedMonth: Date;
   onToggleTask: (taskId: string, date: string, completed: boolean, habitName?: string, subject?: string) => void;
+  onRenameHabit?: (oldName: string, newName: string) => void;
   onAddHabit: (habitName: string, subject: string, goalCount: number) => void;
   onDeleteHabit: (habitName: string) => void;
   maxHabits?: number;
@@ -67,6 +68,7 @@ export const HabitMatrix = ({
   onToggleTask,
   onAddHabit,
   onDeleteHabit,
+  onRenameHabit,
   maxHabits = 10,
   currentHabitCount = 0,
 }: HabitMatrixProps) => {
@@ -76,6 +78,8 @@ export const HabitMatrix = ({
   const daysInSelectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).getDate();
   const [newHabitGoal, setNewHabitGoal] = useState(daysInSelectedMonth);
   const [showAddHabit, setShowAddHabit] = useState(false);
+  const [renamingHabit, setRenamingHabit] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   const todayIST = getISTDate().toISOString().split("T")[0];
 
@@ -463,9 +467,35 @@ export const HabitMatrix = ({
                   >
                     {/* Habit Name */}
                     <div className="w-40 shrink-0 flex items-center py-1">
-                      <div className="w-32 flex items-center gap-2 px-2">
+                      <div className="w-32 flex items-center gap-1 px-2">
                         <span className="text-sm">{SUBJECT_EMOJIS[habit.subject] || "✨"}</span>
-                        <span className="text-sm font-medium truncate">{habit.name}</span>
+                        {renamingHabit === habit.name ? (
+                          <div className="flex items-center gap-1 flex-1 min-w-0">
+                            <Input
+                              value={renameValue}
+                              onChange={(e) => setRenameValue(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && onRenameHabit && renameValue.trim()) {
+                                  onRenameHabit(habit.name, renameValue.trim());
+                                  setRenamingHabit(null);
+                                }
+                              }}
+                              className="h-5 text-xs px-1 bg-background w-20"
+                              autoFocus
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <span className="text-sm font-medium truncate">{habit.name}</span>
+                            <button
+                              onClick={() => { setRenamingHabit(habit.name); setRenameValue(habit.name); }}
+                              className="p-0.5 opacity-50 hover:opacity-100 flex-shrink-0"
+                              title="Edit name"
+                            >
+                              <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                            </button>
+                          </>
+                        )}
                       </div>
                       <div className="w-16 text-center text-sm text-muted-foreground">{habit.goal}</div>
                     </div>
