@@ -1,11 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const SaleBanner = () => {
   const [dismissed, setDismissed] = useState(false);
+  const [timeLeft, setTimeLeft] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const deadline = new Date("2026-03-15T23:59:59+05:30");
+    const update = () => {
+      const now = new Date();
+      const diff = deadline.getTime() - now.getTime();
+      if (diff <= 0) {
+        setTimeLeft("Expired");
+        return;
+      }
+      const days = Math.floor(diff / 86400000);
+      const hrs = Math.floor((diff % 86400000) / 3600000);
+      setTimeLeft(`${days}d ${hrs}h left`);
+    };
+    update();
+    const interval = setInterval(update, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (dismissed) return null;
 
@@ -15,7 +34,7 @@ export const SaleBanner = () => {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="relative bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 text-black overflow-hidden"
+        className="relative bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 text-black overflow-hidden z-40"
       >
         <div className="absolute inset-0 opacity-20">
           <motion.div
@@ -30,7 +49,7 @@ export const SaleBanner = () => {
         >
           <Sparkles className="w-3.5 h-3.5 text-black flex-shrink-0" />
           <span className="text-xs sm:text-sm font-bold text-center">
-            🎉 All Features at Just ₹9! Grab the Offer Now →
+            🎉 SALE LIVE! All Features at Just ₹9! {timeLeft} → Grab Now
           </span>
           <button
             onClick={(e) => { e.stopPropagation(); setDismissed(true); }}

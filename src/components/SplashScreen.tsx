@@ -25,12 +25,12 @@ export const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
             initial={{ scale: 0.5, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
-            className="flex flex-col items-center"
+            className="w-full h-full flex items-center justify-center"
           >
             <img
               src="/images/prepixo-splash.jpg"
               alt="Prepixo"
-              className="w-32 h-32 rounded-3xl shadow-2xl shadow-red-500/30"
+              className="w-full h-full object-contain max-w-[80vw] max-h-[80vh]"
             />
           </motion.div>
         </motion.div>
