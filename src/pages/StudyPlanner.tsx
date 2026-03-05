@@ -499,6 +499,7 @@ const StudyPlanner = () => {
                   onToggleTask={handleToggleTask}
                   onAddHabit={handleAddHabit}
                   onDeleteHabit={handleDeleteHabit}
+                  onRenameHabit={handleRenameHabit}
                   maxHabits={MAX_HABITS}
                   currentHabitCount={uniqueHabits}
                 />
