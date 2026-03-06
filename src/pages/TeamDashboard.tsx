@@ -99,7 +99,13 @@ const TeamDashboard = () => {
   const [showLeaveDialog, setShowLeaveDialog] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
 
-  // Check subscription access
+  useEffect(() => {
+    if (!subLoading && hasAccess) {
+      checkAuthAndFetch();
+    }
+  }, [teamId, subLoading, hasAccess]);
+
+  // Check subscription access - moved AFTER all hooks
   if (!subLoading && !hasAccess) {
     return (
       <div className="min-h-screen bg-background pt-14">
@@ -126,10 +132,6 @@ const TeamDashboard = () => {
       </div>
     );
   }
-
-  useEffect(() => {
-    checkAuthAndFetch();
-  }, [teamId]);
 
   const checkAuthAndFetch = async () => {
     const { data: { user } } = await supabase.auth.getUser();

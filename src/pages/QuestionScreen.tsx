@@ -7,6 +7,7 @@ import { LatexRenderer } from "@/components/LatexRenderer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { playCorrectSound, playWrongSound } from "@/lib/sounds";
 import {
   ArrowLeft,
   ArrowRight,
@@ -23,6 +24,7 @@ import {
   Clock,
   Bot,
   Sparkles,
+  Flag,
 } from "lucide-react";
 
 interface Question {
@@ -56,6 +58,7 @@ const QuestionScreen = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showSolution, setShowSolution] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
 
   const currentQuestion = questions[currentIndex];
   const isNumerical = currentQuestion && !parseOptions(currentQuestion.options_list).hasOptions;
@@ -69,7 +72,6 @@ const QuestionScreen = () => {
     setError(null);
 
     try {
-      // If we have chapter info, fetch all questions from that chapter/year
       if (state?.chapterName && state?.year) {
         const { data, error: fetchError } = await supabase
           .from("questions")
@@ -82,13 +84,10 @@ const QuestionScreen = () => {
 
         if (data && data.length > 0) {
           setQuestions(data);
-          
-          // Find the index of the requested question
           const idx = data.findIndex((q) => q.id === parseInt(questionId || "0"));
           if (idx !== -1) setCurrentIndex(idx);
         }
       } else {
-        // Fetch single question
         const { data, error: fetchError } = await supabase
           .from("questions")
           .select("*")
@@ -145,8 +144,10 @@ const QuestionScreen = () => {
     setShowSolution(true);
 
     if (isCorrect) {
+      playCorrectSound();
       toast.success("🎉 Correct Answer!", { duration: 2000 });
     } else {
+      playWrongSound();
       toast.error("❌ Incorrect", { duration: 2000 });
     }
 
@@ -162,6 +163,42 @@ const QuestionScreen = () => {
       }
     } catch (err) {
       console.error("Error recording submission:", err);
+    }
+  };
+
+  const handleReportQuestion = async () => {
+    if (!currentQuestion || isReporting) return;
+    setIsReporting(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please login to report");
+        return;
+      }
+
+      // Find admin user
+      const { data: adminUser } = await supabase
+        .from("users")
+        .select("id")
+        .eq("email", "tomacwin9961@gmail.com")
+        .maybeSingle();
+
+      if (adminUser) {
+        await supabase.from("social_notifications").insert({
+          user_id: adminUser.id,
+          from_user_id: user.id,
+          type: "report",
+          message: `⚠️ Question #${currentQuestion.id} reported | Subject: ${currentQuestion.subject} | Chapter: ${currentQuestion.chapter} | Year: ${currentQuestion.exam_year}`,
+        });
+      }
+
+      toast.success("Question reported! Admin will review it.");
+    } catch (err) {
+      console.error("Error reporting:", err);
+      toast.error("Failed to report question");
+    } finally {
+      setIsReporting(false);
     }
   };
 
@@ -197,12 +234,8 @@ const QuestionScreen = () => {
     const isCorrect = optionKey === currentQuestion?.correct_answer;
     const isSelected = optionKey === selectedOption;
 
-    if (isCorrect) {
-      return "border-success bg-success/10";
-    }
-    if (isSelected && !isCorrect) {
-      return "border-destructive bg-destructive/10";
-    }
+    if (isCorrect) return "border-green-500 bg-green-500/10";
+    if (isSelected && !isCorrect) return "border-destructive bg-destructive/10";
     return "border-border opacity-60";
   };
 
@@ -286,7 +319,7 @@ const QuestionScreen = () => {
             className="glass-card p-6 md:p-8 mb-6"
           >
             {/* Question Image */}
-            {currentQuestion.question_image_url && (
+            {currentQuestion.question_image_url && currentQuestion.question_image_url !== "Diagram to upload" && (
               <div className="mb-6 rounded-lg overflow-hidden bg-muted/50">
                 <img
                   src={currentQuestion.question_image_url}
@@ -329,7 +362,7 @@ const QuestionScreen = () => {
                       className={`text-2xl h-16 text-center font-mono ${
                         isSubmitted
                           ? userAnswer === currentQuestion.correct_answer
-                            ? "border-success bg-success/10"
+                            ? "border-green-500 bg-green-500/10"
                             : "border-destructive bg-destructive/10"
                           : "border-primary"
                       }`}
@@ -339,10 +372,10 @@ const QuestionScreen = () => {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center gap-3 p-4 rounded-lg bg-success/10 border border-success"
+                      className="flex items-center gap-3 p-4 rounded-lg bg-green-500/10 border border-green-500"
                     >
-                      <CheckCircle2 className="w-5 h-5 text-success" />
-                      <span className="text-success font-medium">
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <span className="text-green-500 font-medium">
                         Correct Answer: {currentQuestion.correct_answer}
                       </span>
                     </motion.div>
@@ -368,7 +401,7 @@ const QuestionScreen = () => {
                         <div
                           className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold shrink-0 ${
                             isSubmitted && isCorrect
-                              ? "bg-success text-success-foreground"
+                              ? "bg-green-500 text-white"
                               : isSubmitted && isSelected && !isCorrect
                               ? "bg-destructive text-destructive-foreground"
                               : isSelected
@@ -413,32 +446,41 @@ const QuestionScreen = () => {
                 className="glass-card p-6 md:p-8 mb-6 overflow-hidden"
               >
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-gold/20 flex items-center justify-center">
-                    <Lightbulb className="w-5 h-5 text-gold" />
+                  <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-yellow-500" />
                   </div>
                   <h3 className="text-xl font-bold text-foreground">Solution</h3>
                 </div>
-                <div className="overflow-x-auto question-scroll solution-content">
+                <div className="overflow-x-auto question-scroll solution-content space-y-3">
                   <LatexRenderer content={currentQuestion.solution} preserveParagraphs={true} />
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* AI Doubt Solver Button */}
+          {/* Action Buttons after submit */}
           {isSubmitted && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mb-6"
+              className="mb-6 flex flex-col sm:flex-row gap-3"
             >
               <Button
                 onClick={() => navigate("/ai-chat", { state: currentQuestion })}
-                className="w-full bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-semibold py-6"
+                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-semibold py-6"
               >
                 <Bot className="w-5 h-5 mr-2" />
                 Ask AI Doubt Solver
                 <Sparkles className="w-4 h-4 ml-2" />
+              </Button>
+              <Button
+                onClick={handleReportQuestion}
+                disabled={isReporting}
+                variant="outline"
+                className="border-destructive/50 text-destructive hover:bg-destructive/10"
+              >
+                <Flag className="w-4 h-4 mr-2" />
+                {isReporting ? "Reporting..." : "Report Question"}
               </Button>
             </motion.div>
           )}
@@ -446,7 +488,7 @@ const QuestionScreen = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border p-4">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border p-4 z-40">
         <div className="container mx-auto max-w-4xl flex items-center justify-between gap-4">
           <Button
             variant="outline"
@@ -462,14 +504,14 @@ const QuestionScreen = () => {
             <Button
               onClick={handleSubmit}
               disabled={isNumerical ? !userAnswer.trim() : !selectedOption}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-primary to-crimson text-primary-foreground font-semibold px-8"
+              className="flex-1 sm:flex-none bg-gradient-to-r from-primary to-orange-500 text-white font-semibold px-8"
             >
               Submit Answer
             </Button>
           ) : currentIndex < questions.length - 1 ? (
             <Button
               onClick={handleNext}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-primary to-crimson text-primary-foreground font-semibold px-8"
+              className="flex-1 sm:flex-none bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold px-8"
             >
               Next Question
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -477,7 +519,7 @@ const QuestionScreen = () => {
           ) : (
             <Button
               onClick={() => navigate(-1)}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-success to-emerald text-success-foreground font-semibold px-8"
+              className="flex-1 sm:flex-none bg-gradient-to-r from-green-500 to-emerald-500 text-white font-semibold px-8"
             >
               Finish
               <CheckCircle2 className="w-4 h-4 ml-2" />
