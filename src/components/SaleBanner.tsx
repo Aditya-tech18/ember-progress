@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles } from "lucide-react";
+import { X, Sparkles, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const SaleBanner = () => {
@@ -19,7 +19,8 @@ export const SaleBanner = () => {
       }
       const days = Math.floor(diff / 86400000);
       const hrs = Math.floor((diff % 86400000) / 3600000);
-      setTimeLeft(`${days}d ${hrs}h left`);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      setTimeLeft(`${days}d ${hrs}h ${mins}m`);
     };
     update();
     const interval = setInterval(update, 60000);
@@ -31,32 +32,35 @@ export const SaleBanner = () => {
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -20 }}
-        className="relative bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-600 text-black overflow-hidden z-40"
+        exit={{ opacity: 0, y: -10 }}
+        className="relative overflow-hidden z-30 mt-14"
       >
-        <div className="absolute inset-0 opacity-20">
-          <motion.div
-            animate={{ x: ["-100%", "100%"] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="w-1/3 h-full bg-gradient-to-r from-transparent via-white to-transparent"
-          />
-        </div>
-        <div
-          className="container mx-auto px-3 py-1.5 flex items-center justify-center gap-2 cursor-pointer relative"
-          onClick={() => navigate("/subscription")}
-        >
-          <Sparkles className="w-3.5 h-3.5 text-black flex-shrink-0" />
-          <span className="text-xs sm:text-sm font-bold text-center">
-            🎉 SALE LIVE! All Features at Just ₹9! {timeLeft} → Grab Now
-          </span>
-          <button
-            onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-black/10 rounded-full transition-colors"
+        <div className="bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 py-2.5 px-4">
+          <div className="absolute inset-0 opacity-20">
+            <motion.div
+              animate={{ x: ["-100%", "100%"] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              className="w-1/3 h-full bg-gradient-to-r from-transparent via-white to-transparent"
+            />
+          </div>
+          <div
+            className="container mx-auto flex items-center justify-center gap-2 cursor-pointer relative"
+            onClick={() => navigate("/subscription")}
           >
-            <X className="w-3.5 h-3.5" />
-          </button>
+            <Zap className="w-4 h-4 text-white flex-shrink-0 animate-pulse" />
+            <span className="text-xs sm:text-sm font-extrabold text-white text-center tracking-wide">
+              🔥 EXAM SEASON SALE IS LIVE — All Features At Just ₹9/- • {timeLeft} left → GRAB NOW!
+            </span>
+            <Sparkles className="w-4 h-4 text-yellow-200 flex-shrink-0" />
+            <button
+              onClick={(e) => { e.stopPropagation(); setDismissed(true); }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 p-1 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <X className="w-3.5 h-3.5 text-white" />
+            </button>
+          </div>
         </div>
       </motion.div>
     </AnimatePresence>

@@ -25,6 +25,16 @@ const mockTests = [
     status: "New",
     testId: "2025242",
   },
+  {
+    id: 2,
+    title: "JEE Main 21 Jan 2026 Shift 1",
+    date: "21 Jan 2026",
+    duration: "3 Hours",
+    questions: 75,
+    pattern: "20 MCQs + 5 Integer Type per subject",
+    status: "New",
+    testId: "2026211",
+  },
 ];
 
 const MockTestList = () => {
