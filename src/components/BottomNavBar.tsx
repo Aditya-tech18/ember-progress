@@ -17,8 +17,8 @@ export const BottomNavBar = () => {
   const location = useLocation();
   const [showPostCloud, setShowPostCloud] = useState(false);
 
-  // Hide on mock test pages
-  const hiddenPaths = ["/mock-test/", "/contest/", "/team-battle/"];
+  // Hide on mock test and question pages
+  const hiddenPaths = ["/mock-test/", "/contest/", "/team-battle/", "/question/"];
   if (hiddenPaths.some(p => location.pathname.startsWith(p))) return null;
 
   const handleNavClick = (item: typeof navItems[0]) => {
