@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   Trophy, Users, Clock, ChevronRight, 
-  Flame, Zap, Star, Target, GraduationCap, MessageCircle 
+  Flame, Zap, Star, Target 
 } from "lucide-react";
 import { differenceInSeconds, isBefore, isAfter } from "date-fns";
 
@@ -168,51 +168,6 @@ export const GameCards = () => {
 
                 <p className="text-sm text-muted-foreground mt-3">
                   Every Sunday 2 PM - 5 PM • All India Rank
-                </p>
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Connect With Seniors Card - NEW */}
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/mentors")}
-            className="cursor-pointer"
-          >
-            <Card className="p-4 sm:p-6 bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-red-500/20 border-purple-500/30 hover:border-purple-500/50 transition-all overflow-hidden relative">
-              {/* Decorative elements */}
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-pink-500/20 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />
-              
-              <div className="relative">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                      <GraduationCap className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">Connect With Seniors</h3>
-                      <p className="text-sm text-muted-foreground">Get expert guidance</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </div>
-
-                <div className="flex items-center gap-4">
-                  <Badge className="bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
-                    <MessageCircle className="w-3 h-3 mr-1" />
-                    1-on-1 Sessions
-                  </Badge>
-                  
-                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    <span>Verified</span>
-                  </div>
-                </div>
-
-                <p className="text-sm text-muted-foreground mt-3">
-                  Get guidance from verified seniors studying in top colleges
                 </p>
               </div>
             </Card>

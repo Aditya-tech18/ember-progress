@@ -37,6 +37,7 @@ import StudyHours from "./pages/StudyHours";
 import FocusRoom from "./pages/FocusRoom";
 import RankJourney from "./pages/RankJourney";
 import MentorDiscovery from "./pages/MentorDiscovery";
+import BecomeMentor from "./pages/BecomeMentor";
 
 const queryClient = new QueryClient();
 
@@ -76,6 +77,7 @@ const AppContent = () => {
         <Route path="/focus-room" element={<FocusRoom />} />
         <Route path="/rank-journey" element={<RankJourney />} />
         <Route path="/mentors" element={<MentorDiscovery />} />
+        <Route path="/become-mentor" element={<BecomeMentor />} />
         <Route path="/pyq" element={<ChapterSelect />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
