@@ -443,16 +443,16 @@ const QuestionScreen = () => {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
-                className="glass-card p-6 md:p-8 mb-6 overflow-hidden"
+                className="mb-6 overflow-hidden"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                    <Lightbulb className="w-5 h-5 text-yellow-500" />
+                <div className="flex items-center gap-3 mb-4 px-2">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+                    <Lightbulb className="w-5 h-5 text-white" />
                   </div>
                   <h3 className="text-xl font-bold text-foreground">Solution</h3>
                 </div>
-                <div className="overflow-x-auto question-scroll solution-content space-y-3">
-                  <LatexRenderer content={currentQuestion.solution} preserveParagraphs={true} />
+                <div className="overflow-x-auto question-scroll">
+                  <LatexRenderer content={currentQuestion.solution} multilineSolution={true} />
                 </div>
               </motion.div>
             )}

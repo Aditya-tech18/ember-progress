@@ -632,48 +632,50 @@ const MockTest = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border shadow-2xl">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-between gap-2">
+      <div className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border shadow-2xl z-50">
+        <div className="w-full px-2 sm:px-4 py-2 sm:py-3">
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2 max-w-full">
             <Button
               variant="outline"
               onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
               disabled={currentIndex === 0}
-              className="flex-1 h-12 text-sm sm:text-base font-semibold"
+              className="h-11 sm:h-12 text-xs sm:text-sm font-semibold px-2 sm:px-4 flex-col sm:flex-row gap-0.5 sm:gap-2"
             >
-              <ChevronLeft className="w-5 h-5 mr-1 sm:mr-2" />
-              Previous
+              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Previous</span>
+              <span className="sm:hidden text-[10px]">Prev</span>
             </Button>
 
             <Button
               variant="outline"
               onClick={() => handleMarkForReview(currentQuestion.id)}
-              className={`flex-1 h-12 text-sm sm:text-base font-semibold ${
+              className={`h-11 sm:h-12 text-xs sm:text-sm font-semibold px-2 sm:px-4 flex-col sm:flex-row gap-0.5 sm:gap-2 ${
                 currentAnswer?.isMarkedForReview 
                   ? "border-gold text-gold bg-gold/10" 
                   : ""
               }`}
             >
-              <Flag className={`w-5 h-5 mr-1 sm:mr-2 ${currentAnswer?.isMarkedForReview ? "fill-gold" : ""}`} />
-              Mark
+              <Flag className={`w-4 h-4 sm:w-5 sm:h-5 ${currentAnswer?.isMarkedForReview ? "fill-gold" : ""}`} />
+              <span className="text-[10px] sm:text-sm">Mark</span>
             </Button>
 
             <Button
               onClick={handleSaveAndNext}
               disabled={currentIndex === questions.length - 1}
-              className="flex-1 h-12 text-sm sm:text-base font-semibold bg-gradient-to-r from-success to-emerald-500"
+              className="h-11 sm:h-12 text-xs sm:text-sm font-semibold px-2 sm:px-4 bg-gradient-to-r from-success to-emerald-500 flex-col sm:flex-row gap-0.5 sm:gap-2"
             >
-              <Save className="w-5 h-5 mr-1 sm:mr-2" />
-              Save & Next
+              <Save className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">Save & Next</span>
+              <span className="sm:hidden text-[10px]">Save</span>
             </Button>
 
             {/* Always visible Submit button */}
             <Button
               onClick={() => setShowSubmitConfirm(true)}
-              className="flex-1 h-12 text-sm sm:text-base font-semibold bg-gradient-to-r from-destructive to-red-600"
+              className="h-11 sm:h-12 text-xs sm:text-sm font-semibold px-2 sm:px-4 bg-gradient-to-r from-destructive to-red-600 flex-col sm:flex-row gap-0.5 sm:gap-2"
             >
-              <Send className="w-5 h-5 mr-1 sm:mr-2" />
-              Submit
+              <Send className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span className="text-[10px] sm:text-sm">Submit</span>
             </Button>
           </div>
         </div>
