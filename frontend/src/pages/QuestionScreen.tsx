@@ -467,7 +467,7 @@ const QuestionScreen = () => {
             >
               <Button
                 onClick={() => navigate("/ai-chat", { state: currentQuestion })}
-                className="flex-1 bg-gradient-to-r from-purple-600 to-pink-500 hover:from-purple-700 hover:to-pink-600 text-white font-semibold py-6"
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-semibold py-6"
               >
                 <Bot className="w-5 h-5 mr-2" />
                 Ask AI Doubt Solver

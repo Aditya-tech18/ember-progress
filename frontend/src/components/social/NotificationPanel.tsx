@@ -101,7 +101,7 @@ export const NotificationPanel = ({ isOpen, onClose, currentUserId }: Notificati
       case "comment":
         return <MessageCircle className="w-5 h-5 text-blue-400" />;
       case "mention":
-        return <AtSign className="w-5 h-5 text-purple-400" />;
+        return <AtSign className="w-5 h-5 text-red-400" />;
       default:
         return <Bell className="w-5 h-5 text-muted-foreground" />;
     }

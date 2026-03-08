@@ -357,7 +357,7 @@ const WeeklyContest = () => {
             {format(new Date(contest.start_time), "EEEE, MMMM d, yyyy")} • {format(new Date(contest.start_time), "h:mm a")} - {format(new Date(contest.end_time), "h:mm a")}
           </p>
           {isTester && (
-            <Badge className="mt-2 bg-purple-500">🧪 Tester Access Enabled</Badge>
+            <Badge className="mt-2 bg-red-500">🧪 Tester Access Enabled</Badge>
           )}
         </motion.div>
 
@@ -413,7 +413,7 @@ const WeeklyContest = () => {
               ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/50" 
               : contestStatus === "upcoming"
               ? "bg-gradient-to-r from-orange-500/20 to-red-500/20 border-orange-500/50"
-              : "bg-gradient-to-r from-purple-500/20 to-pink-500/20 border-purple-500/50"
+              : "bg-gradient-to-r from-red-500/20 to-red-500/20 border-red-500/50"
           }`}>
             <div className="flex items-center justify-center gap-2 mb-4">
               {contestStatus === "live" ? (

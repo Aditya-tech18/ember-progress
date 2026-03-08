@@ -19,8 +19,8 @@ const ROOM_TYPES = [
   { value: "JEE", label: "JEE", icon: Atom, color: "from-blue-500 to-cyan-500" },
   { value: "NEET", label: "NEET", icon: Stethoscope, color: "from-emerald-500 to-green-500" },
   { value: "NDA", label: "NDA", icon: Shield, color: "from-amber-500 to-orange-500" },
-  { value: "CUET", label: "CUET", icon: GraduationCap, color: "from-purple-500 to-violet-500" },
-  { value: "Custom", label: "Custom", icon: Sparkles, color: "from-pink-500 to-rose-500" },
+  { value: "CUET", label: "CUET", icon: GraduationCap, color: "from-red-500 to-violet-500" },
+  { value: "Custom", label: "Custom", icon: Sparkles, color: "from-red-500 to-rose-500" },
 ];
 
 const getRoomTypeConfig = (type: string) =>

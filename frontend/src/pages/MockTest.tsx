@@ -715,7 +715,7 @@ const MockTest = () => {
                     setShowSubmitConfirm(false);
                     handleSubmitTest();
                   }}
-                  className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-primary"
+                  className="flex-1 h-12 bg-gradient-to-r from-red-600 to-primary"
                 >
                   Yes, Submit
                 </Button>

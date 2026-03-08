@@ -9,7 +9,7 @@ interface SyllabusProgressProps {
 const subjects = [
   { name: "Physics", color: "from-blue-500 to-blue-600", bg: "bg-blue-500", total: 30 },
   { name: "Chemistry", color: "from-green-500 to-green-600", bg: "bg-green-500", total: 30 },
-  { name: "Mathematics", color: "from-purple-500 to-purple-600", bg: "bg-purple-500", total: 35 },
+  { name: "Mathematics", color: "from-red-500 to-red-600", bg: "bg-red-500", total: 35 },
 ];
 
 export const SyllabusProgress = ({ syllabusMastery }: SyllabusProgressProps) => {
@@ -60,8 +60,8 @@ export const SyllabusProgress = ({ syllabusMastery }: SyllabusProgressProps) => 
             />
             <defs>
               <linearGradient id={`${subject.name}Gradient`} x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" className={subject.name === "Physics" ? "text-blue-400" : subject.name === "Chemistry" ? "text-green-400" : "text-purple-400"} stopColor="currentColor" />
-                <stop offset="100%" className={subject.name === "Physics" ? "text-blue-600" : subject.name === "Chemistry" ? "text-green-600" : "text-purple-600"} stopColor="currentColor" />
+                <stop offset="0%" className={subject.name === "Physics" ? "text-blue-400" : subject.name === "Chemistry" ? "text-green-400" : "text-red-400"} stopColor="currentColor" />
+                <stop offset="100%" className={subject.name === "Physics" ? "text-blue-600" : subject.name === "Chemistry" ? "text-green-600" : "text-red-600"} stopColor="currentColor" />
               </linearGradient>
             </defs>
           </svg>
@@ -127,7 +127,7 @@ export const SyllabusProgress = ({ syllabusMastery }: SyllabusProgressProps) => 
                   ? "bg-blue-500"
                   : s.name === "Chemistry"
                   ? "bg-green-500"
-                  : "bg-purple-500"
+                  : "bg-red-500"
               }`}
             />
           ))}

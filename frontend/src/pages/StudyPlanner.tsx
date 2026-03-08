@@ -387,7 +387,7 @@ const StudyPlanner = () => {
                 label: "Days Left", 
                 value: userGoal ? daysUntilTarget : "--", 
                 icon: Calendar, 
-                gradient: "from-violet-500/20 to-purple-500/10",
+                gradient: "from-violet-500/20 to-red-500/10",
                 iconColor: "text-violet-400",
                 valueColor: "text-violet-400"
               },
@@ -421,9 +421,9 @@ const StudyPlanner = () => {
                 label: "Focus Hours", 
                 value: `${Math.round(dailyAggregates.reduce((acc, a) => acc + a.focus_minutes, 0) / 60)}h`, 
                 icon: Clock, 
-                gradient: "from-pink-500/20 to-rose-500/10",
-                iconColor: "text-pink-400",
-                valueColor: "text-pink-400"
+                gradient: "from-red-500/20 to-rose-500/10",
+                iconColor: "text-red-400",
+                valueColor: "text-red-400"
               },
             ].map((stat, i) => (
               <motion.div

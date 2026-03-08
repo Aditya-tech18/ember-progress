@@ -85,11 +85,11 @@ const MockTestResult = () => {
           </motion.div>
 
           {/* Score Card */}
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-6 rounded-2xl border-2 border-purple-500/50 mb-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-6 rounded-2xl border-2 border-red-500/50 mb-6">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
                 <p className="text-sm text-muted-foreground mb-1">Total Score</p>
-                <div className="text-5xl font-bold text-purple-500">{result.total_score}</div>
+                <div className="text-5xl font-bold text-red-500">{result.total_score}</div>
                 <p className="text-muted-foreground">out of 300</p>
               </div>
               <div className="flex gap-8">

@@ -34,13 +34,13 @@ export const LatexRenderer = ({
     return (
       <div className={`space-y-4 ${className}`}>
         {sections.keyConcept && (
-          <div className="glass-card p-4 rounded-xl border border-pink-500/20 bg-pink-500/5">
+          <div className="glass-card p-4 rounded-xl border border-red-500/20 bg-red-500/5">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-pink-500/20">
-                <Brain className="w-5 h-5 text-pink-400" />
+              <div className="p-2 rounded-lg bg-red-500/20">
+                <Brain className="w-5 h-5 text-red-400" />
               </div>
               <div className="flex-1">
-                <h4 className="text-sm font-bold text-pink-400 mb-2">🧠 Key Concept:</h4>
+                <h4 className="text-sm font-bold text-red-400 mb-2">🧠 Key Concept:</h4>
                 <div className="text-sm text-muted-foreground leading-relaxed">
                   <Latex>{sections.keyConcept}</Latex>
                 </div>
@@ -86,13 +86,13 @@ export const LatexRenderer = ({
         )}
 
         {sections.explanation && (
-          <div className="glass-card p-4 rounded-xl border border-purple-500/20 bg-purple-500/5">
+          <div className="glass-card p-4 rounded-xl border border-red-500/20 bg-red-500/5">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-lg bg-purple-500/20">
-                <Sparkles className="w-5 h-5 text-purple-400" />
+              <div className="p-2 rounded-lg bg-red-500/20">
+                <Sparkles className="w-5 h-5 text-red-400" />
               </div>
               <div className="flex-1">
-                <h4 className="text-sm font-bold text-purple-400 mb-2">✨ Explanation:</h4>
+                <h4 className="text-sm font-bold text-red-400 mb-2">✨ Explanation:</h4>
                 <div className="text-sm text-muted-foreground leading-relaxed space-y-2">
                   {sections.explanation.split('\n\n').map((para, idx) => (
                     <p key={idx}>

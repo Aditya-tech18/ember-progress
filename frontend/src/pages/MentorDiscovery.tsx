@@ -57,19 +57,19 @@ export default function MentorDiscovery() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4 bg-gradient-to-b from-purple-600/10 to-background">
+      <section className="pt-24 pb-12 px-4 bg-gradient-to-b from-red-600/10 to-background">
         <div className="container mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-600/20 border border-purple-500/30 mb-6">
-              <GraduationCap className="w-4 h-4 text-purple-400" />
-              <span className="text-sm font-semibold text-purple-400">Verified Mentors</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-600/20 border border-red-500/30 mb-6">
+              <GraduationCap className="w-4 h-4 text-red-400" />
+              <span className="text-sm font-semibold text-red-400">Verified Mentors</span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-red-400 via-red-400 to-red-400 bg-clip-text text-transparent">
               Connect With Seniors
             </h1>
             
@@ -103,7 +103,7 @@ export default function MentorDiscovery() {
                 key={exam}
                 variant={selectedExam === exam ? "default" : "outline"}
                 onClick={() => setSelectedExam(exam)}
-                className={selectedExam === exam ? "bg-gradient-to-r from-purple-600 to-pink-600" : ""}
+                className={selectedExam === exam ? "bg-gradient-to-r from-red-600 to-red-600" : ""}
               >
                 {exam}
               </Button>
@@ -160,10 +160,10 @@ function MentorCard({ mentor }: { mentor: MentorProfile }) {
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.2 }}
     >
-      <Card className="p-6 hover:border-purple-500/50 transition-all cursor-pointer" onClick={() => navigate(`/mentor/${mentor.id}`)}>
+      <Card className="p-6 hover:border-red-500/50 transition-all cursor-pointer" onClick={() => navigate(`/mentor/${mentor.id}`)}>
         {/* Profile Photo */}
         <div className="flex items-start gap-4 mb-4">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-2xl font-bold">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-red-600 flex items-center justify-center text-white text-2xl font-bold">
             {mentor.full_name.charAt(0)}
           </div>
           <div className="flex-1">
@@ -215,7 +215,7 @@ function MentorCard({ mentor }: { mentor: MentorProfile }) {
             <BookOpen className="w-4 h-4" />
             <span>{mentor.total_sessions} sessions</span>
           </div>
-          <Button size="sm" className="bg-gradient-to-r from-purple-600 to-pink-600">
+          <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-600">
             View Profile
           </Button>
         </div>

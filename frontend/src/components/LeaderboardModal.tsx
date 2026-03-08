@@ -144,7 +144,7 @@ export const LeaderboardModal = ({ isOpen, onClose }: Props) => {
           </div>
           <div className="col-span-4 flex items-center gap-3">
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-              isMe ? "bg-gradient-to-br from-primary to-crimson" : "bg-gradient-to-br from-violet-500 to-purple-600"
+              isMe ? "bg-gradient-to-br from-primary to-crimson" : "bg-gradient-to-br from-violet-500 to-red-600"
             }`}>
               <span className="text-white font-bold text-sm">{entry.combat_name.charAt(0).toUpperCase()}</span>
             </div>

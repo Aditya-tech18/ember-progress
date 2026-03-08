@@ -29,10 +29,10 @@ const getISTDate = () => {
 };
 
 const WEEK_COLORS = [
-  "from-pink-500/20 to-pink-500/10",
+  "from-red-500/20 to-red-500/10",
   "from-blue-500/20 to-blue-500/10",
   "from-yellow-500/20 to-yellow-500/10",
-  "from-purple-500/20 to-purple-500/10",
+  "from-red-500/20 to-red-500/10",
   "from-green-500/20 to-green-500/10",
 ];
 

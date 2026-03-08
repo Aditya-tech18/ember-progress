@@ -139,9 +139,9 @@ export default function MentorProfilePage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <Card className="p-8 bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-500/30">
+              <Card className="p-8 bg-gradient-to-br from-red-900/20 to-red-900/20 border-red-500/30">
                 <div className="flex items-start gap-6">
-                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white text-4xl font-bold">
+                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-red-600 to-red-600 flex items-center justify-center text-white text-4xl font-bold">
                     {mentor.full_name.charAt(0)}
                   </div>
                   <div className="flex-1">

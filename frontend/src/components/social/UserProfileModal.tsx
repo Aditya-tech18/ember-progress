@@ -288,7 +288,7 @@ export const UserProfileModal = ({ userId, isOpen, onClose }: UserProfileModalPr
                     </div>
                     <div className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <Calculator className="w-5 h-5 text-purple-400" />
+                        <Calculator className="w-5 h-5 text-red-400" />
                         <span className="font-medium">Mathematics</span>
                       </div>
                       <span className="font-bold text-primary">{stats?.mathematics || 0}</span>

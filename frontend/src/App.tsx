@@ -40,6 +40,7 @@ import MentorDiscovery from "./pages/MentorDiscovery";
 import BecomeMentor from "./pages/BecomeMentor";
 import MockTestSolutions from "./pages/MockTestSolutions";
 import MentorProfilePage from "./pages/MentorProfilePage";
+import MentorApplication from "./pages/MentorApplication";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +82,7 @@ const AppContent = () => {
         <Route path="/mentors" element={<MentorDiscovery />} />
         <Route path="/mentor/:id" element={<MentorProfilePage />} />
         <Route path="/become-mentor" element={<BecomeMentor />} />
+        <Route path="/mentor-application" element={<MentorApplication />} />
         <Route path="/mock-test-solutions/:resultId" element={<MockTestSolutions />} />
         <Route path="/pyq" element={<ChapterSelect />} />
         <Route path="*" element={<NotFound />} />

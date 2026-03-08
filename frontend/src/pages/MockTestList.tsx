@@ -88,7 +88,7 @@ const MockTestList = () => {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
                       <h2 className="text-xl font-bold text-foreground">{test.title}</h2>
-                      <span className="px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 text-xs font-bold">
+                      <span className="px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs font-bold">
                         {test.status}
                       </span>
                     </div>
@@ -122,7 +122,7 @@ const MockTestList = () => {
                   <div className="flex flex-col gap-3">
                     <Button
                       onClick={() => handleStartTest(test.id)}
-                      className="bg-gradient-to-r from-purple-600 to-primary text-white font-semibold px-8"
+                      className="bg-gradient-to-r from-red-600 to-primary text-white font-semibold px-8"
                       size="lg"
                     >
                       {hasAccess ? (

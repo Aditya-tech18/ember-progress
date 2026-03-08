@@ -613,7 +613,7 @@ const TeamDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
         >
-          <Badge className="mb-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white border-0">
+          <Badge className="mb-4 bg-gradient-to-r from-blue-500 to-red-500 text-white border-0">
             <Users className="w-3 h-3 mr-1" />
             Friendly Preparation
           </Badge>
@@ -643,7 +643,7 @@ const TeamDashboard = () => {
                 {/* Join Team Button */}
                 <Dialog open={showJoinDialog} onOpenChange={setShowJoinDialog}>
                   <DialogTrigger asChild>
-                    <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-500">
+                    <Button className="w-full bg-gradient-to-r from-blue-500 to-red-500">
                       <UserPlus className="w-4 h-4 mr-2" />
                       Join Team
                     </Button>
@@ -1078,7 +1078,7 @@ const TeamDashboard = () => {
               return (
                 <div key={member.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-red-500 flex items-center justify-center text-white text-sm font-bold">
                       {getMemberName(member)[0]}
                     </div>
                     <div>

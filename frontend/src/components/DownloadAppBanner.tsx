@@ -48,7 +48,7 @@ export const DownloadAppBanner = () => {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative z-40 bg-gradient-to-r from-violet-600 via-purple-500 to-fuchsia-600 shadow-lg"
+          className="relative z-40 bg-gradient-to-r from-violet-600 via-red-500 to-fuchsia-600 shadow-lg"
         >
           {/* Animated sparkle background */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -103,7 +103,7 @@ export const DownloadAppBanner = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleDownload}
-                  className="flex items-center gap-2 bg-white text-purple-600 font-bold px-4 py-2 rounded-full text-sm shadow-lg hover:bg-purple-50 transition-colors"
+                  className="flex items-center gap-2 bg-white text-red-600 font-bold px-4 py-2 rounded-full text-sm shadow-lg hover:bg-purple-50 transition-colors"
                 >
                   <Download className="w-4 h-4" />
                   <span className="hidden sm:inline">Download APK</span>

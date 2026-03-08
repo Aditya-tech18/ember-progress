@@ -163,7 +163,7 @@ export const ProgressSection = () => {
                 transition={{ delay: 0.1 }}
                 className="flex items-center gap-4 p-4 rounded-xl bg-muted/30"
               >
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-purple-600 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-secondary to-red-600 flex items-center justify-center">
                   <Trophy className="w-6 h-6 text-secondary-foreground" />
                 </div>
                 <div>

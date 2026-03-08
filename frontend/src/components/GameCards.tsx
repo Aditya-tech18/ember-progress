@@ -125,7 +125,7 @@ export const GameCards = () => {
             onClick={() => navigate("/weekly-contest")}
             className="cursor-pointer"
           >
-            <Card className="p-4 sm:p-6 bg-gradient-to-br from-orange-500/20 via-red-500/10 to-pink-500/20 border-orange-500/30 hover:border-orange-500/50 transition-all overflow-hidden relative">
+            <Card className="p-4 sm:p-6 bg-gradient-to-br from-orange-500/20 via-red-500/10 to-red-500/20 border-orange-500/30 hover:border-orange-500/50 transition-all overflow-hidden relative">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-500/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-red-500/20 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />
@@ -180,15 +180,15 @@ export const GameCards = () => {
             onClick={() => navigate("/team")}
             className="cursor-pointer"
           >
-            <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-indigo-500/20 border-blue-500/30 hover:border-blue-500/50 transition-all overflow-hidden relative">
+            <Card className="p-4 sm:p-6 bg-gradient-to-br from-blue-500/20 via-red-500/10 to-indigo-500/20 border-blue-500/30 hover:border-blue-500/50 transition-all overflow-hidden relative">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-purple-500/20 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-red-500/20 to-transparent rounded-full translate-y-1/2 -translate-x-1/2" />
               
               <div className="relative">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-red-500 flex items-center justify-center">
                       <Users className="w-6 h-6 text-white" />
                     </div>
                     <div>
