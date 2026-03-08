@@ -33,7 +33,7 @@ export const LatexRenderer = ({
 
     return (
       <div className={`space-y-4 ${className}`}>
-        {sections.keyConc ept && (
+        {sections.keyConcept && (
           <div className="glass-card p-4 rounded-xl border border-pink-500/20 bg-pink-500/5">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-pink-500/20">
