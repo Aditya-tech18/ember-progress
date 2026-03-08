@@ -151,10 +151,16 @@ const MockTestResult = () => {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-4">
+            <Button 
+              onClick={() => navigate(`/mock-test-solutions/${resultId}`)} 
+              className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+            >
+              <Eye className="w-4 h-4 mr-2" /> View Solutions
+            </Button>
             <Button onClick={() => navigate("/mock-tests")} variant="outline" className="flex-1">
               <RotateCcw className="w-4 h-4 mr-2" /> Retake Test
             </Button>
-            <Button onClick={() => navigate("/")} className="flex-1 bg-gradient-to-r from-purple-600 to-primary">
+            <Button onClick={() => navigate("/")} className="flex-1 bg-gradient-to-r from-red-600 to-red-700">
               <Home className="w-4 h-4 mr-2" /> Go Home
             </Button>
           </div>

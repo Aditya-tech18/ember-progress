@@ -38,6 +38,8 @@ import FocusRoom from "./pages/FocusRoom";
 import RankJourney from "./pages/RankJourney";
 import MentorDiscovery from "./pages/MentorDiscovery";
 import BecomeMentor from "./pages/BecomeMentor";
+import MockTestSolutions from "./pages/MockTestSolutions";
+import MentorProfilePage from "./pages/MentorProfilePage";
 
 const queryClient = new QueryClient();
 
@@ -77,7 +79,9 @@ const AppContent = () => {
         <Route path="/focus-room" element={<FocusRoom />} />
         <Route path="/rank-journey" element={<RankJourney />} />
         <Route path="/mentors" element={<MentorDiscovery />} />
+        <Route path="/mentor/:id" element={<MentorProfilePage />} />
         <Route path="/become-mentor" element={<BecomeMentor />} />
+        <Route path="/mock-test-solutions/:resultId" element={<MockTestSolutions />} />
         <Route path="/pyq" element={<ChapterSelect />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
