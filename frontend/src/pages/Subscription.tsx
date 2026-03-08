@@ -28,7 +28,7 @@ declare global {
   }
 }
 
-const RAZORPAY_KEY = "rzp_live_S2pjg3bXzQnV1q";
+const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
 
 const plans = [
   {
