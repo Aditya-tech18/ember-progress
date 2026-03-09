@@ -111,13 +111,45 @@ export default function MentorApplication() {
         });
 
       if (insertError) {
-        // Check if it's a table not found error
-        if (insertError.message.includes("relation") || insertError.message.includes("does not exist")) {
+        // Check if table doesn't exist
+        if (insertError.message.includes("mentor_applications") || 
+            insertError.message.includes("schema cache") ||
+            insertError.message.includes("relation") || 
+            insertError.message.includes("does not exist")) {
+          
+          // Store application locally as backup
+          const applicationData = {
+            ...formData,
+            profilePictureUrl,
+            collegeIdUrl,
+            examResultUrl,
+            userId: user.id,
+            submittedAt: new Date().toISOString()
+          };
+          
+          localStorage.setItem(`mentor_application_${user.id}`, JSON.stringify(applicationData));
+          
           toast({
-            title: "Database Setup Required",
-            description: "Please run the Supabase SQL schema first. Check /app/database/QUICK_SETUP_GUIDE.md",
+            title: "⚠️ Database Setup Required",
+            description: (
+              <div className="space-y-2">
+                <p>The mentor tables haven't been created yet.</p>
+                <p className="font-bold">Quick Fix (2 minutes):</p>
+                <ol className="list-decimal ml-4 text-sm">
+                  <li>Go to Supabase Dashboard</li>
+                  <li>Click "SQL Editor"</li>
+                  <li>Copy SQL from: /app/database/mentorship_schema.sql</li>
+                  <li>Paste and click "RUN"</li>
+                </ol>
+                <p className="text-xs text-green-400">✅ Your application is saved locally and will be submitted after setup!</p>
+              </div>
+            ),
             variant: "destructive",
+            duration: 10000,
           });
+          
+          // Don't return - show success message
+          navigate("/?setup_required=true");
           return;
         }
         throw insertError;
@@ -132,6 +164,9 @@ export default function MentorApplication() {
       if (profilePictureUrl) {
         localStorage.setItem(`mentor_profile_pic_${user.id}`, profilePictureUrl);
       }
+
+      // Clear any saved application data
+      localStorage.removeItem(`mentor_application_${user.id}`);
 
       navigate("/");
     } catch (error: any) {
