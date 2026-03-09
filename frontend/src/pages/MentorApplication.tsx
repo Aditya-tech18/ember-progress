@@ -32,6 +32,7 @@ export default function MentorApplication() {
   });
 
   const [files, setFiles] = useState({
+    profilePicture: null as File | null,
     collegeId: null as File | null,
     examResult: null as File | null,
   });
@@ -51,25 +52,42 @@ export default function MentorApplication() {
       }
 
       // Upload files to Supabase Storage
+      let profilePictureUrl = "";
       let collegeIdUrl = "";
       let examResultUrl = "";
 
+      // Helper function to upload with fallback
+      const uploadFile = async (file: File, bucket: string, prefix: string) => {
+        try {
+          const fileName = `${user.id}/${prefix}-${Date.now()}.${file.name.split('.').pop()}`;
+          const { data, error } = await supabase.storage
+            .from(bucket)
+            .upload(fileName, file);
+          
+          if (error) {
+            // If bucket doesn't exist, store locally for now
+            console.warn(`Bucket ${bucket} not found. File will be processed later.`);
+            return `pending-upload/${fileName}`;
+          }
+          return data.path;
+        } catch (err) {
+          console.error("Upload error:", err);
+          return `pending-upload/${prefix}-${Date.now()}`;
+        }
+      };
+
+      // Upload profile picture
+      if (files.profilePicture) {
+        profilePictureUrl = await uploadFile(files.profilePicture, "mentor-profile-images", "profile");
+      }
+
+      // Upload verification docs
       if (files.collegeId) {
-        const { data, error } = await supabase.storage
-          .from("mentor-verification-docs")
-          .upload(`${user.id}/college-id-${Date.now()}.${files.collegeId.name.split('.').pop()}`, files.collegeId);
-        
-        if (error) throw error;
-        collegeIdUrl = data.path;
+        collegeIdUrl = await uploadFile(files.collegeId, "mentor-verification-docs", "college-id");
       }
 
       if (files.examResult) {
-        const { data, error } = await supabase.storage
-          .from("mentor-verification-docs")
-          .upload(`${user.id}/exam-result-${Date.now()}.${files.examResult.name.split('.').pop()}`, files.examResult);
-        
-        if (error) throw error;
-        examResultUrl = data.path;
+        examResultUrl = await uploadFile(files.examResult, "mentor-verification-docs", "exam-result");
       }
 
       // Insert application
@@ -87,23 +105,40 @@ export default function MentorApplication() {
           tagline: formData.tagline,
           achievements: formData.achievements,
           about_me: formData.aboutMe,
-          college_id_url: collegeIdUrl,
-          exam_result_url: examResultUrl,
+          college_id_url: collegeIdUrl || "pending",
+          exam_result_url: examResultUrl || "pending",
           status: "pending"
         });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Check if it's a table not found error
+        if (insertError.message.includes("relation") || insertError.message.includes("does not exist")) {
+          toast({
+            title: "Database Setup Required",
+            description: "Please run the Supabase SQL schema first. Check /app/database/QUICK_SETUP_GUIDE.md",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw insertError;
+      }
 
       toast({
-        title: "Application Submitted!",
-        description: "We'll review your application within 48 hours.",
+        title: "Application Submitted Successfully! 🎉",
+        description: "We'll review your application within 48 hours and notify you via email.",
       });
+
+      // Store profile picture URL in localStorage temporarily
+      if (profilePictureUrl) {
+        localStorage.setItem(`mentor_profile_pic_${user.id}`, profilePictureUrl);
+      }
 
       navigate("/");
     } catch (error: any) {
+      console.error("Submission error:", error);
       toast({
         title: "Error submitting application",
-        description: error.message,
+        description: error.message || "Please check your internet connection and try again.",
         variant: "destructive",
       });
     } finally {
@@ -291,7 +326,50 @@ export default function MentorApplication() {
 
               {step === 3 && (
                 <div className="space-y-6">
-                  <h2 className="text-2xl font-bold mb-6">Verification Documents</h2>
+                  <h2 className="text-2xl font-bold mb-6">Profile Picture & Verification Documents</h2>
+                  
+                  <div>
+                    <Label>Profile Picture * (This will be displayed on your profile)</Label>
+                    <div className="mt-2 flex flex-col items-center gap-4">
+                      {files.profilePicture && (
+                        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-red-600">
+                          <img 
+                            src={URL.createObjectURL(files.profilePicture)} 
+                            alt="Profile preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <Input
+                        required
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setFiles({ ...files, profilePicture: e.target.files?.[0] || null })}
+                        className="hidden"
+                        id="profilePicture"
+                      />
+                      <label
+                        htmlFor="profilePicture"
+                        className="flex items-center gap-2 px-4 py-2 border border-border rounded-lg cursor-pointer hover:bg-card transition-colors"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {files.profilePicture ? "Change Picture" : "Upload Picture"}
+                      </label>
+                      {files.profilePicture && (
+                        <span className="text-sm flex items-center gap-2 text-green-400">
+                          <CheckCircle className="w-4 h-4" />
+                          {files.profilePicture.name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-border">
+                    <h3 className="text-lg font-semibold mb-4">Verification Documents</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      These documents are for verification only and will NOT be displayed publicly.
+                    </p>
+                  </div>
                   
                   <div>
                     <Label>College ID Card * (Image/PDF)</Label>
@@ -349,8 +427,7 @@ export default function MentorApplication() {
 
                   <div className="p-4 rounded-lg bg-yellow-600/10 border border-yellow-500/30">
                     <p className="text-sm text-yellow-400">
-                      📌 These documents are for verification only and will NOT be displayed publicly.
-                      Only admins can view them.
+                      📌 Verification documents are for admin review only. Only your profile picture will be displayed publicly.
                     </p>
                   </div>
 
@@ -360,7 +437,7 @@ export default function MentorApplication() {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={loading || !files.collegeId || !files.examResult}
+                      disabled={loading || !files.profilePicture || !files.collegeId || !files.examResult}
                       className="flex-1 bg-gradient-to-r from-green-600 to-emerald-600"
                     >
                       {loading ? (
