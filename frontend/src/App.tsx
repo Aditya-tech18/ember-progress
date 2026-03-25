@@ -52,6 +52,9 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const [userGoal, setUserGoal] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [initialCheckDone, setInitialCheckDone] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useHabitReminder();
   useBackButton();
@@ -62,6 +65,11 @@ const AppContent = () => {
       
       if (!user) {
         setLoading(false);
+        setInitialCheckDone(true);
+        // Not logged in, check if on root path
+        if (location.pathname === "/") {
+          navigate("/goal-selection");
+        }
         return;
       }
 
@@ -71,11 +79,30 @@ const AppContent = () => {
         .eq("id", user.id)
         .maybeSingle();
 
-      if (data?.goal) {
-        setUserGoal(data.goal);
+      if (!data || !data.goal) {
+        // User logged in but no goal
+        setLoading(false);
+        setInitialCheckDone(true);
+        if (location.pathname === "/") {
+          navigate("/goal-selection");
+        }
+        return;
       }
-      
+
+      // User has a goal
+      setUserGoal(data.goal);
       setLoading(false);
+      setInitialCheckDone(true);
+      
+      // Only redirect on initial load from root
+      if (!initialCheckDone && location.pathname === "/") {
+        if (data.goal === "JEE") {
+          // Stay on home for JEE users
+        } else {
+          // Redirect to buildlife for non-JEE users
+          navigate("/buildlife");
+        }
+      }
     };
 
     fetchUserGoal();
@@ -111,7 +138,12 @@ const AppContent = () => {
         <Route path="/buildlife-subscription" element={<BuildLifeSubscription />} />
 
         {/* Home route */}
-        <Route path="/" element={userGoal === "JEE" ? <Index /> : <Navigate to="/buildlife" replace />} />
+        <Route 
+          path="/" 
+          element={
+            userGoal === "JEE" ? <Index /> : <Navigate to="/goal-selection" replace />
+          } 
+        />
 
         {/* JEE-only routes */}
         {userGoal === "JEE" ? (
@@ -143,8 +175,8 @@ const AppContent = () => {
             <Route path="/pyq" element={<ChapterSelect />} />
           </>
         ) : (
-          // Non-JEE users trying to access JEE routes get redirected to BuildLife
-          <Route path="*" element={<Navigate to="/buildlife" replace />} />
+          // Non-JEE users trying to access JEE routes get redirected
+          <Route path="*" element={<Navigate to="/goal-selection" replace />} />
         )}
 
         {/* 404 for truly unknown routes */}
@@ -159,31 +191,9 @@ const AppContent = () => {
 
 const App = () => {
   const [splashDone, setSplashDone] = useState(false);
-  const [shouldShowGoalSelection, setShouldShowGoalSelection] = useState(false);
 
-  const handleSplashComplete = useCallback(async () => {
+  const handleSplashComplete = useCallback(() => {
     setSplashDone(true);
-    
-    // After splash, check if user needs goal selection
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      // Not logged in - show goal selection
-      setShouldShowGoalSelection(true);
-      return;
-    }
-
-    // Check if user has goal
-    const { data } = await supabase
-      .from("users")
-      .select("goal")
-      .eq("id", user.id)
-      .maybeSingle();
-
-    if (!data || !data.goal) {
-      // Logged in but no goal - show goal selection
-      setShouldShowGoalSelection(true);
-    }
   }, []);
 
   return (
@@ -191,17 +201,11 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
-        {splashDone && (
+        {!splashDone ? (
+          <SplashScreen onComplete={handleSplashComplete} />
+        ) : (
           <BrowserRouter>
-            {shouldShowGoalSelection ? (
-              <Routes>
-                <Route path="*" element={<Navigate to="/goal-selection" replace />} />
-                <Route path="/goal-selection" element={<GoalSelection />} />
-              </Routes>
-            ) : (
-              <AppContent />
-            )}
+            <AppContent />
           </BrowserRouter>
         )}
       </TooltipProvider>
