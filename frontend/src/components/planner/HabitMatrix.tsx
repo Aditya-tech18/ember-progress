@@ -74,8 +74,17 @@ export const HabitMatrix = ({
 }: HabitMatrixProps) => {
   const [newHabitName, setNewHabitName] = useState("");
   const [newHabitSubject, setNewHabitSubject] = useState("Study");
+  
+  // Ensure selectedMonth is valid
+  const validSelectedMonth = selectedMonth || new Date();
+  
   // Default goal = days in selected month
-  const daysInSelectedMonth = new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() + 1, 0).getDate();
+  const daysInSelectedMonth = new Date(
+    validSelectedMonth.getFullYear(), 
+    validSelectedMonth.getMonth() + 1, 
+    0
+  ).getDate();
+  
   const [newHabitGoal, setNewHabitGoal] = useState(daysInSelectedMonth);
   const [showAddHabit, setShowAddHabit] = useState(false);
   const [renamingHabit, setRenamingHabit] = useState<string | null>(null);
@@ -85,8 +94,8 @@ export const HabitMatrix = ({
 
   // Generate days of the month
   const daysInMonth = useMemo(() => {
-    const year = selectedMonth.getFullYear();
-    const month = selectedMonth.getMonth();
+    const year = validSelectedMonth.getFullYear();
+    const month = validSelectedMonth.getMonth();
     const numDays = new Date(year, month + 1, 0).getDate();
     
     const days: { date: string; dayOfWeek: string; dayNum: number; weekIndex: number }[] = [];
@@ -104,7 +113,7 @@ export const HabitMatrix = ({
     }
     
     return days;
-  }, [selectedMonth]);
+  }, [validSelectedMonth]);
 
   // Group days by week
   const weeks = useMemo(() => {
