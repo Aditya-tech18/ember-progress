@@ -13,11 +13,14 @@ const getISTDate = () => {
   return new Date(utc + (5.5 * 60 * 60 * 1000));
 };
 
-export const ConsistencyHeatmap = ({ tasks, startDate }: ConsistencyHeatmapProps) => {
+export const ConsistencyHeatmap = ({ tasks = [], startDate }: ConsistencyHeatmapProps) => {
   const today = getISTDate();
   
   // Generate last 12 months of data
   const heatmapData = useMemo(() => {
+    if (!tasks || tasks.length === 0) {
+      return [];
+    }
     const months: any[] = [];
     const currentDate = startDate || new Date(today.getFullYear(), today.getMonth() - 11, 1);
     
@@ -76,6 +79,8 @@ export const ConsistencyHeatmap = ({ tasks, startDate }: ConsistencyHeatmapProps
 
   // Calculate current streak
   const streak = useMemo(() => {
+    if (!tasks || tasks.length === 0) return 0;
+    
     let count = 0;
     const sortedDates = [...new Set(tasks.map(t => t.due_date))].sort().reverse();
     

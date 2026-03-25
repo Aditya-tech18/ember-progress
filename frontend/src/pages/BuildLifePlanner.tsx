@@ -16,10 +16,10 @@ export const BuildLifePlanner = () => {
   const [loading, setLoading] = useState(true);
 
   const {
-    tasks,
-    dailyAggregates,
+    tasks = [],
+    dailyAggregates = [],
     selectedMonth,
-    habits,
+    habits = [],
     handleMonthChange,
     handleToggleTask,
     handleAddHabit,
@@ -118,8 +118,8 @@ export const BuildLifePlanner = () => {
           >
             <div className="text-sm text-gray-400 mb-2">Today's Progress</div>
             <div className="text-4xl font-black text-white">
-              {dailyAggregates.find(d => d.date === new Date().toISOString().split('T')[0])?.completed || 0}/
-              {dailyAggregates.find(d => d.date === new Date().toISOString().split('T')[0])?.total || 0}
+              {dailyAggregates?.find(d => d.date === new Date().toISOString().split('T')[0])?.completed || 0}/
+              {dailyAggregates?.find(d => d.date === new Date().toISOString().split('T')[0])?.total || 0}
             </div>
           </motion.div>
 
@@ -131,7 +131,10 @@ export const BuildLifePlanner = () => {
           >
             <div className="text-sm text-gray-400 mb-2">Monthly Goal</div>
             <div className="text-4xl font-black text-white">
-              {Math.round((dailyAggregates.reduce((acc, d) => acc + d.completed, 0) / dailyAggregates.reduce((acc, d) => acc + d.total, 0)) * 100) || 0}%
+              {dailyAggregates && dailyAggregates.length > 0
+                ? Math.round((dailyAggregates.reduce((acc, d) => acc + (d.completed || 0), 0) / 
+                   Math.max(dailyAggregates.reduce((acc, d) => acc + (d.total || 0), 0), 1)) * 100) 
+                : 0}%
             </div>
           </motion.div>
         </div>

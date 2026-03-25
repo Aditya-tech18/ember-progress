@@ -40,6 +40,8 @@ export const Navbar = () => {
   const [userData, setUserData] = useState<any>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showGoalMenu, setShowGoalMenu] = useState(false);
+  const [userGoal, setUserGoal] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -56,8 +58,19 @@ export const Navbar = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    // Close goal menu on outside click
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showGoalMenu && !(e.target as Element).closest('.goal-menu-container')) {
+        setShowGoalMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showGoalMenu]);
 
   const fetchUserData = async (userId: string) => {
     const { data } = await supabase
@@ -65,7 +78,10 @@ export const Navbar = () => {
       .select("*")
       .eq("id", userId)
       .single();
-    if (data) setUserData(data);
+    if (data) {
+      setUserData(data);
+      setUserGoal(data.goal);
+    }
   };
 
   // Filter features based on search query
@@ -113,21 +129,46 @@ export const Navbar = () => {
       >
         <div className="container mx-auto px-3 sm:px-4 lg:px-8">
           <div className="flex items-center justify-between h-14 sm:h-16 lg:h-[68px]">
-            {/* Logo */}
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              onClick={() => navigate("/")}
-              className="flex items-center gap-2 cursor-pointer"
-            >
-              <img 
-                src="/images/prepixo-splash.jpg" 
-                alt="Prepixo" 
-                className="w-9 h-9 rounded-xl shadow-md shadow-primary/20 object-cover"
-              />
-              <span className="text-lg font-bold text-foreground hidden sm:block tracking-tight">
-                Prepixo
-              </span>
-            </motion.div>
+            {/* Logo with Goal Menu */}
+            <div className="relative goal-menu-container">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                onClick={() => setShowGoalMenu(!showGoalMenu)}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                <img 
+                  src="/images/prepixo-splash.jpg" 
+                  alt="Prepixo" 
+                  className="w-9 h-9 rounded-xl shadow-md shadow-primary/20 object-cover"
+                />
+                <span className="text-lg font-bold text-foreground hidden sm:block tracking-tight">
+                  Prepixo
+                </span>
+              </motion.div>
+
+              {/* Goal Change Dropdown */}
+              <AnimatePresence>
+                {showGoalMenu && user && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full left-0 mt-2 bg-[#111111] border border-white/10 rounded-xl p-2 z-50 min-w-[180px] shadow-xl"
+                  >
+                    <div className="text-xs text-gray-400 px-3 py-2">Current Goal: {userGoal || 'Not Set'}</div>
+                    <button
+                      onClick={() => {
+                        setShowGoalMenu(false);
+                        navigate("/goal-selection");
+                      }}
+                      className="w-full text-left px-3 py-2 text-white hover:bg-[#E50914]/20 rounded-lg text-sm transition-colors"
+                    >
+                      🎯 Change Goal
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Center Navigation */}
             <div className="hidden lg:flex items-center gap-1 bg-muted/40 rounded-xl px-1.5 py-1 border border-border/30">
