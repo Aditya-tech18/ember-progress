@@ -24,6 +24,7 @@ const MAX_HABITS = 10;
 export const BuildLifePlanner = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(getISTDate());
@@ -31,14 +32,101 @@ export const BuildLifePlanner = () => {
   const {
     tasks = [],
     dailyAggregates = [],
-    habits = [],
-    handleMonthChange,
-    handleToggleTask,
-    handleAddHabit,
-    handleDeleteHabit,
-    handleRenameHabit,
+    addTask,
+    completeTask,
+    deleteTask,
     refetch,
   } = usePlanner();
+
+  // Extract unique habits from tasks
+  const habits = useMemo(() => {
+    const habitMap = new Map();
+    tasks.forEach(task => {
+      if (!habitMap.has(task.task_name)) {
+        habitMap.set(task.task_name, {
+          name: task.task_name,
+          subject: task.subject,
+          goal: 0 // Will be calculated
+        });
+      }
+    });
+    return Array.from(habitMap.values());
+  }, [tasks]);
+
+  const handleAddHabit = async (habitName: string, subject: string, goalCount: number) => {
+    if (!userId) return;
+    
+    // Create tasks for this month's days based on goal
+    const now = getISTDate();
+    const year = selectedMonth.getFullYear();
+    const month = selectedMonth.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // Create task for each day
+    for (let day = 1; day <= Math.min(goalCount, daysInMonth); day++) {
+      const date = new Date(year, month, day);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      await addTask({
+        task_name: habitName,
+        subject: subject,
+        task_type: "habit",
+        due_date: dateStr,
+        status: "pending"
+      });
+    }
+  };
+
+  const handleToggleTask = async (taskId: string, date: string, completed: boolean, habitName?: string, subject?: string) => {
+    if (taskId === "create_new" && habitName && subject && userId) {
+      // Create new task
+      await addTask({
+        task_name: habitName,
+        subject: subject,
+        task_type: "habit",
+        due_date: date,
+        status: completed ? "completed" : "pending"
+      });
+    } else {
+      // Toggle existing task
+      if (completed) {
+        await completeTask(taskId);
+      } else {
+        // Uncomplete task
+        await supabase
+          .from("planner_tasks")
+          .update({ status: "pending", completed_at: null })
+          .eq("id", taskId);
+      }
+    }
+  };
+
+  const handleDeleteHabit = async (habitName: string) => {
+    // Delete all tasks with this habit name
+    const habitTasks = tasks.filter(t => t.task_name === habitName);
+    for (const task of habitTasks) {
+      await deleteTask(task.id);
+    }
+  };
+
+  const handleRenameHabit = async (oldName: string, newName: string) => {
+    if (!userId) return;
+    
+    // Update all tasks with this habit name
+    const { error } = await supabase
+      .from("planner_tasks")
+      .update({ task_name: newName })
+      .eq("user_id", userId)
+      .eq("task_name", oldName);
+    
+    if (!error) {
+      await refetch();
+    }
+  };
+
+  const handleMonthChange = (newMonth: Date) => {
+    setSelectedMonth(newMonth);
+  };
 
   useEffect(() => {
     checkAuth();
@@ -50,11 +138,13 @@ export const BuildLifePlanner = () => {
       
       if (!currentUser) {
         setUser(null);
+        setUserId(null);
         setLoading(false);
         return;
       }
 
       setUser(currentUser);
+      setUserId(currentUser.id);
 
       // Check subscription status
       const { data: subscription } = await supabase
