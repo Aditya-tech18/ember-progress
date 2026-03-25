@@ -41,6 +41,7 @@ import BecomeMentor from "./pages/BecomeMentor";
 import MockTestSolutions from "./pages/MockTestSolutions";
 import MentorProfilePage from "./pages/MentorProfilePage";
 import MentorApplication from "./pages/MentorApplication";
+import GoalSelection from "./pages/GoalSelection";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const AppContent = () => {
     <>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/goal-selection" element={<GoalSelection />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
         <Route path="/password-reset" element={<PasswordReset />} />
