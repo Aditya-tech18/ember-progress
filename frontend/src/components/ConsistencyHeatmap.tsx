@@ -22,11 +22,10 @@ export const ConsistencyHeatmap = ({ tasks = [], startDate }: ConsistencyHeatmap
       return [];
     }
     const months: any[] = [];
-    const currentDate = startDate || new Date(today.getFullYear(), today.getMonth() - 11, 1);
     
+    // Start from current month and go backwards (current month = leftmost)
     for (let i = 0; i < 12; i++) {
-      const monthDate = new Date(currentDate);
-      monthDate.setMonth(currentDate.getMonth() + i);
+      const monthDate = new Date(today.getFullYear(), today.getMonth() - i, 1);
       
       const year = monthDate.getFullYear();
       const month = monthDate.getMonth();
@@ -61,7 +60,8 @@ export const ConsistencyHeatmap = ({ tasks = [], startDate }: ConsistencyHeatmap
       months.push({
         name: monthDate.toLocaleDateString('en-US', { month: 'short' }),
         year: monthDate.getFullYear(),
-        weeks
+        weeks,
+        isCurrent: i === 0 // Highlight current month
       });
     }
     
@@ -126,8 +126,10 @@ export const ConsistencyHeatmap = ({ tasks = [], startDate }: ConsistencyHeatmap
               transition={{ delay: monthIdx * 0.05 }}
               className="flex flex-col gap-2"
             >
-              <div className="text-sm font-semibold text-gray-400 mb-1">
-                {month.name}
+              <div className={`text-sm font-semibold mb-1 ${
+                month.isCurrent ? 'text-[#E50914]' : 'text-gray-400'
+              }`}>
+                {month.name} {month.isCurrent && '(Current)'}
               </div>
               <div className="grid gap-1">
                 {month.weeks.map((week: any[], weekIdx: number) => (
