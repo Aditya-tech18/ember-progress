@@ -93,8 +93,14 @@ export const BuildLifePlanner = () => {
     }
 
     // User has access, proceed to add habit
-    await handleAddHabit(habitName, subject, goalCount);
-    refetch();
+    try {
+      await handleAddHabit(habitName, subject, goalCount);
+      toast.success("Habit added successfully!");
+      refetch();
+    } catch (error) {
+      console.error("Error adding habit:", error);
+      toast.error("Failed to add habit");
+    }
   };
 
   const handleTaskToggle = async (taskId: string, date: string, completed: boolean, habitName?: string, subject?: string) => {
