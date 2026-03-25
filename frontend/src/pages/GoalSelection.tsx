@@ -30,14 +30,16 @@ export const GoalSelection = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        // Store goal in localStorage, will save after login
+        // Not logged in - store goal and go to auth
         localStorage.setItem("pendingGoal", selectedGoal);
         toast.info("Please login to continue");
-        navigate("/auth", { state: { returnTo: selectedGoal === "JEE" ? "/" : "/buildlife" } });
+        
+        // After auth, should come back and complete goal selection
+        navigate("/auth", { state: { fromGoalSelection: true, selectedGoal } });
         return;
       }
 
-      // Update user profile with selected goal
+      // User is logged in - save goal to database
       const { error } = await supabase
         .from("users")
         .update({ 
@@ -52,8 +54,10 @@ export const GoalSelection = () => {
       
       // Navigate based on goal
       if (selectedGoal === "JEE") {
+        // JEE users go to home
         navigate("/");
       } else {
+        // Non-JEE users go to BuildLife (will trigger subscription check there)
         navigate("/buildlife");
       }
     } catch (error: any) {

@@ -50,79 +50,45 @@ import BuildLifeSubscription from "./pages/BuildLifeSubscription";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const [goalChecked, setGoalChecked] = useState(false);
   const [userGoal, setUserGoal] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [loading, setLoading] = useState(true);
 
   useHabitReminder();
   useBackButton();
 
   useEffect(() => {
-    const checkGoalAndNavigate = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (!user) {
-          setIsAuthenticated(false);
-          setGoalChecked(true);
-          
-          // If accessing root after splash, redirect to goal selection
-          if (location.pathname === "/" && !location.state) {
-            setTimeout(() => navigate("/goal-selection"), 100);
-          }
-          return;
-        }
-
-        setIsAuthenticated(true);
-
-        // Fetch user goal
-        const { data, error } = await supabase
-          .from("users")
-          .select("goal")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching user goal:", error);
-          setGoalChecked(true);
-          return;
-        }
-
-        if (!data || !data.goal) {
-          // No goal set, redirect to goal selection
-          if (location.pathname !== "/goal-selection") {
-            navigate("/goal-selection");
-          }
-        } else {
-          setUserGoal(data.goal);
-          
-          // Redirect to appropriate home based on goal
-          if (location.pathname === "/" || location.pathname === "/goal-selection") {
-            if (data.goal === "JEE") {
-              // JEE users stay on home
-              if (location.pathname === "/goal-selection") {
-                navigate("/");
-              }
-            } else {
-              // Non-JEE users go to BuildLife
-              navigate("/buildlife");
-            }
-          }
-        }
-        
-        setGoalChecked(true);
-      } catch (error) {
-        console.error("Error in goal check:", error);
-        setGoalChecked(true);
+    const fetchUserGoal = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        setLoading(false);
+        return;
       }
+
+      const { data } = await supabase
+        .from("users")
+        .select("goal")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (data?.goal) {
+        setUserGoal(data.goal);
+      }
+      
+      setLoading(false);
     };
 
-    checkGoalAndNavigate();
-  }, [location.pathname]);
+    fetchUserGoal();
 
-  if (!goalChecked) {
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      fetchUserGoal();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) {
     return <div className="min-h-screen bg-black" />;
   }
 
@@ -144,22 +110,11 @@ const AppContent = () => {
         <Route path="/buildlife" element={<BuildLifePlanner />} />
         <Route path="/buildlife-subscription" element={<BuildLifeSubscription />} />
 
-        {/* Home route - conditional based on goal */}
-        <Route 
-          path="/" 
-          element={
-            !isAuthenticated ? (
-              <Navigate to="/goal-selection" replace />
-            ) : userGoal === "JEE" ? (
-              <Index />
-            ) : (
-              <Navigate to="/buildlife" replace />
-            )
-          } 
-        />
+        {/* Home route */}
+        <Route path="/" element={userGoal === "JEE" ? <Index /> : <Navigate to="/buildlife" replace />} />
 
         {/* JEE-only routes */}
-        {userGoal === "JEE" && (
+        {userGoal === "JEE" ? (
           <>
             <Route path="/chapters/:subject" element={<ChapterSelect />} />
             <Route path="/questions/:chapterName" element={<QuestionList />} />
@@ -187,10 +142,13 @@ const AppContent = () => {
             <Route path="/mentor-application" element={<MentorApplication />} />
             <Route path="/pyq" element={<ChapterSelect />} />
           </>
+        ) : (
+          // Non-JEE users trying to access JEE routes get redirected to BuildLife
+          <Route path="*" element={<Navigate to="/buildlife" replace />} />
         )}
 
-        {/* 404 */}
-        <Route path="*" element={<NotFound />} />
+        {/* 404 for truly unknown routes */}
+        <Route path="/404" element={<NotFound />} />
       </Routes>
       
       {/* Only show bottom nav for JEE users */}
@@ -201,8 +159,31 @@ const AppContent = () => {
 
 const App = () => {
   const [splashDone, setSplashDone] = useState(false);
-  const handleSplashComplete = useCallback(() => {
+  const [shouldShowGoalSelection, setShouldShowGoalSelection] = useState(false);
+
+  const handleSplashComplete = useCallback(async () => {
     setSplashDone(true);
+    
+    // After splash, check if user needs goal selection
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      // Not logged in - show goal selection
+      setShouldShowGoalSelection(true);
+      return;
+    }
+
+    // Check if user has goal
+    const { data } = await supabase
+      .from("users")
+      .select("goal")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (!data || !data.goal) {
+      // Logged in but no goal - show goal selection
+      setShouldShowGoalSelection(true);
+    }
   }, []);
 
   return (
@@ -211,9 +192,18 @@ const App = () => {
         <Toaster />
         <Sonner />
         {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
+        {splashDone && (
+          <BrowserRouter>
+            {shouldShowGoalSelection ? (
+              <Routes>
+                <Route path="*" element={<Navigate to="/goal-selection" replace />} />
+                <Route path="/goal-selection" element={<GoalSelection />} />
+              </Routes>
+            ) : (
+              <AppContent />
+            )}
+          </BrowserRouter>
+        )}
       </TooltipProvider>
     </QueryClientProvider>
   );

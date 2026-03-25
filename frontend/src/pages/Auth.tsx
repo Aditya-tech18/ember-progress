@@ -36,45 +36,47 @@ export default function Auth() {
 
   const handlePostAuth = async () => {
     const pendingGoal = localStorage.getItem("pendingGoal");
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) return;
     
     if (pendingGoal) {
-      const { data: { user } } = await supabase.auth.getUser();
+      // Save pending goal to database
+      await supabase
+        .from("users")
+        .update({ 
+          goal: pendingGoal,
+          goal_selected_at: new Date().toISOString()
+        })
+        .eq("id", user.id);
       
-      if (user) {
-        // Save pending goal to database
-        await supabase
-          .from("users")
-          .update({ 
-            goal: pendingGoal,
-            goal_selected_at: new Date().toISOString()
-          })
-          .eq("id", user.id);
-        
-        localStorage.removeItem("pendingGoal");
-        
-        // Navigate based on goal
-        if (pendingGoal === "JEE") {
-          navigate("/");
-        } else {
-          navigate("/buildlife");
-        }
-        return;
+      localStorage.removeItem("pendingGoal");
+      
+      // Navigate based on goal
+      if (pendingGoal === "JEE") {
+        navigate("/");
+      } else {
+        navigate("/buildlife");
       }
+      return;
     }
     
-    // No pending goal, navigate to goal selection or home
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      const { data } = await supabase
-        .from("users")
-        .select("goal")
-        .eq("id", user.id)
-        .maybeSingle();
-      
-      if (!data?.goal) {
-        navigate("/goal-selection");
-      } else {
+    // No pending goal, check if user has goal
+    const { data } = await supabase
+      .from("users")
+      .select("goal")
+      .eq("id", user.id)
+      .maybeSingle();
+    
+    if (!data?.goal) {
+      // No goal set, go to goal selection
+      navigate("/goal-selection");
+    } else {
+      // Has goal, navigate appropriately
+      if (data.goal === "JEE") {
         navigate("/");
+      } else {
+        navigate("/buildlife");
       }
     }
   };
