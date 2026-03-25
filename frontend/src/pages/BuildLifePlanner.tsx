@@ -6,9 +6,10 @@ import { usePlanner } from "@/hooks/usePlanner";
 import { HabitMatrix } from "@/components/planner/HabitMatrix";
 import { ConsistencyHeatmap } from "@/components/ConsistencyHeatmap";
 import { MonthSelector } from "@/components/planner/MonthSelector";
-import { Target, Calendar, TrendingUp, Flame, Settings } from "lucide-react";
+import { Target, Calendar, TrendingUp, Flame, Settings, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // IST timezone offset
 const IST_OFFSET = 5.5 * 60 * 60 * 1000;
@@ -124,8 +125,15 @@ export const BuildLifePlanner = () => {
     }
   };
 
-  const handleMonthChange = (newMonth: Date) => {
-    setSelectedMonth(newMonth);
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast.success("Logged out successfully");
+      navigate("/goal-selection");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast.error("Failed to logout");
+    }
   };
 
   useEffect(() => {
@@ -255,15 +263,28 @@ export const BuildLifePlanner = () => {
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => navigate("/goal-selection")}
-              variant="outline"
-              size="sm"
-              className="border-white/20 text-white hover:bg-white/10 text-xs h-8"
-            >
-              <Settings className="w-3 h-3 mr-1" />
-              Goal
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => navigate("/goal-selection")}
+                variant="outline"
+                size="sm"
+                className="border-white/20 text-white hover:bg-white/10 text-xs h-8"
+              >
+                <Settings className="w-3 h-3 mr-1" />
+                Goal
+              </Button>
+              {user && (
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 text-white hover:bg-red-500/20 hover:border-red-500/50 text-xs h-8"
+                >
+                  <LogOut className="w-3 h-3 mr-1" />
+                  Logout
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -351,11 +372,72 @@ export const BuildLifePlanner = () => {
           />
         </motion.div>
 
-        {/* Consistency Heatmap */}
+        {/* Daily Task Completion Trend */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
+          className="bg-gradient-to-br from-[#1a1a1a] to-[#111111] rounded-xl p-4 sm:p-6 border border-white/10 shadow-2xl"
+        >
+          <h2 className="text-base sm:text-xl font-bold text-white mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#E50914]" />
+            Daily Task Completion Trend
+          </h2>
+          <div className="h-[200px] sm:h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={dailyTrendData}>
+                <defs>
+                  <linearGradient id="completionGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#E50914" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#E50914" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <XAxis 
+                  dataKey="day" 
+                  stroke="#666"
+                  style={{ fontSize: '12px' }}
+                  tickLine={false}
+                />
+                <YAxis 
+                  stroke="#666"
+                  style={{ fontSize: '12px' }}
+                  tickLine={false}
+                  domain={[0, 100]}
+                  ticks={[0, 25, 50, 75, 100]}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: '#111111',
+                    border: '1px solid rgba(229, 9, 20, 0.3)',
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                  formatter={(value: any, name: string, props: any) => {
+                    return [
+                      `${value}% (${props.payload.completed}/${props.payload.total} tasks)`,
+                      'Completion'
+                    ];
+                  }}
+                  labelFormatter={(day) => `Day ${day}`}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="completion" 
+                  stroke="#E50914" 
+                  strokeWidth={2}
+                  fill="url(#completionGradient)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </motion.div>
+
+        {/* Consistency Heatmap */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
         >
           <ConsistencyHeatmap tasks={tasks} />
         </motion.div>
@@ -364,7 +446,7 @@ export const BuildLifePlanner = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
           className="bg-gradient-to-br from-[#1a1a1a] to-[#111111] rounded-xl p-3 sm:p-6 border border-white/10 shadow-2xl"
         >
           <div className="flex items-center justify-between mb-4">
