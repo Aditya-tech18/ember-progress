@@ -14,6 +14,7 @@ export const BuildLifePlanner = () => {
   const [user, setUser] = useState<any>(null);
   const [hasSubscription, setHasSubscription] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [checkingSubscription, setCheckingSubscription] = useState(false);
 
   const {
     tasks = [],
@@ -28,21 +29,23 @@ export const BuildLifePlanner = () => {
   } = usePlanner();
 
   useEffect(() => {
-    checkAccess();
+    checkAuth();
   }, []);
 
-  const checkAccess = async () => {
+  const checkAuth = async () => {
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
       if (!currentUser) {
-        navigate("/auth", { state: { returnTo: "/buildlife" } });
+        // Not logged in - just show planner in view mode
+        setUser(null);
+        setLoading(false);
         return;
       }
 
       setUser(currentUser);
 
-      // Check subscription
+      // Check subscription status
       const { data: subscription } = await supabase
         .from("subscriptions")
         .select("*")
@@ -50,17 +53,31 @@ export const BuildLifePlanner = () => {
         .gte("valid_until", new Date().toISOString())
         .maybeSingle();
 
-      if (!subscription) {
-        navigate("/buildlife-subscription", { state: { returnTo: "/buildlife" } });
-        return;
-      }
-
-      setHasSubscription(true);
+      setHasSubscription(!!subscription);
     } catch (error) {
       console.error("Error checking access:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddHabitClick = () => {
+    // Check if user is logged in
+    if (!user) {
+      toast.info("Please login to add habits");
+      navigate("/auth", { state: { returnTo: "/buildlife" } });
+      return;
+    }
+
+    // Check if user has subscription
+    if (!hasSubscription) {
+      toast.info("Subscription required to add habits");
+      navigate("/buildlife-subscription", { state: { returnTo: "/buildlife" } });
+      return;
+    }
+
+    // User has access, proceed to add habit
+    // This will trigger the add habit modal in HabitMatrix
   };
 
   const currentHabitCount = habits.length;
@@ -81,16 +98,17 @@ export const BuildLifePlanner = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-black text-white flex items-center gap-2">
-                <Target className="w-8 h-8 text-[#E50914]" />
+              <h1 className="text-2xl md:text-3xl font-black text-white flex items-center gap-2">
+                <Target className="w-6 h-6 md:w-8 md:h-8 text-[#E50914]" />
                 BuildLife Planner
               </h1>
-              <p className="text-sm text-gray-400 mt-1">Build habits that transform your future</p>
+              <p className="text-xs md:text-sm text-gray-400 mt-1">Build habits that transform your future</p>
             </div>
             <Button
               onClick={() => navigate("/goal-selection")}
               variant="outline"
-              className="border-white/20 text-white hover:bg-white/10"
+              size="sm"
+              className="border-white/20 text-white hover:bg-white/10 text-xs md:text-sm"
             >
               Change Goal
             </Button>
@@ -100,24 +118,24 @@ export const BuildLifePlanner = () => {
 
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#111111] rounded-2xl p-6 border border-white/10"
+            className="bg-[#111111] rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/10"
           >
-            <div className="text-sm text-gray-400 mb-2">Active Habits</div>
-            <div className="text-4xl font-black text-[#E50914]">{currentHabitCount}/{maxHabits}</div>
+            <div className="text-xs md:text-sm text-gray-400 mb-2">Active Habits</div>
+            <div className="text-3xl md:text-4xl font-black text-[#E50914]">{currentHabitCount}/{maxHabits}</div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-[#111111] rounded-2xl p-6 border border-white/10"
+            className="bg-[#111111] rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/10"
           >
-            <div className="text-sm text-gray-400 mb-2">Today's Progress</div>
-            <div className="text-4xl font-black text-white">
+            <div className="text-xs md:text-sm text-gray-400 mb-2">Today's Progress</div>
+            <div className="text-3xl md:text-4xl font-black text-white">
               {dailyAggregates?.find(d => d.date === new Date().toISOString().split('T')[0])?.completed || 0}/
               {dailyAggregates?.find(d => d.date === new Date().toISOString().split('T')[0])?.total || 0}
             </div>
@@ -127,10 +145,10 @@ export const BuildLifePlanner = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-[#111111] rounded-2xl p-6 border border-white/10 col-span-2"
+            className="bg-[#111111] rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/10 col-span-2"
           >
-            <div className="text-sm text-gray-400 mb-2">Monthly Goal</div>
-            <div className="text-4xl font-black text-white">
+            <div className="text-xs md:text-sm text-gray-400 mb-2">Monthly Goal</div>
+            <div className="text-3xl md:text-4xl font-black text-white">
               {dailyAggregates && dailyAggregates.length > 0
                 ? Math.round((dailyAggregates.reduce((acc, d) => acc + (d.completed || 0), 0) / 
                    Math.max(dailyAggregates.reduce((acc, d) => acc + (d.total || 0), 0), 1)) * 100) 
@@ -143,7 +161,7 @@ export const BuildLifePlanner = () => {
         <ConsistencyHeatmap tasks={tasks} />
 
         {/* Habit Matrix */}
-        <div className="bg-[#111111] rounded-2xl p-6 border border-white/10">
+        <div className="bg-[#111111] rounded-xl md:rounded-2xl p-4 md:p-6 border border-white/10">
           <HabitMatrix
             tasks={tasks}
             dailyAggregates={dailyAggregates}
@@ -154,6 +172,8 @@ export const BuildLifePlanner = () => {
             onRenameHabit={handleRenameHabit}
             maxHabits={maxHabits}
             currentHabitCount={currentHabitCount}
+            onAddHabitClick={handleAddHabitClick}
+            hasSubscription={hasSubscription}
           />
         </div>
       </div>
