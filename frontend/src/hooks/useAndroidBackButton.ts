@@ -1,16 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 
 /**
- * Hook to handle Android back button navigation
- * Prevents app from closing and navigates to previous page instead
+ * Enhanced Android back button handler with "Press again to exit" feature
  */
 export const useAndroidBackButton = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const lastBackPressRef = useRef<number>(0);
 
   useEffect(() => {
-    // Only handle on mobile devices
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
       navigator.userAgent
     );
@@ -20,20 +20,33 @@ export const useAndroidBackButton = () => {
     const handleBackButton = (event: PopStateEvent) => {
       event.preventDefault();
       
-      // If we're on the home page, allow default behavior (exit app)
-      if (location.pathname === '/') {
-        // Let the app close naturally
-        return;
+      const isHomePage = location.pathname === '/' || location.pathname === '/index';
+      
+      if (isHomePage) {
+        const now = Date.now();
+        const timeSinceLastPress = now - lastBackPressRef.current;
+        
+        if (timeSinceLastPress < 2000) {
+          // Double press detected - allow app exit
+          window.history.back();
+          return;
+        }
+        
+        // First press - show toast
+        lastBackPressRef.current = now;
+        toast.info('Press back again to exit', {
+          duration: 2000,
+        });
+        
+        // Push state again to prevent immediate exit
+        window.history.pushState(null, '', window.location.href);
+      } else {
+        // Not on home - navigate back
+        navigate(-1);
       }
-
-      // Otherwise, navigate back
-      navigate(-1);
     };
 
-    // Add listener for popstate (back button)
     window.addEventListener('popstate', handleBackButton);
-
-    // Push state to enable back button handling
     window.history.pushState(null, '', window.location.href);
 
     return () => {

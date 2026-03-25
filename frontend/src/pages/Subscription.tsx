@@ -28,7 +28,12 @@ declare global {
   }
 }
 
-const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
+// Razorpay keys from environment
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_SObcQvFXRo6HAa";
+const RAZORPAY_KEY_SECRET = import.meta.env.VITE_RAZORPAY_KEY_SECRET || "cwYauUFEKheGa1Kt5HEpAFrA";
+
+// Log key to confirm it's loaded (for debugging)
+console.log('🔑 Razorpay Key ID:', RAZORPAY_KEY_ID?.substring(0, 10) + '...');
 
 const plans = [
   {
@@ -37,7 +42,7 @@ const plans = [
     duration: "1 day",
     months: 0,
     days: 1,
-    amount: 100, // paise (₹1)
+    amount: 100,
     price: "₹1",
     oldPrice: "₹9",
     icon: Zap,
@@ -49,7 +54,7 @@ const plans = [
     description: "Begin small, dream big! 🚀",
     duration: "1 month",
     months: 1,
-    amount: 900, // paise (₹9)
+    amount: 900,
     price: "₹9",
     oldPrice: "₹19",
     icon: Rocket,
@@ -60,7 +65,7 @@ const plans = [
     description: "Boost your prep, real results! ⚡",
     duration: "3 months",
     months: 3,
-    amount: 2700, // paise (₹27)
+    amount: 2700,
     price: "₹27",
     oldPrice: "₹49",
     icon: Zap,
@@ -71,7 +76,7 @@ const plans = [
     description: "Game-changer for exam season 🎯",
     duration: "6 months",
     months: 6,
-    amount: 5400, // paise (₹54)
+    amount: 5400,
     price: "₹54",
     oldPrice: "₹99",
     icon: Target,
@@ -82,7 +87,7 @@ const plans = [
     description: "A trusted companion for a year 🤝",
     duration: "12 months",
     months: 12,
-    amount: 10800, // paise (₹108)
+    amount: 10800,
     price: "₹108",
     oldPrice: "₹199",
     icon: Handshake,
@@ -114,14 +119,24 @@ const Subscription = () => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
-    script.onload = () => setRazorpayLoaded(true);
+    script.onload = () => {
+      setRazorpayLoaded(true);
+      console.log('✅ Razorpay script loaded successfully');
+    };
+    script.onerror = () => {
+      console.error('❌ Failed to load Razorpay script');
+      toast.error('Failed to load payment system');
+    };
     document.body.appendChild(script);
 
-    // Fetch user's referral code if they have one
     fetchUserReferralCode();
 
     return () => {
-      document.body.removeChild(script);
+      try {
+        document.body.removeChild(script);
+      } catch (e) {
+        // Script already removed
+      }
     };
   }, []);
 
@@ -149,7 +164,6 @@ const Subscription = () => {
         return;
       }
 
-      // Check if user has an active subscription
       const { data: subData } = await supabase
         .from("subscriptions")
         .select("*")
@@ -162,7 +176,6 @@ const Subscription = () => {
         return;
       }
 
-      // Check if user has combat name
       const { data: userData } = await supabase
         .from("users")
         .select("combat_name")
@@ -174,14 +187,12 @@ const Subscription = () => {
         return;
       }
 
-      // Generate code using the database function
       const { data: codeData, error } = await supabase.rpc("generate_referral_code", {
         p_user_id: user.id,
       });
 
       if (error) throw error;
 
-      // Insert the code
       const { error: insertError } = await supabase
         .from("referral_codes")
         .insert({
@@ -217,7 +228,6 @@ const Subscription = () => {
         return;
       }
 
-      // Check if user already used a referral code
       const { data: existingReward } = await supabase
         .from("referral_rewards")
         .select("id")
@@ -229,7 +239,6 @@ const Subscription = () => {
         return;
       }
 
-      // Find the referral code
       const { data: codeData, error: codeError } = await supabase
         .from("referral_codes")
         .select("*")
@@ -262,7 +271,6 @@ const Subscription = () => {
 
   const processReferralReward = async (userId: string, referralCodeUsed: string) => {
     try {
-      // Find the referral code
       const { data: codeData } = await supabase
         .from("referral_codes")
         .select("*")
@@ -271,7 +279,6 @@ const Subscription = () => {
 
       if (!codeData) return;
 
-      // Create referral reward entry
       await supabase.from("referral_rewards").insert({
         referrer_id: codeData.user_id,
         referred_id: userId,
@@ -280,7 +287,6 @@ const Subscription = () => {
         referred_months_awarded: 1,
       });
 
-      // Update the code as used
       await supabase
         .from("referral_codes")
         .update({
@@ -290,7 +296,6 @@ const Subscription = () => {
         })
         .eq("id", codeData.id);
 
-      // Give referred user 1 month free (9rs plan)
       const now = new Date();
       const validUntil = new Date(now);
       validUntil.setMonth(validUntil.getMonth() + 1);
@@ -305,7 +310,6 @@ const Subscription = () => {
         payment_id: `referral_${referralCodeUsed}`,
       }, { onConflict: "user_id" });
 
-      // Give referrer 3 months free
       const { data: referrerSub } = await supabase
         .from("subscriptions")
         .select("valid_until")
@@ -341,7 +345,6 @@ const Subscription = () => {
   };
 
   const handleSubscribe = async (plan: typeof plans[0]) => {
-    // If referral code is applied and not yet processed, process it
     if (referralApplied) {
       setLoading(plan.name);
       try {
@@ -376,25 +379,33 @@ const Subscription = () => {
       }
 
       if (!razorpayLoaded) {
-        toast.error("Payment system loading. Please try again.");
+        toast.error("Payment system loading. Please wait...");
+        setTimeout(() => setLoading(null), 2000);
+        return;
+      }
+
+      if (!RAZORPAY_KEY_ID) {
+        console.error('❌ Razorpay key not configured');
+        toast.error("Payment configuration error. Please contact support.");
         setLoading(null);
         return;
       }
 
+      console.log('💳 Initializing Razorpay with key:', RAZORPAY_KEY_ID.substring(0, 10) + '...');
+
       const options = {
-        key: RAZORPAY_KEY,
+        key: RAZORPAY_KEY_ID,
         amount: plan.amount,
         currency: "INR",
         name: "Prepixo",
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
         handler: async function (response: any) {
+          console.log('✅ Payment successful:', response.razorpay_payment_id);
           try {
-            // Payment successful - save subscription
             const now = new Date();
             const validUntil = new Date(now);
             
-            // Handle trial plan (1 day) vs regular plans (months)
             if ((plan as any).isTrial) {
               validUntil.setDate(validUntil.getDate() + ((plan as any).days || 1));
             } else {
@@ -415,7 +426,11 @@ const Subscription = () => {
             if (error) throw error;
 
             toast.success("🎉 Subscription activated successfully!");
-            navigate("/");
+            
+            // Redirect after short delay
+            setTimeout(() => {
+              navigate("/");
+            }, 1500);
           } catch (error: any) {
             console.error("Error saving subscription:", error);
             toast.error("Payment successful but failed to activate. Contact support.");
@@ -430,21 +445,25 @@ const Subscription = () => {
           duration_months: plan.months.toString(),
         },
         theme: {
-          color: "#F97316",
+          color: "#E50914",
         },
         modal: {
           ondismiss: function() {
+            console.log('Payment modal dismissed');
             setLoading(null);
           }
         }
       };
 
+      console.log('🚀 Opening Razorpay modal...');
       const razorpay = new window.Razorpay(options);
+      
       razorpay.on("payment.failed", function (response: any) {
-        console.error("Payment failed:", response.error);
-        toast.error("Payment failed. Please try again.");
+        console.error("❌ Payment failed:", response.error);
+        toast.error(`Payment failed: ${response.error.description || 'Unknown error'}`);
         setLoading(null);
       });
+      
       razorpay.open();
     } catch (error: any) {
       console.error("Subscription error:", error);
@@ -454,7 +473,7 @@ const Subscription = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#000000]">
       <Navbar />
 
       <div className="pt-20 pb-16">
@@ -467,7 +486,7 @@ const Subscription = () => {
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
-              className="mb-4 text-muted-foreground hover:text-foreground"
+              className="mb-4 text-gray-400 hover:text-white"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Go Back
@@ -479,14 +498,14 @@ const Subscription = () => {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-12"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-4 border border-primary/20">
-              <Crown className="w-4 h-4 text-gold" />
-              <span className="text-sm font-medium text-muted-foreground">Premium Access</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#E50914]/10 border border-[#E50914]/30 mb-4">
+              <Crown className="w-4 h-4 text-[#E50914]" />
+              <span className="text-sm font-bold text-white">Premium Access</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+            <h1 className="text-4xl sm:text-5xl font-black text-white mb-4">
               Unlock Your Full Potential
             </h1>
-            <p className="text-muted-foreground max-w-xl mx-auto">
+            <p className="text-gray-400 max-w-xl mx-auto text-lg">
               Get unlimited access to all PYQs, mock tests, and AI-powered doubt solving
             </p>
           </motion.div>
@@ -496,16 +515,16 @@ const Subscription = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="glass-card p-6 rounded-2xl mb-10 max-w-3xl mx-auto"
+            className="bg-[#111111] p-6 rounded-2xl mb-10 max-w-3xl mx-auto border border-white/10"
           >
-            <h3 className="text-lg font-semibold text-foreground mb-4 text-center">What's Included</h3>
+            <h3 className="text-xl font-bold text-white mb-4 text-center">What's Included</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {features.map((feature, index) => (
                 <div key={index} className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-success/20 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-success" />
+                  <div className="w-5 h-5 rounded-full bg-[#E50914]/20 flex items-center justify-center">
+                    <Check className="w-3 h-3 text-[#E50914]" />
                   </div>
-                  <span className="text-sm text-muted-foreground">{feature}</span>
+                  <span className="text-sm text-gray-300">{feature}</span>
                 </div>
               ))}
             </div>
@@ -516,18 +535,18 @@ const Subscription = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="glass-card p-6 rounded-2xl mb-10 max-w-xl mx-auto"
+            className="bg-[#111111] p-6 rounded-2xl mb-10 max-w-xl mx-auto border border-white/10"
           >
-            <h3 className="text-lg font-semibold text-foreground mb-4 text-center flex items-center justify-center gap-2">
-              <Gift className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-bold text-white mb-4 text-center flex items-center justify-center gap-2">
+              <Gift className="w-5 h-5 text-[#E50914]" />
               Have a Referral Code?
             </h3>
             {referralApplied ? (
               <div className="text-center">
-                <div className="bg-success/20 border border-success/30 rounded-lg p-4 mb-4">
-                  <Check className="w-8 h-8 text-success mx-auto mb-2" />
-                  <p className="text-success font-medium">Code Applied: {referralApplied}</p>
-                  <p className="text-sm text-muted-foreground">You'll get 1 month free access!</p>
+                <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4 mb-4">
+                  <Check className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                  <p className="text-green-400 font-bold">Code Applied: {referralApplied}</p>
+                  <p className="text-sm text-gray-400">You'll get 1 month free access!</p>
                 </div>
                 <Button
                   onClick={async () => {
@@ -537,7 +556,7 @@ const Subscription = () => {
                       navigate("/");
                     }
                   }}
-                  className="bg-gradient-to-r from-primary to-crimson"
+                  className="bg-[#E50914] hover:bg-[#E50914]/90 text-white font-bold"
                 >
                   Claim Free Access
                 </Button>
@@ -548,71 +567,14 @@ const Subscription = () => {
                   placeholder="Enter referral code"
                   value={referralCode}
                   onChange={(e) => setReferralCode(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 bg-black border-white/20 text-white"
                 />
                 <Button
                   onClick={applyReferralCode}
                   disabled={applyingReferral || !referralCode.trim()}
-                  variant="outline"
+                  className="bg-[#E50914] hover:bg-[#E50914]/90 text-white font-bold"
                 >
                   {applyingReferral ? <Loader2 className="w-4 h-4 animate-spin" /> : "Apply"}
-                </Button>
-              </div>
-            )}
-          </motion.div>
-
-          {/* Your Referral Code Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="glass-card p-6 rounded-2xl mb-10 max-w-xl mx-auto"
-          >
-            <h3 className="text-lg font-semibold text-foreground mb-4 text-center flex items-center justify-center gap-2">
-              <Share2 className="w-5 h-5 text-primary" />
-              Share & Earn
-            </h3>
-            {userReferralCode ? (
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">Your Referral Code:</p>
-                <div className="bg-primary/20 border border-primary/30 rounded-lg p-4 mb-4">
-                  <p className="text-2xl font-bold text-primary">{userReferralCode}</p>
-                </div>
-                <p className="text-xs text-muted-foreground mb-4">
-                  Share this code with friends! When they use it, you get 3 months free and they get 1 month free.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    navigator.clipboard.writeText(userReferralCode);
-                    toast.success("Copied to clipboard!");
-                  }}
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy Code
-                </Button>
-              </div>
-            ) : (
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-4">
-                  Generate your referral code to earn 3 months free when friends subscribe!
-                </p>
-                <Button
-                  onClick={generateUserReferralCode}
-                  disabled={generatingCode}
-                  className="bg-gradient-to-r from-primary to-crimson"
-                >
-                  {generatingCode ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Gift className="w-4 h-4 mr-2" />
-                      Generate Referral Code
-                    </>
-                  )}
                 </Button>
               </div>
             )}
@@ -626,41 +588,42 @@ const Subscription = () => {
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 + index * 0.1 }}
-                className={`glass-card rounded-2xl p-6 relative overflow-hidden ${
-                  plan.popular ? "border-2 border-primary ring-2 ring-primary/20" : ""
+                className={`bg-[#111111] rounded-2xl p-6 relative overflow-hidden border ${
+                  plan.popular ? "border-[#E50914] ring-2 ring-[#E50914]/30" : "border-white/10"
                 }`}
               >
                 {plan.popular && (
-                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">
+                  <div className="absolute top-0 right-0 bg-[#E50914] text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
                     Most Popular
                   </div>
                 )}
 
                 <div className="mb-4">
-                  <div className={`w-12 h-12 rounded-xl ${plan.popular ? "bg-primary" : "bg-muted"} flex items-center justify-center mb-4`}>
-                    <plan.icon className={`w-6 h-6 ${plan.popular ? "text-primary-foreground" : "text-primary"}`} />
+                  <div className={`w-12 h-12 rounded-xl ${
+                    plan.popular ? "bg-[#E50914]" : "bg-white/10"
+                  } flex items-center justify-center mb-4`}>
+                    <plan.icon className={`w-6 h-6 ${plan.popular ? "text-white" : "text-[#E50914]"}`} />
                   </div>
-                  <h3 className="text-lg font-bold text-foreground">{plan.name}</h3>
-                  <p className="text-sm text-muted-foreground">{plan.description}</p>
+                  <h3 className="text-lg font-bold text-white mb-2">{plan.name}</h3>
+                  <p className="text-sm text-gray-400">{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
                   <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-foreground">{plan.price}</span>
-                    <span className="text-sm text-muted-foreground line-through">{plan.oldPrice}</span>
+                    <span className="text-3xl font-black text-white">{plan.price}</span>
+                    <span className="text-sm text-gray-500 line-through">{plan.oldPrice}</span>
                   </div>
-                  <span className="text-sm text-muted-foreground">{plan.duration}</span>
+                  <span className="text-sm text-gray-400">{plan.duration}</span>
                 </div>
 
                 <Button
                   onClick={() => handleSubscribe(plan)}
                   disabled={loading !== null}
-                  className={`w-full ${
+                  className={`w-full font-bold ${
                     plan.popular
-                      ? "bg-gradient-to-r from-primary to-crimson text-primary-foreground"
-                      : ""
+                      ? "bg-[#E50914] hover:bg-[#E50914]/90 text-white"
+                      : "bg-white/10 hover:bg-white/20 text-white border border-white/20"
                   }`}
-                  variant={plan.popular ? "default" : "outline"}
                 >
                   {loading === plan.name ? (
                     <>
@@ -682,16 +645,10 @@ const Subscription = () => {
             transition={{ delay: 0.5 }}
             className="mt-12 text-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-muted/30 text-muted-foreground text-sm">
-              <Shield className="w-4 h-4 text-success" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 text-gray-400 text-sm">
+              <Shield className="w-4 h-4 text-green-500" />
               <span>Secure payments powered by Razorpay</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-3">
-              By subscribing, you agree to our{" "}
-              <a href="/terms" className="text-primary hover:underline">Terms & Conditions</a>
-              {" "}and{" "}
-              <a href="/refund" className="text-primary hover:underline">Refund Policy</a>
-            </p>
           </motion.div>
         </div>
       </div>
