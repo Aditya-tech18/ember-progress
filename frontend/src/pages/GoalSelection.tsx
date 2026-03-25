@@ -30,8 +30,10 @@ export const GoalSelection = () => {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast.error("Please login first");
-        navigate("/auth");
+        // Store goal in localStorage, will save after login
+        localStorage.setItem("pendingGoal", selectedGoal);
+        toast.info("Please login to continue");
+        navigate("/auth", { state: { returnTo: selectedGoal === "JEE" ? "/" : "/buildlife" } });
         return;
       }
 
@@ -52,7 +54,7 @@ export const GoalSelection = () => {
       if (selectedGoal === "JEE") {
         navigate("/");
       } else {
-        navigate("/planner");
+        navigate("/buildlife");
       }
     } catch (error: any) {
       console.error("Error setting goal:", error);

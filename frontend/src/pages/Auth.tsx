@@ -20,19 +20,64 @@ export default function Auth() {
     // Check if user is already logged in
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        handlePostAuth();
       }
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session) {
-        navigate("/");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session && event === "SIGNED_IN") {
+        await handlePostAuth();
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const handlePostAuth = async () => {
+    const pendingGoal = localStorage.getItem("pendingGoal");
+    
+    if (pendingGoal) {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Save pending goal to database
+        await supabase
+          .from("users")
+          .update({ 
+            goal: pendingGoal,
+            goal_selected_at: new Date().toISOString()
+          })
+          .eq("id", user.id);
+        
+        localStorage.removeItem("pendingGoal");
+        
+        // Navigate based on goal
+        if (pendingGoal === "JEE") {
+          navigate("/");
+        } else {
+          navigate("/buildlife");
+        }
+        return;
+      }
+    }
+    
+    // No pending goal, navigate to goal selection or home
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase
+        .from("users")
+        .select("goal")
+        .eq("id", user.id)
+        .maybeSingle();
+      
+      if (!data?.goal) {
+        navigate("/goal-selection");
+      } else {
+        navigate("/");
+      }
+    }
+  };
 
   const validateEmail = (email: string): string | null => {
     if (!email) return "Email is required";
