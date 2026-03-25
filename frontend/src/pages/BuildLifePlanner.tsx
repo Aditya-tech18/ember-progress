@@ -233,6 +233,40 @@ export const BuildLifePlanner = () => {
     return total > 0 ? Math.round((completed / total) * 100) : 0;
   }, [dailyAggregates]);
 
+  // Calculate daily trend data for the chart
+  const dailyTrendData = useMemo(() => {
+    const year = selectedMonth.getFullYear();
+    const month = selectedMonth.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    const trendData = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(year, month, day);
+      const dateStr = date.toISOString().split('T')[0];
+      
+      // Get tasks for this day
+      const dayTasks = tasks.filter(t => t.due_date === dateStr);
+      const completedTasks = dayTasks.filter(t => t.status === "completed");
+      
+      const total = dayTasks.length;
+      const completed = completedTasks.length;
+      const completion = total > 0 ? Math.round((completed / total) * 100) : 0;
+      
+      trendData.push({
+        day,
+        completion,
+        completed,
+        total
+      });
+    }
+    
+    return trendData;
+  }, [tasks, selectedMonth]);
+
+  const handleMonthChange = (newMonth: Date) => {
+    setSelectedMonth(newMonth);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#000000] flex items-center justify-center">
@@ -365,10 +399,7 @@ export const BuildLifePlanner = () => {
         >
           <MonthSelector
             selectedMonth={selectedMonth}
-            onMonthChange={(newMonth) => {
-              setSelectedMonth(newMonth);
-              handleMonthChange(newMonth);
-            }}
+            onMonthChange={handleMonthChange}
           />
         </motion.div>
 
