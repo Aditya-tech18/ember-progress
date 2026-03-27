@@ -1,25 +1,42 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, FileText, Target, Calendar, Video, Cloud } from "lucide-react";
-import { useState } from "react";
+import { Home, FileText, Target, Calendar, Video, Cloud, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
 import { PostCloudModal } from "./social/PostCloudModal";
-
-const navItems = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: FileText, label: "PYQs", path: "/pyq" },
-  { icon: Cloud, label: "Posts", path: "/posts" },
-  { icon: Video, label: "Focus", path: "/focus-room" },
-  { icon: Calendar, label: "Planner", path: "/planner" },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { isAdmin } from "@/utils/adminUtils";
 
 export const BottomNavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showPostCloud, setShowPostCloud] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    checkUser();
+  }, []);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUserEmail(user?.email || null);
+  };
 
   // Hide on mock test and question pages
   const hiddenPaths = ["/mock-test/", "/contest/", "/team-battle/", "/question/"];
   if (hiddenPaths.some(p => location.pathname.startsWith(p))) return null;
+
+  const baseNavItems = [
+    { icon: Home, label: "Home", path: "/" },
+    { icon: FileText, label: "PYQs", path: "/pyq" },
+    { icon: Cloud, label: "Posts", path: "/posts" },
+    { icon: Video, label: "Focus", path: "/focus-room" },
+    { icon: Calendar, label: "Planner", path: "/planner" },
+  ];
+
+  // Add Admin button for admin users
+  const navItems = isAdmin(userEmail || undefined)
+    ? [...baseNavItems, { icon: Shield, label: "Admin", path: "/admin" }]
+    : baseNavItems;
 
   const handleNavClick = (item: typeof navItems[0]) => {
     if (item.path === "/posts") {

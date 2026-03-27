@@ -1,6 +1,7 @@
 // Admin utilities and constants
 export const ADMIN_EMAILS = [
   "tomacwin9961@gmail.com",
+  "rituchaubey1984@gmail.com",
   "prepixo.official@gmail.com"
 ];
 

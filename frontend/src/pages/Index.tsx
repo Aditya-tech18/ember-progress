@@ -6,7 +6,6 @@ import { SubjectsSection } from "@/components/SubjectsSection";
 import { Footer } from "@/components/Footer";
 import { GameCards } from "@/components/GameCards";
 import { NoticeBanner } from "@/components/NoticeBanner";
-import { SaleBanner } from "@/components/SaleBanner";
 import { CombatNameModal } from "@/components/CombatNameModal";
 import { BecomeMentorBanner } from "@/components/BecomeMentorBanner";
 import { MentorshipSection } from "@/components/MentorshipSection";
@@ -29,7 +28,6 @@ const Index = () => {
       <div className="flex flex-col min-h-[100dvh]">
         <Navbar />
         <PromoBanner />
-        <SaleBanner />
         <NoticeBanner />
         <CombatNameModal />
         <main className="flex-1">

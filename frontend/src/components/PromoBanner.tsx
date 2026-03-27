@@ -6,16 +6,17 @@ export const PromoBanner = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       onClick={() => navigate("/subscription")}
-      className="cursor-pointer bg-gradient-to-r from-background via-[#E50914]/10 to-background border-b border-[#E50914]/30 py-2 px-4 hover:from-[#E50914]/5 hover:via-[#E50914]/15 hover:to-[#E50914]/5 transition-all"
+      className="cursor-pointer bg-[#000000] border-b border-[#E50914]/20 hover:border-[#E50914]/40 transition-all overflow-hidden"
     >
-      <div className="max-w-6xl mx-auto">
+      <div className="w-full">
         <img
-          src="https://customer-assets.emergentagent.com/job_db-integration-16/artifacts/z8gv3lgu_Screenshot%202026-03-27%20at%202.23.20%E2%80%AFPM.png"
-          alt="Back to School Sale - ₹29/month for first 1000 students"
-          className="w-full h-auto max-h-32 object-contain mx-auto rounded-lg"
+          src="https://customer-assets.emergentagent.com/job_db-integration-16/artifacts/wde77n3n_Screenshot%202026-03-27%20at%203.36.15%E2%80%AFPM.png"
+          alt="Back to School Sale - ₹29/month for first 1000 students - Prepixo Exclusive Offer"
+          className="w-full h-auto object-cover"
+          style={{ maxHeight: '200px', objectFit: 'cover' }}
         />
       </div>
     </motion.div>
