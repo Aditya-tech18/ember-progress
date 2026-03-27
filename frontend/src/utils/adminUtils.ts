@@ -12,7 +12,7 @@ export const isAdmin = (email: string | undefined): boolean => {
 
 export const checkAdminAccess = async (email: string): Promise<boolean> => {
   try {
-    const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
     const response = await fetch(`${backendUrl}/api/admin/check?email=${encodeURIComponent(email)}`);
     const data = await response.json();
     return data.is_admin || false;

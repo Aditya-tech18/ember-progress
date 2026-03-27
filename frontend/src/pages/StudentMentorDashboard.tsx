@@ -45,7 +45,7 @@ export const StudentMentorDashboard = () => {
   const fetchSessions = async (studentId: string) => {
     try {
       setLoading(true);
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
       const response = await fetch(`${backendUrl}/api/sessions/student/${studentId}`);
       const data = await response.json();
       
