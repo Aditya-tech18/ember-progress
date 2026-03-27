@@ -662,11 +662,10 @@ const MockTest = () => {
             <Button
               onClick={handleSaveAndNext}
               disabled={currentIndex === questions.length - 1}
-              className="h-11 sm:h-12 text-xs sm:text-sm font-semibold px-2 sm:px-4 bg-gradient-to-r from-success to-emerald-500 flex-col sm:flex-row gap-0.5 sm:gap-2"
+              className="h-11 sm:h-12 text-xs sm:text-sm font-semibold px-3 sm:px-4 bg-gradient-to-r from-success to-emerald-500 gap-2"
             >
-              <Save className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="hidden sm:inline">Save & Next</span>
-              <span className="sm:hidden text-[10px]">Save</span>
+              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>Next</span>
             </Button>
 
             {/* Always visible Submit button */}

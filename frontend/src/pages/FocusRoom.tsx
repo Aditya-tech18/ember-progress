@@ -35,6 +35,7 @@ const FocusRoom = () => {
   } = useFocusRoom();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(true);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [copied, setCopied] = useState(false);
@@ -398,6 +399,39 @@ const FocusRoom = () => {
       </main>
 
       <Footer />
+
+      {/* Coming Soon Modal */}
+      <Dialog open={showComingSoon} onOpenChange={setShowComingSoon}>
+        <DialogContent className="sm:max-w-md bg-gradient-to-br from-[#111111] to-[#000000] border border-[#E50914]/30">
+          <DialogHeader>
+            <div className="flex flex-col items-center text-center">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", duration: 0.5 }}
+                className="w-20 h-20 rounded-full bg-gradient-to-br from-[#E50914] to-red-600 flex items-center justify-center mb-4"
+              >
+                <Timer className="w-10 h-10 text-white" />
+              </motion.div>
+              <DialogTitle className="text-2xl font-bold text-white mb-2">
+                Feature Coming Soon! 🚀
+              </DialogTitle>
+              <p className="text-gray-400 text-sm">
+                Focus Rooms will be available soon. Stay tuned for collaborative study sessions!
+              </p>
+            </div>
+          </DialogHeader>
+          <Button
+            onClick={() => {
+              setShowComingSoon(false);
+              navigate("/");
+            }}
+            className="w-full bg-[#E50914] hover:bg-[#E50914]/90 text-white font-bold mt-4"
+          >
+            Go Back to Home
+          </Button>
+        </DialogContent>
+      </Dialog>
 
       {/* Create Room Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>

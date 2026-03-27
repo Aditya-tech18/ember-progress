@@ -7,9 +7,30 @@ import { Rocket, Heart, Shield, GraduationCap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const goals = [
-  { id: "JEE", label: "JEE", icon: Rocket, color: "from-[#E50914] to-red-600", description: "Joint Entrance Examination" },
-  { id: "NEET", label: "NEET", icon: Heart, color: "from-[#E50914] to-pink-600", description: "Medical Entrance" },
-  { id: "NDA", label: "NDA", icon: Shield, color: "from-[#E50914] to-orange-600", description: "National Defence Academy" },
+  { 
+    id: "JEE", 
+    label: "JEE", 
+    icon: Rocket, 
+    color: "from-[#E50914] to-red-600", 
+    description: "Joint Entrance Examination",
+    logo: "https://customer-assets.emergentagent.com/job_db-integration-16/artifacts/d4k0mebf_image.png"
+  },
+  { 
+    id: "NEET", 
+    label: "NEET", 
+    icon: Heart, 
+    color: "from-[#E50914] to-pink-600", 
+    description: "Medical Entrance",
+    logo: "https://customer-assets.emergentagent.com/job_db-integration-16/artifacts/7g797bya_image.png"
+  },
+  { 
+    id: "NDA", 
+    label: "NDA", 
+    icon: Shield, 
+    color: "from-[#E50914] to-orange-600", 
+    description: "National Defence Academy",
+    logo: "https://customer-assets.emergentagent.com/job_db-integration-16/artifacts/cnm6agwd_image.png"
+  },
   { id: "COLLEGE", label: "COLLEGE", icon: GraduationCap, color: "from-[#E50914] to-purple-600", description: "College Studies" },
   { id: "LIFE", label: "LIFE", icon: Sparkles, color: "from-[#E50914] to-yellow-600", description: "Personal Growth" },
 ];
@@ -113,8 +134,12 @@ export const GoalSelection = () => {
                     : "border-white/20 bg-[#111111] hover:border-white/40 hover:scale-102"
                 }`}
               >
-                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${goal.color} flex items-center justify-center mb-4 mx-auto`}>
-                  <Icon className="w-8 h-8 text-white" />
+                <div className={`w-16 h-16 rounded-xl bg-gradient-to-br ${goal.color} flex items-center justify-center mb-4 mx-auto overflow-hidden`}>
+                  {goal.logo ? (
+                    <img src={goal.logo} alt={goal.label} className="w-full h-full object-cover" />
+                  ) : (
+                    <Icon className="w-8 h-8 text-white" />
+                  )}
                 </div>
                 <h3 className="text-2xl font-bold text-white mb-2">{goal.label}</h3>
                 <p className="text-sm text-gray-400">{goal.description}</p>

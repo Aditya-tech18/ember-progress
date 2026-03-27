@@ -232,3 +232,33 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #E50914;
 }
+
+/* Horizontal Carousel Scroll */
+.carousel-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #333 transparent;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 1rem;
+}
+
+.carousel-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.carousel-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.carousel-scroll::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+.carousel-scroll::-webkit-scrollbar-thumb:hover {
+  background: #E50914;
+}

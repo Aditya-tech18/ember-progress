@@ -10,6 +10,7 @@ import { SaleBanner } from "@/components/SaleBanner";
 import { CombatNameModal } from "@/components/CombatNameModal";
 import { BecomeMentorBanner } from "@/components/BecomeMentorBanner";
 import { MentorshipSection } from "@/components/MentorshipSection";
+import { PromoBanner } from "@/components/PromoBanner";
 
 const trendingPYQs = [
   { id: "1", title: "JEE Main 2024", subtitle: "All Subjects PYQs", image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=600&fit=crop", duration: "2000+ Qs", trending: true, year: 2024, type: "pyq" as const },
@@ -27,6 +28,7 @@ const Index = () => {
     <div className="min-h-[100dvh] relative w-full overflow-x-hidden pb-16">
       <div className="flex flex-col min-h-[100dvh]">
         <Navbar />
+        <PromoBanner />
         <SaleBanner />
         <NoticeBanner />
         <CombatNameModal />
