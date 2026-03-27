@@ -32,7 +32,7 @@ export const BottomNavBar = () => {
 
   const checkMentorStatus = async (userId: string) => {
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL;
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
       
       // Check if user has mentor profile
       const mentorCheck = await fetch(`${backendUrl}/api/sessions/mentor/${userId}`);

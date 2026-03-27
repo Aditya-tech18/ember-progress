@@ -83,7 +83,8 @@ export const AdminPanel = () => {
   const fetchApplications = async (adminEmail: string) => {
     try {
       setLoading(true);
-      const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
+      console.log('Fetching applications from:', backendUrl);
       const response = await fetch(
         `${backendUrl}/api/admin/applications?admin_email=${encodeURIComponent(adminEmail)}`
       );
@@ -93,6 +94,7 @@ export const AdminPanel = () => {
       }
 
       const data = await response.json();
+      console.log('Fetched applications:', data);
       setApplications(data.applications || []);
     } catch (error: any) {
       console.error('Error fetching applications:', error);
@@ -107,7 +109,7 @@ export const AdminPanel = () => {
 
     try {
       setProcessingId(applicationId);
-      const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
       const response = await fetch(
         `${backendUrl}/api/admin/applications/${applicationId}/approve`,
         {
@@ -143,7 +145,7 @@ export const AdminPanel = () => {
     
     try {
       setProcessingId(applicationId);
-      const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
       const response = await fetch(
         `${backendUrl}/api/admin/applications/${applicationId}/reject`,
         {
@@ -177,7 +179,7 @@ export const AdminPanel = () => {
 
     try {
       setCreatingContest(true);
-      const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
       const response = await fetch(
         `${backendUrl}/api/admin/contests/create-weekly?admin_email=${encodeURIComponent(user.email)}`,
         {

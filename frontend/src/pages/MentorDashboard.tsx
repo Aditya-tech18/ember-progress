@@ -42,7 +42,7 @@ export const MentorDashboard = () => {
   const fetchSessions = async (userId: string) => {
     try {
       setLoading(true);
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL;
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
       const response = await fetch(`${backendUrl}/api/sessions/mentor/${userId}`);
       const data = await response.json();
       
