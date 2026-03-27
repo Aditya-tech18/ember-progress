@@ -54,6 +54,7 @@ export const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [creatingContest, setCreatingContest] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -171,6 +172,37 @@ export const AdminPanel = () => {
     }
   };
 
+  const handleCreateWeeklyContest = async () => {
+    if (!user?.email) return;
+
+    try {
+      setCreatingContest(true);
+      const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
+      const response = await fetch(
+        `${backendUrl}/api/admin/contests/create-weekly?admin_email=${encodeURIComponent(user.email)}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to create weekly contest');
+      }
+
+      const data = await response.json();
+      toast.success(data.message || "Weekly contest created for upcoming Sunday!");
+    } catch (error: any) {
+      console.error('Error creating contest:', error);
+      toast.error(error.message || "Failed to create weekly contest");
+    } finally {
+      setCreatingContest(false);
+    }
+  };
+
+
   const getStatusBadge = (status: string) => {
     const styles = {
       pending: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
@@ -238,6 +270,24 @@ export const AdminPanel = () => {
 
       {/* Stats */}
       <div className="container mx-auto px-4 py-6">
+        {/* Admin Actions */}
+        <div className="mb-6">
+          <Button
+            onClick={handleCreateWeeklyContest}
+            disabled={creatingContest}
+            className="bg-gradient-to-r from-[#E50914] to-red-600 hover:from-[#E50914]/90 hover:to-red-600/90 text-white font-bold"
+          >
+            {creatingContest ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Creating Contest...
+              </>
+            ) : (
+              "📅 Create JEE Main Weekly Contest (Sunday)"
+            )}
+          </Button>
+        </div>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           <Card className="bg-[#151515] border-white/10 p-4">
             <div className="text-2xl font-bold text-white">{stats.total}</div>
@@ -417,3 +467,5 @@ export const AdminPanel = () => {
     </div>
   );
 };
+
+export default AdminPanel;

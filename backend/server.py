@@ -526,6 +526,65 @@ async def get_chat_messages(session_id: str):
 
 
 # =====================================================
+# WEEKLY CONTEST SETUP
+# =====================================================
+
+@api_router.post("/admin/contests/create-weekly")
+async def create_weekly_contest(admin_email: str):
+    """Create JEE Main 2025 weekly contest for upcoming Sunday (admin only)"""
+    if admin_email not in ADMIN_EMAILS:
+        raise HTTPException(status_code=403, detail="Not authorized. Admin access required.")
+    
+    try:
+        from datetime import datetime, timedelta
+        import uuid
+        
+        # Find next Sunday
+        today = datetime.utcnow()
+        days_until_sunday = (6 - today.weekday()) % 7
+        if days_until_sunday == 0:
+            days_until_sunday = 7
+        
+        next_sunday = today + timedelta(days=days_until_sunday)
+        
+        # Set times: 10 AM to 1 PM IST (4:30 AM to 7:30 AM UTC)
+        start_time = next_sunday.replace(hour=4, minute=30, second=0, microsecond=0)
+        end_time = start_time + timedelta(hours=3)
+        result_time = end_time + timedelta(hours=1)
+        
+        contest_id = str(uuid.uuid4())
+        
+        # Create contest
+        contest_data = {
+            'contest_id': contest_id,
+            'title': 'JEE Main 2025 - Weekly Mock Test',
+            'description': 'Full-length JEE Main mock test with 75 questions. Test your preparation!',
+            'start_time': start_time.isoformat(),
+            'end_time': end_time.isoformat(),
+            'result_time': result_time.isoformat(),
+            'total_questions': 75,
+            'duration_minutes': 180,
+            'is_active': True
+        }
+        
+        contest_response = supabase.table('contests').insert(contest_data).execute()
+        
+        logger.info(f"Weekly contest created by {admin_email} for {next_sunday.date()}")
+        
+        return {
+            "success": True,
+            "message": f"Weekly contest scheduled for {next_sunday.strftime('%A, %B %d, %Y')}",
+            "contest": contest_response.data[0] if contest_response.data else None,
+            "start_time": start_time.isoformat(),
+            "end_time": end_time.isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating weekly contest: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================
 # FILE UPLOAD ROUTES
 # =====================================================
 

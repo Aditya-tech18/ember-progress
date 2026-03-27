@@ -50,6 +50,7 @@ import AdminPanel from "./pages/AdminPanel";
 import StudentMentorDashboard from "./pages/StudentMentorDashboard";
 import MentorDashboard from "./pages/MentorDashboard";
 import MentorChat from "./pages/MentorChat";
+import Posts from "./pages/Posts";
 
 const queryClient = new QueryClient();
 
@@ -180,6 +181,7 @@ const AppContent = () => {
             <Route path="/student-mentors" element={<StudentMentorDashboard />} />
             <Route path="/mentor-dashboard" element={<MentorDashboard />} />
             <Route path="/mentor-chat/:sessionId" element={<MentorChat />} />
+            <Route path="/posts" element={<Posts />} />
             <Route path="/pyq" element={<ChapterSelect />} />
           </>
         ) : (
