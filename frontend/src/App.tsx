@@ -46,6 +46,10 @@ import MentorApplication from "./pages/MentorApplication";
 import GoalSelection from "./pages/GoalSelection";
 import BuildLifePlanner from "./pages/BuildLifePlanner";
 import BuildLifeSubscription from "./pages/BuildLifeSubscription";
+import AdminPanel from "./pages/AdminPanel";
+import StudentMentorDashboard from "./pages/StudentMentorDashboard";
+import MentorDashboard from "./pages/MentorDashboard";
+import MentorChat from "./pages/MentorChat";
 
 const queryClient = new QueryClient();
 
@@ -172,6 +176,10 @@ const AppContent = () => {
             <Route path="/mentor/:id" element={<MentorProfilePage />} />
             <Route path="/become-mentor" element={<BecomeMentor />} />
             <Route path="/mentor-application" element={<MentorApplication />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="/student-mentors" element={<StudentMentorDashboard />} />
+            <Route path="/mentor-dashboard" element={<MentorDashboard />} />
+            <Route path="/mentor-chat/:sessionId" element={<MentorChat />} />
             <Route path="/pyq" element={<ChapterSelect />} />
           </>
         ) : (

@@ -1,6 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Home, FileText, Target, Calendar, Video, Cloud, Shield } from "lucide-react";
+import { Home, FileText, Target, Calendar, Video, Cloud, Shield, MessageCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { PostCloudModal } from "./social/PostCloudModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,14 +11,47 @@ export const BottomNavBar = () => {
   const location = useLocation();
   const [showPostCloud, setShowPostCloud] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [showMentorButton, setShowMentorButton] = useState(false);
+  const [mentorPath, setMentorPath] = useState("/student-mentors");
 
   useEffect(() => {
-    checkUser();
+    checkUserAndMentorStatus();
   }, []);
 
-  const checkUser = async () => {
+  const checkUserAndMentorStatus = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    setUserEmail(user?.email || null);
+    if (!user) return;
+    
+    setUserEmail(user.email || null);
+    setUserId(user.id);
+    
+    // Check if user is a mentor OR has paid sessions
+    await checkMentorStatus(user.id);
+  };
+
+  const checkMentorStatus = async (userId: string) => {
+    try {
+      const backendUrl = process.env.REACT_APP_BACKEND_URL || import.meta.env.VITE_APP_BACKEND_URL;
+      
+      // Check if user has mentor profile
+      const mentorCheck = await fetch(`${backendUrl}/api/sessions/mentor/${userId}`);
+      const mentorData = await mentorCheck.json();
+      
+      // Check if user has paid sessions as student
+      const studentCheck = await fetch(`${backendUrl}/api/sessions/student/${userId}`);
+      const studentData = await studentCheck.json();
+      
+      if (mentorData.success && mentorData.sessions?.length > 0) {
+        setShowMentorButton(true);
+        setMentorPath("/mentor-dashboard");
+      } else if (studentData.success && studentData.sessions?.length > 0) {
+        setShowMentorButton(true);
+        setMentorPath("/student-mentors");
+      }
+    } catch (error) {
+      console.error("Error checking mentor status:", error);
+    }
   };
 
   // Hide on mock test and question pages
@@ -33,10 +66,22 @@ export const BottomNavBar = () => {
     { icon: Calendar, label: "Planner", path: "/planner" },
   ];
 
+  // Build nav items with conditional buttons
+  let navItems = [...baseNavItems];
+  
   // Add Admin button for admin users
-  const navItems = isAdmin(userEmail || undefined)
-    ? [...baseNavItems, { icon: Shield, label: "Admin", path: "/admin" }]
-    : baseNavItems;
+  if (isAdmin(userEmail || undefined)) {
+    navItems.push({ icon: Shield, label: "Admin", path: "/admin" });
+  }
+  
+  // Add Mentor button if user is mentor or has paid sessions
+  if (showMentorButton) {
+    navItems.push({ 
+      icon: MessageCircle, 
+      label: "Mentor", 
+      path: mentorPath
+    });
+  }
 
   const handleNavClick = (item: typeof navItems[0]) => {
     if (item.path === "/posts") {

@@ -26,7 +26,7 @@ supabase_service_key = os.environ['SUPABASE_SERVICE_ROLE_KEY']
 supabase: Client = create_client(supabase_url, supabase_service_key)
 
 # Admin emails
-ADMIN_EMAILS = ["tomacwin9961@gmail.com", "prepixo.official@gmail.com"]
+ADMIN_EMAILS = ["tomacwin9961@gmail.com", "rituchaubey1984@gmail.com", "prepixo.official@gmail.com"]
 
 # Create the main app without a prefix
 app = FastAPI()
@@ -316,9 +316,15 @@ async def get_mentor_details(mentor_id: str):
         if not response.data:
             raise HTTPException(status_code=404, detail="Mentor not found")
         
+        # Get services for this mentor
+        services_response = supabase.table('mentor_services').select('*').eq('mentor_id', mentor_id).eq('is_active', True).execute()
+        
+        mentor_data = response.data[0]
+        mentor_data['services'] = services_response.data if services_response.data else []
+        
         return {
             "success": True,
-            "mentor": response.data[0]
+            "mentor": mentor_data
         }
         
     except HTTPException:
@@ -326,6 +332,197 @@ async def get_mentor_details(mentor_id: str):
     except Exception as e:
         logger.error(f"Error fetching mentor: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error fetching mentor: {str(e)}")
+
+
+# =====================================================
+# MENTOR SESSIONS & BOOKING ROUTES
+# =====================================================
+
+class SessionBookingRequest(BaseModel):
+    student_id: str
+    mentor_id: str
+    service_title: str = "1:1 Mentorship Session"
+    payment_amount: int = 9900  # ₹99 in paise
+
+@api_router.post("/sessions/create")
+async def create_session(booking: SessionBookingRequest):
+    """Create a mentoring session booking"""
+    try:
+        # Create default service if doesn't exist
+        service_check = supabase.table('mentor_services').select('id').eq('mentor_id', booking.mentor_id).eq('is_active', True).execute()
+        
+        service_id = None
+        if not service_check.data:
+            # Create default service
+            service_data = {
+                'mentor_id': booking.mentor_id,
+                'title': booking.service_title,
+                'description': 'One-on-one mentorship session',
+                'price': 99,
+                'is_active': True
+            }
+            service_response = supabase.table('mentor_services').insert(service_data).execute()
+            service_id = service_response.data[0]['id']
+        else:
+            service_id = service_check.data[0]['id']
+        
+        # Create session
+        session_data = {
+            'student_id': booking.student_id,
+            'mentor_id': booking.mentor_id,
+            'service_id': service_id,
+            'payment_amount': booking.payment_amount,
+            'payment_status': 'pending',
+            'session_status': 'pending'
+        }
+        
+        response = supabase.table('mentor_sessions').insert(session_data).execute()
+        
+        return {
+            "success": True,
+            "session": response.data[0]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error creating session: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SessionPaymentUpdate(BaseModel):
+    payment_id: str
+    payment_status: str = "completed"
+
+@api_router.post("/sessions/{session_id}/payment")
+async def update_session_payment(session_id: str, payment: SessionPaymentUpdate):
+    """Update session payment status"""
+    try:
+        response = supabase.table('mentor_sessions').update({
+            'payment_id': payment.payment_id,
+            'payment_status': payment.payment_status,
+            'session_status': 'scheduled' if payment.payment_status == 'completed' else 'pending'
+        }).eq('id', session_id).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Session not found")
+        
+        return {
+            "success": True,
+            "session": response.data[0]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error updating payment: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/sessions/student/{student_id}")
+async def get_student_sessions(student_id: str):
+    """Get all sessions for a student"""
+    try:
+        response = supabase.table('mentor_sessions').select('''
+            *,
+            mentor_profiles!mentor_sessions_mentor_id_fkey (
+                id,
+                full_name,
+                profile_photo_url,
+                tagline
+            )
+        ''').eq('student_id', student_id).eq('payment_status', 'completed').order('created_at', desc=True).execute()
+        
+        return {
+            "success": True,
+            "sessions": response.data
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching student sessions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/sessions/mentor/{user_id}")
+async def get_mentor_sessions(user_id: str):
+    """Get all paid sessions for a mentor (by user_id)"""
+    try:
+        # First get mentor profile id
+        profile_response = supabase.table('mentor_profiles').select('id').eq('user_id', user_id).execute()
+        
+        if not profile_response.data:
+            return {"success": True, "sessions": []}
+        
+        mentor_id = profile_response.data[0]['id']
+        
+        # Get sessions
+        sessions_response = supabase.table('mentor_sessions').select('''
+            *,
+            student:student_id (
+                email
+            )
+        ''').eq('mentor_id', mentor_id).eq('payment_status', 'completed').order('created_at', desc=True).execute()
+        
+        # Get student details from auth.users table
+        sessions = sessions_response.data or []
+        for session in sessions:
+            try:
+                user_response = supabase.auth.admin.get_user_by_id(session['student_id'])
+                if user_response.user:
+                    session['student_name'] = user_response.user.email.split('@')[0].capitalize()
+                    session['student_email'] = user_response.user.email
+            except:
+                session['student_name'] = 'Student'
+                session['student_email'] = ''
+        
+        return {
+            "success": True,
+            "sessions": sessions
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching mentor sessions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =====================================================
+# CHAT ROUTES
+# =====================================================
+
+class ChatMessage(BaseModel):
+    session_id: str
+    sender_id: str
+    message_text: str
+
+@api_router.post("/chat/send")
+async def send_chat_message(message: ChatMessage):
+    """Send a chat message"""
+    try:
+        message_data = {
+            'session_id': message.session_id,
+            'sender_id': message.sender_id,
+            'message_text': message.message_text,
+            'is_read': False
+        }
+        
+        response = supabase.table('mentor_chats').insert(message_data).execute()
+        
+        return {
+            "success": True,
+            "message": response.data[0]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error sending message: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/chat/{session_id}/messages")
+async def get_chat_messages(session_id: str):
+    """Get all messages for a session"""
+    try:
+        response = supabase.table('mentor_chats').select('*').eq('session_id', session_id).order('created_at', asc=True).execute()
+        
+        return {
+            "success": True,
+            "messages": response.data
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching messages: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # =====================================================
