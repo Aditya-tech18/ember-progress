@@ -1,0 +1,12 @@
+{
+  "name": "prepixo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "cd frontend && npx vite --port 3000 --host 0.0.0.0",
+    "build": "cd frontend && npm run build",
+    "build:dev": "cd frontend && npx vite build",
+    "preview": "cd frontend && npm run preview"
+  }
+}

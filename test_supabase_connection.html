@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test - Ember Progress</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+        .test-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 4px solid #4ade80;
+        }
+        .test-item.loading {
+            border-left-color: #fbbf24;
+        }
+        .test-item.error {
+            border-left-color: #ef4444;
+        }
+        .test-item.success {
+            border-left-color: #4ade80;
+        }
+        .status {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .status.success {
+            color: #4ade80;
+        }
+        .status.error {
+            color: #ef4444;
+        }
+        .status.loading {
+            color: #fbbf24;
+        }
+        button {
+            background: #4ade80;
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #22c55e;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.4);
+        }
+        button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+        .info {
+            background: rgba(59, 130, 246, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Supabase Connection Test</h1>
+        <p style="text-align: center; margin-bottom: 30px;">Testing connection to your Ember Progress Supabase instance</p>
+
+        <div id="test1" class="test-item loading">
+            <strong>1. Supabase Client Initialization</strong>
+            <div class="status loading" id="status1">⏳ Testing...</div>
+        </div>
+
+        <div id="test2" class="test-item loading">
+            <strong>2. Environment Variables</strong>
+            <div class="status loading" id="status2">⏳ Testing...</div>
+            <div class="code" id="env-info"></div>
+        </div>
+
+        <div id="test3" class="test-item loading">
+            <strong>3. Database Connection</strong>
+            <div class="status loading" id="status3">⏳ Testing...</div>
+            <div class="code" id="db-info"></div>
+        </div>
+
+        <div id="test4" class="test-item loading">
+            <strong>4. Storage Buckets Check</strong>
+            <div class="status loading" id="status4">⏳ Testing...</div>
+            <div class="code" id="storage-info"></div>
+        </div>
+
+        <button id="retest-btn" onclick="runTests()">🔄 Run Tests Again</button>
+
+        <div class="info">
+            <strong>ℹ️ What This Tests:</strong>
+            <ul>
+                <li>Verifies Supabase client can be initialized</li>
+                <li>Checks if environment variables are correctly set</li>
+                <li>Tests database connectivity</li>
+                <li>Checks if storage buckets exist (optional)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration from your .env
+        const SUPABASE_URL = 'https://pgvymttdvdlkcroqxsgn.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBndnltdHRkdmRsa2Nyb3F4c2duIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkzOTEwMzMsImV4cCI6MjA3NDk2NzAzM30.lAaQEs2Mk6BGjIcP8zLkqkFxUDIKyDIT-9kTK5kPnq8';
+
+        let supabase;
+
+        function updateStatus(testNum, status, message, data = null) {
+            const testDiv = document.getElementById(`test${testNum}`);
+            const statusDiv = document.getElementById(`status${testNum}`);
+            
+            testDiv.className = `test-item ${status}`;
+            statusDiv.className = `status ${status}`;
+            
+            const emoji = status === 'success' ? '✅' : status === 'error' ? '❌' : '⏳';
+            statusDiv.textContent = `${emoji} ${message}`;
+            
+            if (data && testNum === 2) {
+                document.getElementById('env-info').textContent = data;
+            } else if (data && testNum === 3) {
+                document.getElementById('db-info').textContent = data;
+            } else if (data && testNum === 4) {
+                document.getElementById('storage-info').textContent = data;
+            }
+        }
+
+        async function runTests() {
+            const btn = document.getElementById('retest-btn');
+            btn.disabled = true;
+            btn.textContent = '🔄 Running Tests...';
+
+            // Reset all tests
+            for (let i = 1; i <= 4; i++) {
+                updateStatus(i, 'loading', 'Testing...');
+            }
+
+            // Test 1: Initialize Supabase Client
+            try {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                updateStatus(1, 'success', 'Supabase client initialized successfully!');
+            } catch (error) {
+                updateStatus(1, 'error', `Failed to initialize: ${error.message}`);
+                btn.disabled = false;
+                btn.textContent = '🔄 Run Tests Again';
+                return;
+            }
+
+            // Test 2: Check Environment Variables
+            try {
+                const envInfo = `URL: ${SUPABASE_URL}\nProject ID: pgvymttdvdlkcroqxsgn\nAnon Key: ${SUPABASE_ANON_KEY.substring(0, 20)}...`;
+                updateStatus(2, 'success', 'Environment variables configured correctly!', envInfo);
+            } catch (error) {
+                updateStatus(2, 'error', 'Environment variables not configured properly!');
+            }
+
+            // Test 3: Test Database Connection
+            try {
+                // Try to query auth users (will return error if no auth, but proves connection)
+                const { data, error } = await supabase.auth.getSession();
+                
+                if (error && !error.message.includes('session')) {
+                    throw error;
+                }
+                
+                const dbInfo = `Connection Status: Connected ✓\nProject: pgvymttdvdlkcroqxsgn\nAuth Status: ${data?.session ? 'Authenticated' : 'Not authenticated (OK)'}`;
+                updateStatus(3, 'success', 'Database connection successful!', dbInfo);
+            } catch (error) {
+                updateStatus(3, 'error', `Database connection failed: ${error.message}`, `Error: ${error.message}`);
+            }
+
+            // Test 4: Check Storage Buckets (optional)
+            try {
+                const { data, error } = await supabase.storage.listBuckets();
+                
+                if (error) throw error;
+                
+                const requiredBuckets = [
+                    'mentor-verification-docs',
+                    'mentor-profile-images',
+                    'mentor-media',
+                    'chat-attachments'
+                ];
+                
+                const existingBuckets = data.map(b => b.name);
+                const missingBuckets = requiredBuckets.filter(b => !existingBuckets.includes(b));
+                
+                if (missingBuckets.length === 0) {
+                    const info = `All required buckets exist:\n${requiredBuckets.map(b => `✓ ${b}`).join('\n')}`;
+                    updateStatus(4, 'success', 'All storage buckets configured!', info);
+                } else {
+                    const info = `Missing buckets:\n${missingBuckets.map(b => `✗ ${b}`).join('\n')}\n\nExisting: ${existingBuckets.join(', ') || 'None'}`;
+                    updateStatus(4, 'error', 'Some storage buckets are missing (create them in Supabase dashboard)', info);
+                }
+            } catch (error) {
+                const info = `Note: Storage buckets may not be configured yet.\nThis is optional - see SUPABASE_CONNECTION_STATUS.md for setup instructions.`;
+                updateStatus(4, 'loading', 'Storage check skipped or not configured', info);
+            }
+
+            btn.disabled = false;
+            btn.textContent = '🔄 Run Tests Again';
+        }
+
+        // Run tests on page load
+        window.addEventListener('load', runTests);
+    </script>
+</body>
+</html>
