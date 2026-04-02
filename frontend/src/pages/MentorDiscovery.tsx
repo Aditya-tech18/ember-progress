@@ -28,18 +28,27 @@ export default function MentorDiscovery() {
     setLoading(true);
     try {
       let query = supabase
-        .from("mentor_profiles")
+        .from("mentor_applications")
         .select("*")
-        .eq("is_verified", true)
-        .eq("is_active", true);
+        .eq("status", "approved");
 
       if (selectedExam !== "All") {
         query = query.contains("exam_expertise", [selectedExam]);
       }
 
-      const { data, error } = await query.order("rating", { ascending: false });
+      const { data, error } = await query.order("created_at", { ascending: false });
       if (error) throw error;
-      setMentors(data || []);
+      
+      // Process mentor data to add profile photo URLs
+      const mentorsWithPhotos = (data || []).map(mentor => ({
+        ...mentor,
+        profile_photo_url: mentor.full_name?.toLowerCase().includes("aditya chaubey")
+          ? "https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/1065a106-cd9f-4cbd-88ae-1ac641624176/profile-1774589376150.jpeg"
+          : null,
+        display_college: mentor.display_college_publicly !== false
+      }));
+      
+      setMentors(mentorsWithPhotos);
     } catch (error) {
       console.error("Error fetching mentors:", error);
     } finally {

@@ -682,6 +682,192 @@ async def upload_verification_doc(
         raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
 
 
+
+# =====================================================
+# FREE ACCESS & SESSION MANAGEMENT
+# =====================================================
+
+# Special users with free access
+FREE_ACCESS_EMAILS = ["rituchaubey1984@gmail.com"]
+
+@api_router.get("/user/access-status")
+async def check_user_access(email: str):
+    """Check if user has mentor access (paid or free)"""
+    try:
+        # Check if user has free access
+        if email in FREE_ACCESS_EMAILS:
+            return {
+                "has_access": True,
+                "access_type": "free",
+                "can_access_all_mentors": True
+            }
+        
+        # Check if user has any paid sessions
+        response = supabase.table('mentor_session_purchases').select('id').eq('student_email', email).eq('is_active', True).limit(1).execute()
+        
+        has_paid_access = len(response.data) > 0 if response.data else False
+        
+        return {
+            "has_access": has_paid_access,
+            "access_type": "paid" if has_paid_access else "none",
+            "can_access_all_mentors": False
+        }
+    except Exception as e:
+        logger.error(f"Error checking access: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/student/my-mentors")
+async def get_student_mentors(student_email: str):
+    """Get all mentors a student has access to"""
+    try:
+        # Check if free access user
+        if student_email in FREE_ACCESS_EMAILS:
+            # Return ALL approved mentors
+            response = supabase.table('mentor_applications').select('*').eq('status', 'approved').execute()
+            return {
+                "success": True,
+                "access_type": "free",
+                "mentors": response.data or []
+            }
+        
+        # Get mentors the student has paid for
+        purchases = supabase.table('mentor_session_purchases').select('''
+            *,
+            mentor_applications!inner(*)
+        ''').eq('student_email', student_email).eq('is_active', True).execute()
+        
+        return {
+            "success": True,
+            "access_type": "paid",
+            "mentors": [p.get('mentor_applications') for p in (purchases.data or []) if p.get('mentor_applications')]
+        }
+    except Exception as e:
+        logger.error(f"Error fetching student mentors: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/mentor/my-students")
+async def get_mentor_students(mentor_email: str):
+    """Get all students who have purchased sessions with this mentor"""
+    try:
+        # Check if this is the special mentor (tomacwin9961@gmail.com)
+        if mentor_email == "tomacwin9961@gmail.com":
+            # Can see all students but only chat with rituchaubey1984@gmail.com
+            # Return only the special student
+            response = supabase.table('mentor_session_purchases').select('*').eq('student_email', 'rituchaubey1984@gmail.com').execute()
+            
+            students = []
+            if response.data:
+                for purchase in response.data:
+                    # Get student details
+                    user_response = await get_user_by_email(purchase['student_email'])
+                    if user_response:
+                        students.append({
+                            "student_id": purchase['student_id'],
+                            "student_email": purchase['student_email'],
+                            "student_name": user_response.get('name', purchase['student_email'].split('@')[0]),
+                            "purchased_at": purchase['created_at'],
+                            "expires_at": purchase['expires_at'],
+                            "is_active": purchase['is_active'],
+                            "purchase_id": purchase['id']
+                        })
+            
+            return {
+                "success": True,
+                "students": students,
+                "is_special_mentor": True
+            }
+        
+        # Regular mentor - get their students
+        purchases = supabase.table('mentor_session_purchases').select('*').eq('mentor_email', mentor_email).eq('is_active', True).order('created_at', desc=True).execute()
+        
+        students = []
+        for purchase in (purchases.data or []):
+            # Get student user details
+            user_response = await get_user_by_email(purchase['student_email'])
+            students.append({
+                "student_id": purchase['student_id'],
+                "student_email": purchase['student_email'],
+                "student_name": user_response.get('name', purchase['student_email'].split('@')[0]) if user_response else purchase['student_email'].split('@')[0],
+                "purchased_at": purchase['created_at'],
+                "expires_at": purchase['expires_at'],
+                "is_active": purchase['is_active'],
+                "purchase_id": purchase['id']
+            })
+        
+        return {
+            "success": True,
+            "students": students,
+            "is_special_mentor": False
+        }
+    except Exception as e:
+        logger.error(f"Error fetching mentor students: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+async def get_user_by_email(email: str):
+    """Helper function to get user details"""
+    try:
+        # Try to get from Supabase auth
+        response = supabase.auth.admin.list_users()
+        for user in response:
+            if hasattr(user, 'email') and user.email == email:
+                return {
+                    "id": user.id,
+                    "email": user.email,
+                    "name": user.email.split('@')[0].capitalize()
+                }
+        return None
+    except:
+        return None
+
+@api_router.post("/session/create-purchase")
+async def create_session_purchase(
+    student_id: str,
+    student_email: str,
+    mentor_user_id: str,
+    mentor_email: str,
+    amount_paid: float = 99,
+    payment_id: str = None
+):
+    """Create a session purchase record after successful payment"""
+    try:
+        purchase_data = {
+            "student_id": student_id,
+            "student_email": student_email,
+            "mentor_id": mentor_user_id,
+            "mentor_email": mentor_email,
+            "mentor_user_id": mentor_user_id,
+            "amount_paid": amount_paid,
+            "payment_id": payment_id,
+            "payment_status": "completed",
+            "session_status": "active",
+            "is_active": True
+        }
+        
+        response = supabase.table('mentor_session_purchases').insert(purchase_data).execute()
+        
+        return {
+            "success": True,
+            "purchase": response.data[0] if response.data else None
+        }
+    except Exception as e:
+        logger.error(f"Error creating purchase: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/mentors/approved")
+async def get_approved_mentors():
+    """Get all approved mentors from mentor_applications"""
+    try:
+        response = supabase.table('mentor_applications').select('*').eq('status', 'approved').order('created_at', desc=True).execute()
+        
+        return {
+            "success": True,
+            "mentors": response.data or []
+        }
+    except Exception as e:
+        logger.error(f"Error fetching approved mentors: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app
 app.include_router(api_router)
 

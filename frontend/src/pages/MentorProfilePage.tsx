@@ -31,13 +31,12 @@ interface MentorProfile {
   exam_expertise: string[] | null;
   college_name: string | null;
   course: string | null;
-  display_college: boolean;
+  display_college_publicly: boolean;
   tagline: string | null;
   achievements: string | null;
   about_me: string | null;
   profile_photo_url: string | null;
-  rating: number;
-  total_reviews: number;
+  status: string;
 }
 
 // ─── Animation Variants ───────────────────────────────────────────────────────
@@ -84,27 +83,18 @@ const MentorProfilePage = () => {
     try {
       setLoading(true); 
       setError(false);
-      
-      // Try fetching from mentor_profiles by user_id
       const { data, error: fetchError } = await supabase
-        .from("mentor_profiles")
+        .from("mentor_applications")
         .select("*")
         .eq("user_id", targetId)
-        .eq("is_verified", true)
-        .eq("is_active", true)
+        .eq("status", "approved")
         .maybeSingle();
-        
       if (fetchError) throw fetchError;
       if (!data) { setMentor(null); setError(true); return; }
-      
       setMentor(data as MentorProfile);
-      
-      // Set photo
-      if (data.profile_photo_url) {
-        setPhotoUrl(data.profile_photo_url);
-      } else if (data.full_name && data.full_name.toLowerCase().includes("aditya chaubey")) {
+      if (data.full_name.toLowerCase().includes("aditya chaubey")) {
         setPhotoUrl(ADITYA_IMAGE);
-      } else if (data.user_id) {
+      } else {
         const { data: files } = await supabase.storage
           .from("mentor-profile-images")
           .list(data.user_id, { limit: 1, sortBy: { column: "created_at", order: "desc" } });
@@ -112,10 +102,7 @@ const MentorProfilePage = () => {
           setPhotoUrl(`${STORAGE_BASE}/${data.user_id}/${files[0].name}`);
         }
       }
-    } catch (err) { 
-      console.error("Fetch error:", err); 
-      setError(true); 
-    }
+    } catch (err) { console.error("Fetch error:", err); setError(true); }
     finally { setLoading(false); }
   };
 
@@ -144,27 +131,24 @@ const MentorProfilePage = () => {
         image: "https://i.imgur.com/3g7nmJC.png",
         handler: async function (response: any) {
           try {
-            const { data: profile } = await supabase
-              .from("mentor_profiles").select("id").eq("user_id", mentor?.user_id).single();
-            if (!profile) throw new Error("Mentor profile not found");
-            const { data: session, error: sessionErr } = await supabase
-              .from("mentor_sessions")
-              .insert({
+            // Create session purchase record
+            const purchaseResponse = await fetch(`${import.meta.env.REACT_APP_BACKEND_URL || ''}/api/session/create-purchase`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
                 student_id: user.id,
-                mentor_id: profile.id,
-                payment_amount: 99,
-                payment_id: response.razorpay_payment_id,
-                payment_status: "completed",
-                session_status: "scheduled"
-              }).select().single();
-            if (sessionErr) throw sessionErr;
-            await supabase.from("mentor_chats").insert({
-              session_id: session.id,
-              sender_id: user.id,
-              message_text: `Hi ${mentor?.full_name}, I just booked a session with you! Looking forward to learning from you. 🙌`
+                student_email: user.email,
+                mentor_user_id: mentor?.user_id,
+                mentor_email: mentor?.email,
+                amount_paid: 99,
+                payment_id: response.razorpay_payment_id
+              })
             });
+            
+            if (!purchaseResponse.ok) throw new Error("Failed to create purchase record");
+            
             toast.success("🎉 Mentorship session booked!");
-            navigate(`/mentor-chat/${session.id}`);
+            navigate(`/mentor-chat/${mentor?.user_id}`);
           } catch (error: any) {
             console.error("Activation error:", error);
             toast.error("Payment successful but activation failed. Contact support.");
@@ -270,7 +254,7 @@ const MentorProfilePage = () => {
               {[1,2,3,4,5].map(i => (
                 <Star key={i} size={13} fill="#e50914" color="#e50914" />
               ))}
-              <span style={{ color: "#666", fontSize: "12px", marginLeft: "6px" }}>{mentor.rating.toFixed(1)}</span>
+              <span style={{ color: "#666", fontSize: "12px", marginLeft: "6px" }}>5.0</span>
             </div>
           </div>
         </motion.div>
@@ -281,14 +265,14 @@ const MentorProfilePage = () => {
           <div style={statDividerStyle} />
           <StatPill icon={<Users size={13} />} value="50+" label="Students" />
           <div style={statDividerStyle} />
-          <StatPill icon={<TrendingUp size={13} />} value={`${mentor.rating.toFixed(1)}★`} label="Rating" />
+          <StatPill icon={<TrendingUp size={13} />} value="4.9★" label="Rating" />
           <div style={statDividerStyle} />
           <StatPill icon={<MessageCircle size={13} />} value="Live" label="Chat" />
         </motion.div>
 
         {/* ── Info Grid ───────────────────────────────────────────────── */}
         <motion.div variants={fadeUp} initial="hidden" animate="visible" custom={2} style={infoGridStyle}>
-          {mentor.display_college && mentor.college_name && (
+          {mentor.display_college_publicly && mentor.college_name && (
             <InfoCard icon={<GraduationCap size={16} />} label="College" value={mentor.college_name} />
           )}
           {mentor.course && (

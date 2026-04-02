@@ -3,20 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Loader2, MessageCircle, Calendar, Mail, User } from "lucide-react";
+import { Loader2, MessageCircle, Calendar, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function MentorDashboard() {
+const DEFAULT_IMAGE =
+  "https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/1065a106-cd9f-4cbd-88ae-1ac641624176/profile-1774589376150.jpeg";
+
+export default function StudentSessions() {
   const navigate = useNavigate();
-  const [students, setStudents] = useState<any[]>([]);
+  const [mentors, setMentors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSpecialMentor, setIsSpecialMentor] = useState(false);
+  const [accessType, setAccessType] = useState<'free' | 'paid' | 'none'>('none');
 
   useEffect(() => {
-    fetchMyStudents();
+    fetchMyMentors();
   }, []);
 
-  const fetchMyStudents = async () => {
+  const fetchMyMentors = async () => {
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -25,20 +28,28 @@ export default function MentorDashboard() {
         return;
       }
 
-      // Fetch students from backend
+      // Check access via backend API
       const backendUrl = import.meta.env.REACT_APP_BACKEND_URL || '';
-      const response = await fetch(`${backendUrl}/api/mentor/my-students?mentor_email=${user.email}`);
+      const response = await fetch(`${backendUrl}/api/student/my-mentors?student_email=${user.email}`);
       const result = await response.json();
 
       if (result.success) {
-        setStudents(result.students || []);
-        setIsSpecialMentor(result.is_special_mentor || false);
+        setAccessType(result.access_type);
+        setMentors(result.mentors || []);
       }
     } catch (error) {
-      console.error("Error fetching students:", error);
+      console.error("Error fetching mentors:", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -48,41 +59,52 @@ export default function MentorDashboard() {
       {/* Header */}
       <section style={headerStyle}>
         <div style={containerStyle}>
-          <h1 style={titleStyle}>My Students</h1>
+          <h1 style={titleStyle}>
+            {accessType === 'free' ? 'All Available Mentors' : 'My Mentors'}
+          </h1>
           <p style={subtitleStyle}>
-            Students who have purchased 1:1 sessions with you
+            {accessType === 'free' 
+              ? 'You have free access to all mentors on the platform'
+              : 'Mentors you can chat with for the next month'}
           </p>
         </div>
       </section>
 
-      {/* Students List */}
+      {/* Mentors List */}
       <section style={sectionStyle}>
         <div style={containerStyle}>
           {loading ? (
             <div style={loadingStyle}>
               <Loader2 className="animate-spin" size={32} color="#e50914" />
-              <p style={{ color: "#999", marginTop: "16px" }}>Loading your students...</p>
+              <p style={{ color: "#999", marginTop: "16px" }}>Loading your mentors...</p>
             </div>
-          ) : students.length === 0 ? (
+          ) : mentors.length === 0 ? (
             <div style={emptyStyle}>
-              <User size={48} color="#555" />
-              <h3 style={{ color: "#fff", marginTop: "16px", marginBottom: "8px" }}>No Students Yet</h3>
-              <p style={{ color: "#999" }}>
-                No students have purchased sessions with you yet.
+              <MessageCircle size={48} color="#555" />
+              <h3 style={{ color: "#fff", marginTop: "16px", marginBottom: "8px" }}>No Mentors Yet</h3>
+              <p style={{ color: "#999", marginBottom: "24px" }}>
+                You haven't purchased any mentor sessions yet.
               </p>
+              <button
+                onClick={() => navigate('/mentors')}
+                style={browseBtnStyle}
+              >
+                Browse Mentors
+              </button>
             </div>
           ) : (
             <div style={gridStyle}>
-              {students.map((student, index) => (
+              {mentors.map((mentor, index) => (
                 <motion.div
-                  key={student.student_id}
+                  key={mentor.user_id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <StudentCard 
-                    student={student} 
-                    onClick={() => navigate(`/mentor-chat/${student.student_id}`)} 
+                  <MentorSessionCard 
+                    mentor={mentor} 
+                    accessType={accessType}
+                    onClick={() => navigate(`/mentor-chat/${mentor.user_id}`)} 
                   />
                 </motion.div>
               ))}
@@ -96,16 +118,12 @@ export default function MentorDashboard() {
   );
 }
 
-function StudentCard({ student, onClick }: any) {
+function MentorSessionCard({ mentor, accessType, onClick }: any) {
   const [hovered, setHovered] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-  };
+  const photoUrl = mentor.full_name?.toLowerCase().includes("aditya chaubey")
+    ? DEFAULT_IMAGE
+    : (mentor.profile_photo_url || DEFAULT_IMAGE);
 
   return (
     <div
@@ -118,56 +136,45 @@ function StudentCard({ student, onClick }: any) {
         background: hovered ? "#1c1c1c" : "#181818",
       }}
     >
-      {/* Student Avatar */}
-      <div style={avatarStyle}>
-        <User size={32} color="#e50914" />
+      {/* Profile Image */}
+      <div style={imageWrapStyle}>
+        <img src={photoUrl} alt={mentor.full_name} style={imageStyle} />
       </div>
 
-      {/* Student Info */}
+      {/* Mentor Info */}
       <div style={infoStyle}>
-        <h3 style={nameStyle}>{student.student_name}</h3>
-        
-        <div style={emailRowStyle}>
-          <Mail size={14} color="#666" />
-          <span style={{ fontSize: "13px", color: "#999" }}>
-            {student.student_email}
-          </span>
+        <h3 style={nameStyle}>{mentor.full_name}</h3>
+        <p style={taglineTextStyle}>{mentor.tagline || "Expert Mentor"}</p>
+
+        {/* Expertise Tags */}
+        <div style={tagsStyle}>
+          {(mentor.exam_expertise || []).slice(0, 2).map((tag: string) => (
+            <span key={tag} style={tagStyle}>
+              {tag}
+            </span>
+          ))}
         </div>
 
-        {/* Purchase Info */}
-        <div style={detailsStyle}>
-          <div style={detailRowStyle}>
-            <Calendar size={14} color="#666" />
-            <span style={{ fontSize: "12px", color: "#999" }}>
-              Purchased: {formatDate(student.purchased_at)}
+        {/* Access Info */}
+        {accessType === 'free' ? (
+          <div style={accessBadgeStyle}>
+            <span style={{ color: "#4CAF50", fontSize: "12px", fontWeight: 700 }}>
+              ✓ FREE ACCESS
             </span>
           </div>
-          
-          {student.is_active && (
-            <div style={detailRowStyle}>
-              <Calendar size={14} color="#4CAF50" />
-              <span style={{ fontSize: "12px", color: "#4CAF50" }}>
-                Valid until: {formatDate(student.expires_at)}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {/* Status Badge */}
-        <div style={statusBadgeStyle}>
-          <span style={{
-            fontSize: "11px",
-            fontWeight: 700,
-            color: student.is_active ? "#4CAF50" : "#999",
-          }}>
-            {student.is_active ? "✓ ACTIVE SESSION" : "SESSION EXPIRED"}
-          </span>
-        </div>
+        ) : (
+          <div style={dateInfoStyle}>
+            <Calendar size={14} color="#666" />
+            <span style={{ fontSize: "12px", color: "#999" }}>
+              Access until {new Date(mentor.expires_at || Date.now()).toLocaleDateString()}
+            </span>
+          </div>
+        )}
 
         {/* Chat Button */}
         <button style={chatBtnStyle}>
           <MessageCircle size={16} />
-          <span>Open Chat</span>
+          <span>Start Chat</span>
         </button>
       </div>
     </div>
@@ -229,6 +236,18 @@ const emptyStyle: React.CSSProperties = {
   textAlign: "center",
 };
 
+const browseBtnStyle: React.CSSProperties = {
+  background: "#e50914",
+  color: "#fff",
+  border: "none",
+  padding: "12px 32px",
+  borderRadius: "8px",
+  fontSize: "14px",
+  fontWeight: 700,
+  cursor: "pointer",
+  transition: "transform 0.2s",
+};
+
 const gridStyle: React.CSSProperties = {
   display: "grid",
   gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
@@ -244,16 +263,20 @@ const cardStyle: React.CSSProperties = {
   transition: "all 0.3s ease",
 };
 
-const avatarStyle: React.CSSProperties = {
-  width: "60px",
-  height: "60px",
+const imageWrapStyle: React.CSSProperties = {
+  width: "80px",
+  height: "80px",
   borderRadius: "50%",
-  background: "rgba(229,9,20,0.1)",
-  border: "2px solid #e50914",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
+  border: "3px solid #e50914",
+  padding: "3px",
   marginBottom: "16px",
+};
+
+const imageStyle: React.CSSProperties = {
+  width: "100%",
+  height: "100%",
+  borderRadius: "50%",
+  objectFit: "cover",
 };
 
 const infoStyle: React.CSSProperties = {
@@ -269,32 +292,41 @@ const nameStyle: React.CSSProperties = {
   margin: 0,
 };
 
-const emailRowStyle: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  gap: "6px",
+const taglineTextStyle: React.CSSProperties = {
+  fontSize: "14px",
+  color: "#999",
   marginBottom: "8px",
 };
 
-const detailsStyle: React.CSSProperties = {
+const tagsStyle: React.CSSProperties = {
   display: "flex",
-  flexDirection: "column",
   gap: "6px",
-  padding: "12px 0",
+  flexWrap: "wrap",
+  marginBottom: "12px",
+};
+
+const tagStyle: React.CSSProperties = {
+  background: "#2a2a2a",
+  color: "#ccc",
+  fontSize: "11px",
+  padding: "4px 10px",
+  borderRadius: "12px",
+  border: "1px solid #444",
+};
+
+const accessBadgeStyle: React.CSSProperties = {
+  padding: "8px 0",
   borderTop: "1px solid #2a2a2a",
-  borderBottom: "1px solid #2a2a2a",
   marginTop: "8px",
 };
 
-const detailRowStyle: React.CSSProperties = {
+const dateInfoStyle: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: "6px",
-};
-
-const statusBadgeStyle: React.CSSProperties = {
   padding: "8px 0",
-  marginTop: "4px",
+  borderTop: "1px solid #2a2a2a",
+  marginTop: "8px",
 };
 
 const chatBtnStyle: React.CSSProperties = {
@@ -314,4 +346,4 @@ const chatBtnStyle: React.CSSProperties = {
   transition: "background 0.2s",
 };
 
-export { MentorDashboard };
+export { StudentSessions };
