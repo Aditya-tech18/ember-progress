@@ -1,27 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  GraduationCap, Star, MapPin, BookOpen, 
-  Search, Filter, TrendingUp, Award 
-} from "lucide-react";
-import { MentorProfile, ExamExpertise } from "@/types/mentorship";
+import { Search, Loader2, GraduationCap, BookOpen, ChevronRight, Users } from "lucide-react";
 
-const EXAM_CATEGORIES: ExamExpertise[] = ['JEE', 'NEET', 'CUET', 'NDA', 'Boards'];
+const DEFAULT_IMAGE =
+  "https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/1065a106-cd9f-4cbd-88ae-1ac641624176/profile-1774589376150.jpeg";
+
+const EXAM_CATEGORIES = ["All", "JEE", "NEET", "CUET", "NDA", "Boards"];
 
 export default function MentorDiscovery() {
   const navigate = useNavigate();
-  const [mentors, setMentors] = useState<MentorProfile[]>([]);
+
+  const [mentors, setMentors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedExam, setSelectedExam] = useState<ExamExpertise>('JEE');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedExam, setSelectedExam] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     fetchMentors();
@@ -30,116 +27,224 @@ export default function MentorDiscovery() {
   const fetchMentors = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('mentor_profiles')
-        .select('*')
-        .eq('is_active', true)
-        .eq('is_verified', true)
-        .contains('exam_expertise', [selectedExam])
-        .order('rating', { ascending: false });
+      let query = supabase
+        .from("mentor_profiles")
+        .select("*")
+        .eq("is_verified", true)
+        .eq("is_active", true);
 
+      if (selectedExam !== "All") {
+        query = query.contains("exam_expertise", [selectedExam]);
+      }
+
+      const { data, error } = await query.order("rating", { ascending: false });
       if (error) throw error;
       setMentors(data || []);
     } catch (error) {
-      console.error('Error fetching mentors:', error);
+      console.error("Error fetching mentors:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredMentors = mentors.filter(mentor =>
-    mentor.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    mentor.tagline?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMentors = mentors.filter((mentor) => {
+    const name = mentor.full_name?.toLowerCase() || "";
+    const tagline = mentor.tagline?.toLowerCase() || "";
+    const q = searchQuery.toLowerCase();
+    return name.includes(q) || tagline.includes(q);
+  });
 
   return (
-    <div className="min-h-screen bg-background">
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "#141414",
+        color: "#fff",
+        fontFamily: "'Bebas Neue', 'Georgia', serif",
+      }}
+    >
       <Navbar />
-      
-      {/* Hero Section */}
-      <section className="pt-24 pb-12 px-4 bg-gradient-to-b from-red-600/10 to-background">
-        <div className="container mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+
+      {/* HERO HEADER */}
+      <section
+        style={{
+          paddingTop: "80px",
+          paddingBottom: "32px",
+          paddingLeft: "16px",
+          paddingRight: "16px",
+          background: "linear-gradient(180deg, #1a0000 0%, #141414 100%)",
+          borderBottom: "1px solid #2a0a0a",
+        }}
+      >
+        <div style={{ maxWidth: "600px", margin: "0 auto", textAlign: "center" }}>
+          {/* Label */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              background: "rgba(229,9,20,0.15)",
+              border: "1px solid rgba(229,9,20,0.4)",
+              borderRadius: "20px",
+              padding: "4px 14px",
+              marginBottom: "16px",
+            }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-600/20 border border-red-500/30 mb-6">
-              <GraduationCap className="w-4 h-4 text-red-400" />
-              <span className="text-sm font-semibold text-red-400">Verified Mentors</span>
-            </div>
-            
-            <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-red-400 via-red-400 to-red-400 bg-clip-text text-transparent">
-              Connect With Seniors
-            </h1>
-            
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Get guidance from verified seniors studying in top colleges
-            </p>
+            <Users size={13} color="#e50914" />
+            <span
+              style={{
+                fontSize: "11px",
+                color: "#e50914",
+                letterSpacing: "2px",
+                textTransform: "uppercase",
+                fontFamily: "'Helvetica Neue', sans-serif",
+                fontWeight: 600,
+              }}
+            >
+              Verified Mentors
+            </span>
+          </div>
 
-            {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-8">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search mentors by name or expertise..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 h-14 text-base bg-card border-border"
-                />
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+          <h1
+            style={{
+              fontSize: "clamp(32px, 8vw, 52px)",
+              fontWeight: 400,
+              letterSpacing: "3px",
+              textTransform: "uppercase",
+              margin: "0 0 8px 0",
+              lineHeight: 1,
+              color: "#fff",
+            }}
+          >
+            Connect With
+            <span style={{ color: "#e50914" }}> Seniors</span>
+          </h1>
 
-      {/* Exam Category Tabs */}
-      <section className="px-4 py-6 border-b border-border sticky top-16 bg-background/95 backdrop-blur-lg z-40">
-        <div className="container mx-auto">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            {EXAM_CATEGORIES.map((exam) => (
-              <Button
-                key={exam}
-                variant={selectedExam === exam ? "default" : "outline"}
-                onClick={() => setSelectedExam(exam)}
-                className={selectedExam === exam ? "bg-gradient-to-r from-red-600 to-red-600" : ""}
-              >
-                {exam}
-              </Button>
-            ))}
+          <p
+            style={{
+              fontFamily: "'Helvetica Neue', Arial, sans-serif",
+              fontSize: "14px",
+              color: "#999",
+              marginBottom: "24px",
+              fontWeight: 400,
+              letterSpacing: "0.3px",
+            }}
+          >
+            Get guidance from toppers who cracked the exam you're preparing for
+          </p>
+
+          {/* SEARCH */}
+          <div style={{ position: "relative" }}>
+            <Search
+              size={16}
+              color="#666"
+              style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)" }}
+            />
+            <Input
+              placeholder="Search by name or tagline..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                paddingLeft: "40px",
+                height: "48px",
+                background: "#1f1f1f",
+                border: "1px solid #333",
+                borderRadius: "8px",
+                color: "#fff",
+                fontFamily: "'Helvetica Neue', sans-serif",
+                fontSize: "14px",
+                outline: "none",
+              }}
+              className="focus:border-red-600 transition-colors"
+            />
           </div>
         </div>
       </section>
 
-      {/* Mentors Grid */}
-      <section className="px-4 py-12">
-        <div className="container mx-auto">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <Card key={i} className="p-6 animate-pulse">
-                  <div className="w-20 h-20 rounded-full bg-muted mb-4" />
-                  <div className="h-6 bg-muted rounded mb-2" />
-                  <div className="h-4 bg-muted rounded mb-4" />
-                  <div className="h-20 bg-muted rounded" />
-                </Card>
+      {/* CATEGORY PILLS */}
+      <div
+        style={{
+          padding: "20px 16px 0",
+          display: "flex",
+          gap: "8px",
+          overflowX: "auto",
+          scrollbarWidth: "none",
+          WebkitOverflowScrolling: "touch",
+          maxWidth: "700px",
+          margin: "0 auto",
+        }}
+      >
+        {EXAM_CATEGORIES.map((exam) => {
+          const active = selectedExam === exam;
+          return (
+            <button
+              key={exam}
+              onClick={() => setSelectedExam(exam)}
+              style={{
+                whiteSpace: "nowrap",
+                padding: "8px 20px",
+                borderRadius: "24px",
+                border: active ? "1.5px solid #e50914" : "1.5px solid #333",
+                background: active ? "#e50914" : "transparent",
+                color: active ? "#fff" : "#aaa",
+                fontSize: "13px",
+                fontWeight: 600,
+                fontFamily: "'Helvetica Neue', sans-serif",
+                letterSpacing: "0.5px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+            >
+              {exam}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* COUNT */}
+      {!loading && (
+        <p
+          style={{
+            fontFamily: "'Helvetica Neue', sans-serif",
+            fontSize: "12px",
+            color: "#555",
+            textAlign: "center",
+            marginTop: "16px",
+            letterSpacing: "0.5px",
+          }}
+        >
+          {filteredMentors.length} mentor{filteredMentors.length !== 1 ? "s" : ""} available
+        </p>
+      )}
+
+      {/* LIST */}
+      <section style={{ padding: "16px 16px 80px", maxWidth: "700px", margin: "0 auto" }}>
+        {loading ? (
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "60px" }}>
+            <Loader2 className="animate-spin" size={28} color="#e50914" />
+          </div>
+        ) : filteredMentors.length === 0 ? (
+          <div style={{ textAlign: "center", marginTop: "60px" }}>
+            <p style={{ color: "#555", fontFamily: "'Helvetica Neue', sans-serif", fontSize: "15px" }}>
+              No mentors found
+            </p>
+          </div>
+        ) : (
+          <AnimatePresence>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "12px" }}>
+              {filteredMentors.map((mentor, index) => (
+                <motion.div
+                  key={mentor.user_id}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05, duration: 0.3 }}
+                >
+                  <MentorCard mentor={mentor} onClick={() => navigate(`/mentor/${mentor.user_id}`)} />
+                </motion.div>
               ))}
             </div>
-          ) : filteredMentors.length === 0 ? (
-            <div className="text-center py-16">
-              <GraduationCap className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-2xl font-bold mb-2">No mentors found</h3>
-              <p className="text-muted-foreground">Try selecting a different category or search term</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredMentors.map((mentor) => (
-                <MentorCard key={mentor.id} mentor={mentor} />
-              ))}
-            </div>
-          )}
-        </div>
+          </AnimatePresence>
+        )}
       </section>
 
       <Footer />
@@ -147,87 +252,175 @@ export default function MentorDiscovery() {
   );
 }
 
-function MentorCard({ mentor }: { mentor: MentorProfile }) {
-  const navigate = useNavigate();
-  
-  // Parse achievements (first 3 lines) - handle null/undefined
-  const achievements = mentor.achievements ? mentor.achievements.split('\n').slice(0, 3) : [];
+function MentorCard({ mentor, onClick }: { mentor: any; onClick: () => void }) {
+  const [hovered, setHovered] = useState(false);
+
+  // Show max 3 services/expertise tags, rest as "+N more"
+  const tags: string[] = mentor.exam_expertise || [];
+  const visibleTags = tags.slice(0, 3);
+  const extraCount = tags.length - 3;
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
+    <div
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? "#1c1c1c" : "#181818",
+        border: hovered ? "1px solid #e50914" : "1px solid #2a2a2a",
+        borderRadius: "12px",
+        padding: "16px",
+        cursor: "pointer",
+        transition: "all 0.2s ease",
+        position: "relative",
+        overflow: "hidden",
+      }}
     >
-      <Card className="p-6 hover:border-red-500/50 transition-all cursor-pointer" onClick={() => navigate(`/mentor/${mentor.id}`)}>
-        {/* Profile Photo */}
-        <div className="flex items-start gap-4 mb-4">
-          {mentor.profile_photo_url ? (
-            <img 
-              src={mentor.profile_photo_url}
-              alt={mentor.full_name}
-              className="w-16 h-16 rounded-full object-cover border-2 border-red-500"
+      {/* Red left accent on hover */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: "3px",
+          background: hovered ? "#e50914" : "transparent",
+          transition: "background 0.2s ease",
+          borderRadius: "12px 0 0 12px",
+        }}
+      />
+
+      <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
+        {/* PHOTO */}
+        <img
+          src={mentor.profile_photo_url || DEFAULT_IMAGE}
+          alt={mentor.full_name}
+          style={{
+            width: "64px",
+            height: "64px",
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "2px solid #2a2a2a",
+            flexShrink: 0,
+          }}
+        />
+
+        {/* INFO */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* Name + Arrow */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <h3
+              style={{
+                fontSize: "17px",
+                fontWeight: 400,
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                color: "#fff",
+                margin: 0,
+                fontFamily: "'Bebas Neue', serif",
+              }}
+            >
+              {mentor.full_name}
+            </h3>
+            <ChevronRight
+              size={16}
+              color={hovered ? "#e50914" : "#444"}
+              style={{ transition: "color 0.2s ease", flexShrink: 0, marginTop: "2px" }}
             />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-600 to-red-600 flex items-center justify-center text-white text-2xl font-bold">
-              {mentor.full_name?.charAt(0) || 'M'}
+          </div>
+
+          {/* Tagline */}
+          {mentor.tagline && (
+            <p
+              style={{
+                fontSize: "12px",
+                color: "#888",
+                margin: "4px 0 10px",
+                fontFamily: "'Helvetica Neue', sans-serif",
+                lineHeight: "1.4",
+                overflow: "hidden",
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+              }}
+            >
+              {mentor.tagline}
+            </p>
+          )}
+
+          {/* Tags */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "10px" }}>
+            {visibleTags.map((tag, i) => (
+              <span
+                key={i}
+                style={{
+                  background: "#242424",
+                  border: "1px solid #333",
+                  borderRadius: "20px",
+                  padding: "3px 10px",
+                  fontSize: "11px",
+                  color: "#bbb",
+                  fontFamily: "'Helvetica Neue', sans-serif",
+                  fontWeight: 500,
+                  letterSpacing: "0.3px",
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+            {extraCount > 0 && (
+              <span
+                style={{
+                  background: "transparent",
+                  border: "1px solid #333",
+                  borderRadius: "20px",
+                  padding: "3px 10px",
+                  fontSize: "11px",
+                  color: "#e50914",
+                  fontFamily: "'Helvetica Neue', sans-serif",
+                  fontWeight: 600,
+                }}
+              >
+                +{extraCount} more
+              </span>
+            )}
+          </div>
+
+          {/* College + Course */}
+          {mentor.display_college && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              {mentor.college_name && (
+                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <GraduationCap size={12} color="#666" />
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#777",
+                      fontFamily: "'Helvetica Neue', sans-serif",
+                    }}
+                  >
+                    {mentor.college_name}
+                  </span>
+                </div>
+              )}
+              {mentor.course && (
+                <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                  <BookOpen size={12} color="#666" />
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#777",
+                      fontFamily: "'Helvetica Neue', sans-serif",
+                    }}
+                  >
+                    {mentor.course}
+                  </span>
+                </div>
+              )}
             </div>
           )}
-          <div className="flex-1">
-            <h3 className="text-lg font-bold mb-1">{mentor.full_name}</h3>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                <span className="text-sm font-semibold">{mentor.rating?.toFixed(1) || '4.5'}</span>
-              </div>
-              <span className="text-sm text-muted-foreground">({mentor.total_reviews || 7} reviews)</span>
-            </div>
-          </div>
         </div>
-
-        {/* Tagline */}
-        <p className="text-sm text-muted-foreground mb-3 italic">"{mentor.tagline}"</p>
-
-        {/* Achievements */}
-        <div className="mb-4 space-y-1">
-          {achievements.map((achievement, idx) => (
-            <div key={idx} className="flex items-start gap-2">
-              <Award className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-              <span className="text-sm">{achievement}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* College Info */}
-        {mentor.display_college && mentor.college_name && (
-          <div className="flex items-center gap-2 mb-4 text-sm">
-            <MapPin className="w-4 h-4 text-muted-foreground" />
-            <span className="font-semibold">{mentor.college_name}</span>
-            {mentor.course && <span className="text-muted-foreground">• {mentor.course}</span>}
-          </div>
-        )}
-
-        {/* Expertise Tags */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {mentor.expertise_tags?.slice(0, 3).map((tag, idx) => (
-            <Badge key={idx} variant="outline" className="text-xs">
-              {tag}
-            </Badge>
-          ))}
-        </div>
-
-        {/* Stats */}
-        <div className="flex items-center justify-between pt-4 border-t border-border">
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <BookOpen className="w-4 h-4" />
-            <span>{mentor.total_sessions} sessions</span>
-          </div>
-          <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-600">
-            View Profile
-          </Button>
-        </div>
-      </Card>
-    </motion.div>
+      </div>
+    </div>
   );
 }
