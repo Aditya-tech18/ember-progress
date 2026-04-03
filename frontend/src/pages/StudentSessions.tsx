@@ -35,7 +35,33 @@ export default function StudentSessions() {
 
       if (result.success) {
         setAccessType(result.access_type);
-        setMentors(result.mentors || []);
+        
+        // Fetch profile photos for each mentor
+        const mentorsWithPhotos = await Promise.all((result.mentors || []).map(async (mentor: any) => {
+          let photoUrl = DEFAULT_IMAGE;
+          
+          try {
+            const { data: files } = await supabase.storage
+              .from("mentor-profile-images")
+              .list(mentor.user_id, { 
+                limit: 1, 
+                sortBy: { column: "created_at", order: "desc" } 
+              });
+            
+            if (files && files.length > 0) {
+              photoUrl = `https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/${mentor.user_id}/${files[0].name}`;
+            }
+          } catch (err) {
+            console.error(`Error fetching photo for mentor:`, err);
+          }
+          
+          return {
+            ...mentor,
+            profile_photo_url: photoUrl
+          };
+        }));
+        
+        setMentors(mentorsWithPhotos);
       }
     } catch (error) {
       console.error("Error fetching mentors:", error);
@@ -121,9 +147,7 @@ export default function StudentSessions() {
 function MentorSessionCard({ mentor, accessType, onClick }: any) {
   const [hovered, setHovered] = useState(false);
 
-  const photoUrl = mentor.full_name?.toLowerCase().includes("aditya chaubey")
-    ? DEFAULT_IMAGE
-    : (mentor.profile_photo_url || DEFAULT_IMAGE);
+  const photoUrl = mentor.profile_photo_url || DEFAULT_IMAGE;
 
   return (
     <div

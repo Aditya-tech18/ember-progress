@@ -92,17 +92,30 @@ const MentorProfilePage = () => {
       if (fetchError) throw fetchError;
       if (!data) { setMentor(null); setError(true); return; }
       setMentor(data as MentorProfile);
-      if (data.full_name.toLowerCase().includes("aditya chaubey")) {
-        setPhotoUrl(ADITYA_IMAGE);
-      } else {
+      
+      // Fetch profile photo from storage
+      try {
         const { data: files } = await supabase.storage
           .from("mentor-profile-images")
-          .list(data.user_id, { limit: 1, sortBy: { column: "created_at", order: "desc" } });
+          .list(data.user_id, { 
+            limit: 1, 
+            sortBy: { column: "created_at", order: "desc" } 
+          });
+        
         if (files && files.length > 0) {
           setPhotoUrl(`${STORAGE_BASE}/${data.user_id}/${files[0].name}`);
+        } else {
+          // Fallback to default image
+          setPhotoUrl(ADITYA_IMAGE);
         }
+      } catch (err) {
+        console.error("Error fetching profile photo:", err);
+        setPhotoUrl(ADITYA_IMAGE);
       }
-    } catch (err) { console.error("Fetch error:", err); setError(true); }
+    } catch (err) { 
+      console.error("Fetch error:", err); 
+      setError(true); 
+    }
     finally { setLoading(false); }
   };
 

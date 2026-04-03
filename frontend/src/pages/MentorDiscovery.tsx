@@ -40,12 +40,30 @@ export default function MentorDiscovery() {
       if (error) throw error;
       
       // Process mentor data to add profile photo URLs
-      const mentorsWithPhotos = (data || []).map(mentor => ({
-        ...mentor,
-        profile_photo_url: mentor.full_name?.toLowerCase().includes("aditya chaubey")
-          ? "https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/1065a106-cd9f-4cbd-88ae-1ac641624176/profile-1774589376150.jpeg"
-          : null,
-        display_college: mentor.display_college_publicly !== false
+      const mentorsWithPhotos = await Promise.all((data || []).map(async (mentor) => {
+        let photoUrl = null;
+        
+        // Try to fetch profile photo from storage
+        try {
+          const { data: files } = await supabase.storage
+            .from("mentor-profile-images")
+            .list(mentor.user_id, { 
+              limit: 1, 
+              sortBy: { column: "created_at", order: "desc" } 
+            });
+          
+          if (files && files.length > 0) {
+            photoUrl = `https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/${mentor.user_id}/${files[0].name}`;
+          }
+        } catch (err) {
+          console.error(`Error fetching photo for ${mentor.full_name}:`, err);
+        }
+        
+        return {
+          ...mentor,
+          profile_photo_url: photoUrl,
+          display_college: mentor.display_college_publicly !== false
+        };
       }));
       
       setMentors(mentorsWithPhotos);
