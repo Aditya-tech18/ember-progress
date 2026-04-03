@@ -39,11 +39,11 @@ export default function AnnouncementBanner() {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  // Auto-slide every 2 seconds
+  // Auto-slide every 3 seconds
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % BANNERS.length);
-    }, 2000);
+    }, 3000);
 
     return () => clearInterval(timer);
   }, []);
@@ -137,7 +137,9 @@ export default function AnnouncementBanner() {
 // ─── Styles ────────────────────────────────────────────────────────────────
 const containerStyle: React.CSSProperties = {
   width: "100%",
-  padding: "16px 16px 8px",
+  padding: "0 16px",
+  marginTop: "12px", // Gap from navbar
+  marginBottom: "12px", // Tight spacing to next section
   maxWidth: "100%",
 };
 
@@ -149,7 +151,7 @@ const bannerStyle: React.CSSProperties = {
   position: "relative",
   overflow: "hidden",
   boxShadow: "0 8px 32px rgba(229, 9, 20, 0.3), 0 2px 8px rgba(0, 0, 0, 0.5)",
-  transition: "all 0.5s ease-in-out",
+  transition: "all 0.6s cubic-bezier(0.4, 0, 0.2, 1)", // Smoother transition
   cursor: "pointer",
   display: "flex",
   flexDirection: "column",

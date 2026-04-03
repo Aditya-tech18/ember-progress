@@ -25,6 +25,7 @@ export const Posts = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export const Posts = () => {
     }
 
     setUserId(user.id);
+    setUserEmail(user.email || null);
     await fetchPosts();
   };
 
@@ -144,7 +146,9 @@ export const Posts = () => {
                   <PostCard
                     post={post}
                     currentUserId={userId}
-                    onUpdate={fetchPosts}
+                    currentUserEmail={userEmail}
+                    onRefresh={fetchPosts}
+                    onProfileClick={(userId) => navigate(`/profile/${userId}`)}
                   />
                 </motion.div>
               ))}

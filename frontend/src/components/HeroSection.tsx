@@ -55,7 +55,7 @@ export const HeroSection = () => {
   );
 
   return (
-    <section className="relative flex items-center justify-center overflow-hidden pt-16 sm:pt-20 pb-4 sm:pb-6">
+    <section className="relative flex items-center justify-center overflow-hidden pt-2 pb-4 sm:pb-6">
       {/* Minimal Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/8 rounded-full blur-3xl" />
