@@ -9,6 +9,7 @@ import { BottomNavBar } from "@/components/BottomNavBar";
 import { SplashScreen } from "@/components/SplashScreen";
 import { useHabitReminder } from "@/hooks/useHabitReminder";
 import { useBackButton } from "@/hooks/useBackButton";
+import { useAndroidBackButton } from "@/hooks/useAndroidBackButton";
 import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
@@ -63,6 +64,7 @@ const AppContent = () => {
 
   useHabitReminder();
   useBackButton();
+  useAndroidBackButton(); // Add Android back button handler
 
   useEffect(() => {
     const fetchUserGoal = async () => {

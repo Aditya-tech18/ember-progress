@@ -240,7 +240,7 @@ const subjectConfig = {
   },
 };
 
-const availableYears = Array.from({ length: 11 }, (_, i) => 2025 - i);
+const availableYears = ["ALL", "2026", ...Array.from({ length: 11 }, (_, i) => (2025 - i).toString())];
 
 const ChapterSelect = () => {
   const { subject } = useParams<{ subject: string }>();
@@ -250,7 +250,7 @@ const ChapterSelect = () => {
   const [chapterStats, setChapterStats] = useState<Record<string, { solved: number; total: number }>>({});
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [selectedYear, setSelectedYear] = useState<string>("2025");
+  const [selectedYear, setSelectedYear] = useState<string>("ALL");
 
   const decodedSubject = decodeURIComponent(subject || "");
   const config = subjectConfig[decodedSubject as keyof typeof subjectConfig] || subjectConfig.Physics;

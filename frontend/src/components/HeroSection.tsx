@@ -65,31 +65,6 @@ export const HeroSection = () => {
 
       <div className="container mx-auto px-3 sm:px-4 lg:px-8 relative z-10">
         <div className="max-w-3xl mx-auto text-center w-full">
-          {/* Compact JEE Countdown */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4"
-          >
-            <div className="inline-flex flex-col items-center gap-1.5 px-3 sm:px-5 py-2 sm:py-3 rounded-xl glass-card border border-primary/20">
-              <div className="flex items-center gap-1.5">
-                <Target className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                <span className="text-[10px] sm:text-xs font-semibold text-foreground">JEE Mains 2026</span>
-              </div>
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <TimeBlock value={timeLeft.days} label="Days" />
-                <span className="text-primary text-lg font-bold">:</span>
-                <TimeBlock value={timeLeft.hours} label="Hrs" />
-                <span className="text-primary text-lg font-bold">:</span>
-                <TimeBlock value={timeLeft.minutes} label="Min" />
-                <span className="text-primary text-lg font-bold hidden sm:block">:</span>
-                <div className="hidden sm:block">
-                  <TimeBlock value={timeLeft.seconds} label="Sec" />
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
           {/* Compact Title */}
           <motion.h1
             initial={{ opacity: 0, y: 15 }}
