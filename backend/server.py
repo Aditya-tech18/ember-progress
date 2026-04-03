@@ -868,6 +868,155 @@ async def get_approved_mentors():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+# =====================================================
+# MOCK TEST AUTO-GENERATION ROUTES
+# =====================================================
+
+@api_router.get("/mock-tests/available")
+async def get_available_mock_tests():
+    """Get all available mock tests (shifts with 75+ questions)"""
+    try:
+        # Fetch all questions
+        response = supabase.table('questions').select('id, exam_shift, subject, exam_year').execute()
+        
+        if not response.data:
+            return {"success": True, "mock_tests": []}
+        
+        # Group questions by shift
+        shifts = {}
+        for q in response.data:
+            shift = q.get('exam_shift', '').strip()
+            if not shift:
+                continue
+            
+            if shift not in shifts:
+                shifts[shift] = {
+                    'shift': shift,
+                    'exam_year': q.get('exam_year', 2025),
+                    'total': 0,
+                    'Physics': [],
+                    'Chemistry': [],
+                    'Mathematics': []
+                }
+            
+            shifts[shift]['total'] += 1
+            subject = q.get('subject', '').strip()
+            if subject in ['Physics', 'Chemistry', 'Mathematics']:
+                shifts[shift][subject].append(q['id'])
+        
+        # Filter shifts with exactly 75 questions (valid mock tests)
+        mock_tests = []
+        for shift, data in shifts.items():
+            if data['total'] == 75:
+                mock_tests.append({
+                    'id': shift.replace(' ', '_').lower(),
+                    'title': f"JEE Main {shift}",
+                    'exam_shift': shift,
+                    'exam_year': data['exam_year'],
+                    'date': shift,  # Parse date from shift name
+                    'duration': "3 Hours",
+                    'questions': 75,
+                    'pattern': "25 Questions per subject (Physics, Chemistry, Mathematics)",
+                    'status': 'Available',
+                    'physics_count': len(data['Physics']),
+                    'chemistry_count': len(data['Chemistry']),
+                    'maths_count': len(data['Mathematics'])
+                })
+        
+        # Sort by date (newest first)
+        mock_tests.sort(key=lambda x: x['exam_year'], reverse=True)
+        
+        logger.info(f"Found {len(mock_tests)} available mock tests")
+        
+        return {
+            "success": True,
+            "mock_tests": mock_tests,
+            "total_count": len(mock_tests)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error fetching mock tests: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@api_router.get("/mock-tests/{test_id}/questions")
+async def get_mock_test_questions(test_id: str):
+    """Get all question IDs for a specific mock test"""
+    try:
+        # Convert test_id back to exam_shift format
+        # Example: "21_jan_shift_1" -> "21 Jan Shift 1"
+        exam_shift = test_id.replace('_', ' ').title()
+        
+        # Variations to handle different naming formats
+        shift_variations = [
+            exam_shift,
+            exam_shift.replace('Shift', 'shift'),
+            test_id.replace('_', ' ')
+        ]
+        
+        # Fetch all questions for this shift
+        all_questions = []
+        for variation in shift_variations:
+            response = supabase.table('questions').select('id, subject, exam_shift').eq('exam_shift', variation).execute()
+            if response.data and len(response.data) > 0:
+                all_questions = response.data
+                exam_shift = variation  # Use the matching variation
+                break
+        
+        if not all_questions:
+            raise HTTPException(status_code=404, detail=f"No questions found for test: {test_id}")
+        
+        # Group by subject
+        question_ids = {
+            'Physics': [],
+            'Chemistry': [],
+            'Mathematics': []
+        }
+        
+        for q in all_questions:
+            subject = q.get('subject', '').strip()
+            if subject in question_ids:
+                question_ids[subject].append(q['id'])
+        
+        # Verify we have all questions
+        total = len(question_ids['Physics']) + len(question_ids['Chemistry']) + len(question_ids['Mathematics'])
+        
+        if total < 75:
+            # Not enough questions - try to fill with random questions
+            logger.warning(f"Only {total} questions found for {exam_shift}. Need 75 total.")
+            
+            # Calculate how many random questions needed per subject
+            shortage = 75 - total
+            per_subject = shortage // 3
+            
+            # Fetch random questions from database (excluding current test questions)
+            existing_ids = question_ids['Physics'] + question_ids['Chemistry'] + question_ids['Mathematics']
+            
+            for subject in ['Physics', 'Chemistry', 'Mathematics']:
+                if len(question_ids[subject]) < 25:
+                    needed = 25 - len(question_ids[subject])
+                    random_q = supabase.table('questions').select('id').eq('subject', subject).not_.in_('id', existing_ids).limit(needed).execute()
+                    if random_q.data:
+                        question_ids[subject].extend([q['id'] for q in random_q.data])
+        
+        return {
+            "success": True,
+            "test_id": test_id,
+            "exam_shift": exam_shift,
+            "question_ids": question_ids,
+            "total_questions": len(question_ids['Physics']) + len(question_ids['Chemistry']) + len(question_ids['Mathematics']),
+            "physics_count": len(question_ids['Physics']),
+            "chemistry_count": len(question_ids['Chemistry']),
+            "maths_count": len(question_ids['Mathematics'])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching test questions: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Include the router in the main app
 app.include_router(api_router)
 

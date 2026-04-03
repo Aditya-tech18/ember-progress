@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { useSubscription } from "@/hooks/useSubscription";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   Clock,
@@ -12,36 +13,55 @@ import {
   Rocket,
   Crown,
   Lock,
+  Loader2,
 } from "lucide-react";
 
-const mockTests = [
-  {
-    id: 1,
-    title: "JEE Main 2 April 2025 Shift 2",
-    date: "2 Apr 2025",
-    duration: "3 Hours",
-    questions: 90,
-    pattern: "30 MCQs + 10 Integer Type per subject",
-    status: "New",
-    testId: "2025242",
-  },
-  {
-    id: 2,
-    title: "JEE Main 21 Jan 2026 Shift 1",
-    date: "21 Jan 2026",
-    duration: "3 Hours",
-    questions: 75,
-    pattern: "20 MCQs + 5 Integer Type per subject",
-    status: "New",
-    testId: "2026211",
-  },
-];
+const API_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+
+interface MockTest {
+  id: string;
+  title: string;
+  exam_shift: string;
+  exam_year: number;
+  date: string;
+  duration: string;
+  questions: number;
+  pattern: string;
+  status: string;
+  physics_count: number;
+  chemistry_count: number;
+  maths_count: number;
+}
 
 const MockTestList = () => {
   const navigate = useNavigate();
   const { hasAccess, loading: subLoading } = useSubscription();
+  const [mockTests, setMockTests] = useState<MockTest[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleStartTest = (testId: number) => {
+  useEffect(() => {
+    fetchMockTests();
+  }, []);
+
+  const fetchMockTests = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/mock-tests/available`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setMockTests(data.mock_tests || []);
+      } else {
+        toast.error("Failed to load mock tests");
+      }
+    } catch (error) {
+      console.error("Error fetching mock tests:", error);
+      toast.error("Failed to load mock tests");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStartTest = (testId: string) => {
     if (!hasAccess) {
       navigate("/subscription");
       return;
