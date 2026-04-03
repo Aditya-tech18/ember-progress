@@ -28,6 +28,8 @@ const Index = () => {
       <div className="flex flex-col min-h-[100dvh]">
         <Navbar />
         <NoticeBanner />
+        {/* Spacer for fixed navbar - accounts for navbar height (~64px) + NoticeBanner */}
+        <div className="h-16" />
         <AnnouncementBanner />
         <CombatNameModal />
         <main className="flex-1">

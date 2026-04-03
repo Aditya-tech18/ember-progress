@@ -138,7 +138,7 @@ export default function AnnouncementBanner() {
 const containerStyle: React.CSSProperties = {
   width: "100%",
   padding: "0 16px",
-  marginTop: "12px", // Gap from navbar
+  marginTop: "0", // No margin needed, spacer handles it
   marginBottom: "12px", // Tight spacing to next section
   maxWidth: "100%",
 };
