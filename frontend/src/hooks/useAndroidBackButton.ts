@@ -1,75 +1,67 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { toast } from 'sonner';
+
+declare global {
+  interface Window {
+    Capacitor?: any;
+  }
+}
 
 /**
- * Enhanced Android back button handler with "Press again to exit" feature
- * Prevents app from closing immediately and ensures proper navigation
+ * Custom hook to handle Android hardware back button behavior
+ * - If history exists: Navigate to previous screen
+ * - If on home screen: Exit app
  */
 export const useAndroidBackButton = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const lastBackPressRef = useRef<number>(0);
-  const navigationHistoryRef = useRef<string[]>([]);
 
   useEffect(() => {
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent
-    );
-
-    if (!isMobile) return;
-
-    // Track navigation history
-    navigationHistoryRef.current.push(location.pathname);
-    if (navigationHistoryRef.current.length > 10) {
-      navigationHistoryRef.current.shift();
+    // Check if running in Capacitor (mobile app)
+    const isCapacitor = window.Capacitor !== undefined;
+    
+    if (!isCapacitor) {
+      return; // Skip if not in Capacitor environment
     }
 
-    const handleBackButton = (event: PopStateEvent) => {
-      event.preventDefault();
-      
-      const isHomePage = location.pathname === '/' || location.pathname === '/index';
-      const isGoalSelection = location.pathname === '/goal-selection';
-      
-      // If on goal selection or home, show exit confirmation
-      if (isHomePage || isGoalSelection) {
-        const now = Date.now();
-        const timeSinceLastPress = now - lastBackPressRef.current;
-        
-        if (timeSinceLastPress < 2000) {
-          // Double press detected - allow app exit
-          window.history.back();
-          return;
+    const handleBackButton = async () => {
+      const homeRoutes = ['/', '/home', '/dashboard', '/jee-main'];
+      const currentPath = location.pathname;
+
+      // Check if we're on a home/root screen
+      if (homeRoutes.includes(currentPath)) {
+        // Try to import App plugin dynamically
+        try {
+          const { App } = await import('@capacitor/app');
+          App.exitApp();
+        } catch (err) {
+          console.log('Capacitor App plugin not available');
         }
-        
-        // First press - show toast
-        lastBackPressRef.current = now;
-        toast.info('Press back again to exit', {
-          duration: 2000,
-        });
-        
-        // Push state again to prevent immediate exit
-        window.history.pushState(null, '', window.location.href);
       } else {
-        // Not on home/goal - navigate back in app
-        const historyLength = navigationHistoryRef.current.length;
-        if (historyLength > 1) {
-          // We have history, go back
-          navigate(-1);
-        } else {
-          // No history, go to home or goal selection
-          navigate('/');
-        }
+        // Navigate back in history
+        navigate(-1);
       }
     };
 
-    window.addEventListener('popstate', handleBackButton);
+    // Register back button listener for Capacitor
+    let backButtonListener: any;
     
-    // Push initial state to enable back button interception
-    window.history.pushState(null, '', window.location.href);
+    const setupListener = async () => {
+      try {
+        const { App } = await import('@capacitor/app');
+        backButtonListener = await App.addListener('backButton', handleBackButton);
+      } catch (err) {
+        console.log('Could not set up back button listener:', err);
+      }
+    };
 
+    setupListener();
+
+    // Cleanup listener on unmount
     return () => {
-      window.removeEventListener('popstate', handleBackButton);
+      if (backButtonListener) {
+        backButtonListener.remove();
+      }
     };
   }, [navigate, location]);
 };

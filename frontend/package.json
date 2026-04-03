@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/app": "^8.1.0",
     "@fontsource/poppins": "^5.2.7",
     "@hookform/resolvers": "^3.10.0",
     "@livekit/components-react": "^2.9.20",

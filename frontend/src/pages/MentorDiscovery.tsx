@@ -43,20 +43,25 @@ export default function MentorDiscovery() {
       const mentorsWithPhotos = await Promise.all((data || []).map(async (mentor) => {
         let photoUrl = null;
         
-        // Try to fetch profile photo from storage
-        try {
-          const { data: files } = await supabase.storage
-            .from("mentor-profile-images")
-            .list(mentor.user_id, { 
-              limit: 1, 
-              sortBy: { column: "created_at", order: "desc" } 
-            });
-          
-          if (files && files.length > 0) {
-            photoUrl = `https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/${mentor.user_id}/${files[0].name}`;
+        // Hardcoded image for Aditya Chaubey ONLY
+        if (mentor.full_name?.toLowerCase().includes("aditya chaubey")) {
+          photoUrl = "https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/1065a106-cd9f-4cbd-88ae-1ac641624176/profile-1774589376150.jpeg";
+        } else {
+          // Fetch from storage for all other mentors
+          try {
+            const { data: files } = await supabase.storage
+              .from("mentor-profile-images")
+              .list(mentor.user_id, { 
+                limit: 1, 
+                sortBy: { column: "created_at", order: "desc" } 
+              });
+            
+            if (files && files.length > 0) {
+              photoUrl = `https://pgvymttdvdlkcroqxsgn.supabase.co/storage/v1/object/public/mentor-profile-images/${mentor.user_id}/${files[0].name}`;
+            }
+          } catch (err) {
+            console.error(`Error fetching photo for ${mentor.full_name}:`, err);
           }
-        } catch (err) {
-          console.error(`Error fetching photo for ${mentor.full_name}:`, err);
         }
         
         return {
