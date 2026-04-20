@@ -8,5 +8,10 @@
     "build": "cd frontend && npm run build",
     "build:dev": "cd frontend && npx vite build",
     "preview": "cd frontend && npm run preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react-swc": "^3.11.0",
+    "lovable-tagger": "^1.1.13",
+    "vite": "^5.4.21"
   }
 }
