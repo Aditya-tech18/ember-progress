@@ -509,6 +509,7 @@ export type Database = {
           is_active: boolean | null
           is_verified: boolean | null
           media_urls: string[] | null
+          mobile_number: string | null
           profile_image: string | null
           profile_photo_url: string | null
           rating: number | null
@@ -536,6 +537,7 @@ export type Database = {
           is_active?: boolean | null
           is_verified?: boolean | null
           media_urls?: string[] | null
+          mobile_number?: string | null
           profile_image?: string | null
           profile_photo_url?: string | null
           rating?: number | null
@@ -563,6 +565,7 @@ export type Database = {
           is_active?: boolean | null
           is_verified?: boolean | null
           media_urls?: string[] | null
+          mobile_number?: string | null
           profile_image?: string | null
           profile_photo_url?: string | null
           rating?: number | null
