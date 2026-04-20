@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/Navbar";
 import { HeroSection } from "@/components/HeroSection";
-import { ProgressSection } from "@/components/ProgressSection";
 import { ContentCarousel } from "@/components/ContentCarousel";
 import { SubjectsSection } from "@/components/SubjectsSection";
 import { Footer } from "@/components/Footer";
@@ -9,6 +8,7 @@ import { NoticeBanner } from "@/components/NoticeBanner";
 import { CombatNameModal } from "@/components/CombatNameModal";
 import { BecomeMentorBanner } from "@/components/BecomeMentorBanner";
 import { MentorshipSection } from "@/components/MentorshipSection";
+import { HomeStatsDashboard } from "@/components/HomeStatsDashboard";
 import AnnouncementBanner from "@/components/AnnouncementBanner";
 
 const trendingPYQs = [
@@ -34,12 +34,13 @@ const Index = () => {
         <CombatNameModal />
         <main className="flex-1">
           <HeroSection />
+          {/* Stats dashboard sits directly under the 3 CTA buttons (Success Planner / Practice PYQs / Progress) */}
+          <HomeStatsDashboard />
           <MentorshipSection />
           <GameCards />
           <ContentCarousel title="🔥 Trending PYQs" items={trendingPYQs} />
           <ContentCarousel title="📝 Mock Tests" items={mockTests} variant="large" />
           <SubjectsSection />
-          <ProgressSection />
           <BecomeMentorBanner />
         </main>
         <Footer />
