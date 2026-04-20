@@ -422,103 +422,102 @@ export const HomeStatsDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="grid grid-cols-1 lg:grid-cols-12 gap-4"
+          className="space-y-4"
         >
-          {/* Profile + rank */}
-          <div className="lg:col-span-3 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 p-5 flex flex-col items-center text-center">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-crimson flex items-center justify-center text-2xl font-extrabold text-primary-foreground mb-3 shadow-lg">
-              {stats.combatName.charAt(0).toUpperCase()}
-            </div>
-            <h3 className="font-bold text-lg text-foreground truncate max-w-full">
-              {stats.combatName}
-            </h3>
-            <p className="text-xs text-muted-foreground mb-3">@{stats.combatName.toLowerCase()}</p>
-            <div className="w-full rounded-xl bg-background/40 border border-border/40 p-3">
-              <p className="text-xs text-muted-foreground">Rank</p>
-              <p className="text-xl font-extrabold text-foreground">
-                {stats.rank.toLocaleString()}
-                {stats.totalUsers > 0 && (
-                  <span className="text-xs text-muted-foreground font-normal">
-                    {" "}/ {stats.totalUsers.toLocaleString()}
-                  </span>
-                )}
-              </p>
-            </div>
-          </div>
+          {/* Combined: Badge (25%) + Solved circle & subject stats (75%) */}
+          <div className="relative rounded-2xl overflow-hidden border border-primary/20 bg-gradient-to-br from-black via-[#0a0000] to-black shadow-[0_8px_40px_-12px_hsl(var(--primary)/0.5)]">
+            {/* Netflix-style red accent glow */}
+            <div className="absolute -top-20 -left-20 w-64 h-64 rounded-full bg-primary/20 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-crimson/20 blur-3xl pointer-events-none" />
 
-          {/* Triple arc + subject breakdown */}
-          <div className="lg:col-span-5 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 p-5">
-            <div className="flex flex-col sm:flex-row items-center gap-5">
-              <TripleArc
-                phys={stats.physics}
-                chem={stats.chemistry}
-                math={stats.mathematics}
-                totalSolved={stats.totalSolved}
-                totalQuestions={stats.totalQuestions}
-              />
-              <div className="flex-1 w-full grid grid-cols-1 gap-2">
-                {[
-                  { label: "Phy", color: "hsl(189 94% 55%)", s: stats.physics },
-                  { label: "Chem", color: "hsl(28 95% 60%)", s: stats.chemistry },
-                  { label: "Math", color: "hsl(142 70% 50%)", s: stats.mathematics },
-                ].map((row) => (
-                  <div
-                    key={row.label}
-                    className="rounded-lg bg-background/40 border border-border/40 px-3 py-2 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-2 h-2 rounded-full"
-                        style={{ background: row.color, boxShadow: `0 0 6px ${row.color}` }}
-                      />
-                      <span className="text-sm font-semibold" style={{ color: row.color }}>
-                        {row.label}
-                      </span>
-                    </div>
-                    <span className="text-sm font-bold text-foreground">
-                      {row.s.solved}
-                      <span className="text-muted-foreground font-normal">/{row.s.total}</span>
-                    </span>
+            <div className="relative grid grid-cols-1 md:grid-cols-4 gap-0">
+              {/* Badge — 25% (1/4) */}
+              <div className="md:col-span-1 p-5 sm:p-6 flex flex-col items-center justify-center text-center border-b md:border-b-0 md:border-r border-primary/15 bg-gradient-to-b from-primary/5 to-transparent">
+                <div className="flex items-center justify-between w-full mb-3">
+                  <div className="text-left">
+                    <p className="text-[10px] uppercase tracking-widest text-primary/80 font-bold">Badges</p>
+                    <p className="text-2xl font-extrabold text-foreground leading-none">
+                      {BADGES.filter((b) => stats.totalSolved >= b.min).length}
+                    </p>
                   </div>
-                ))}
+                  <div className={`text-[10px] uppercase tracking-wider font-bold ${badge.color}`}>
+                    {badge.name}
+                  </div>
+                </div>
+                <div className="relative my-1">
+                  <div className="absolute inset-0 bg-primary/30 blur-2xl rounded-full" />
+                  <img
+                    src={badge.img}
+                    alt={`${badge.name} badge`}
+                    width={110}
+                    height={110}
+                    loading="lazy"
+                    className="relative drop-shadow-[0_0_22px_hsl(var(--primary)/0.55)]"
+                  />
+                </div>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-2">Most Recent</p>
+                <p className="text-sm font-bold text-foreground">{badge.name}</p>
+                {nextBadge ? (
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {toNext} more to <span className={`font-semibold ${nextBadge.color}`}>{nextBadge.name}</span>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-emerald-400 mt-1">Max badge unlocked!</p>
+                )}
               </div>
-            </div>
-          </div>
 
-          {/* Badge */}
-          <div className="lg:col-span-4 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50 p-5">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <p className="text-xs text-muted-foreground">Badges</p>
-                <p className="text-2xl font-extrabold text-foreground">
-                  {BADGES.filter((b) => stats.totalSolved >= b.min).length}
-                </p>
+              {/* Solved circle + subject stats — 75% (3/4) */}
+              <div className="md:col-span-3 p-5 sm:p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm uppercase tracking-widest font-bold text-primary">
+                    Your Progress
+                  </h3>
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                    Rank #{stats.rank.toLocaleString()}
+                    {stats.totalUsers > 0 && ` / ${stats.totalUsers.toLocaleString()}`}
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <TripleArc
+                    phys={stats.physics}
+                    chem={stats.chemistry}
+                    math={stats.mathematics}
+                    totalSolved={stats.totalSolved}
+                    totalQuestions={stats.totalQuestions}
+                  />
+                  <div className="flex-1 w-full grid grid-cols-1 gap-2.5">
+                    {[
+                      { label: "Phy", color: "hsl(189 94% 55%)", s: stats.physics },
+                      { label: "Chem", color: "hsl(28 95% 60%)", s: stats.chemistry },
+                      { label: "Math", color: "hsl(142 70% 50%)", s: stats.mathematics },
+                    ].map((row) => (
+                      <div
+                        key={row.label}
+                        className="rounded-lg bg-background/60 border border-border/50 px-4 py-2.5 flex items-center justify-between hover:border-primary/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className="w-2.5 h-2.5 rounded-full"
+                            style={{ background: row.color, boxShadow: `0 0 8px ${row.color}` }}
+                          />
+                          <span className="text-sm font-bold" style={{ color: row.color }}>
+                            {row.label}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-foreground">
+                          {row.s.solved}
+                          <span className="text-muted-foreground font-normal">/{row.s.total}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className={`text-xs font-semibold ${badge.color}`}>{badge.name}</div>
             </div>
-            <div className="flex items-center justify-center my-2">
-              <img
-                src={badge.img}
-                alt={`${badge.name} badge`}
-                width={120}
-                height={120}
-                loading="lazy"
-                className="drop-shadow-[0_0_18px_rgba(255,255,255,0.15)]"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground text-center">Most Recent Badge</p>
-            <p className="text-sm font-bold text-center text-foreground">{badge.name}</p>
-            {nextBadge ? (
-              <p className="text-[11px] text-center text-muted-foreground mt-2">
-                {toNext} more to <span className={nextBadge.color}>{nextBadge.name}</span>
-              </p>
-            ) : (
-              <p className="text-[11px] text-center text-emerald-400 mt-2">Max badge unlocked!</p>
-            )}
           </div>
 
           {/* Heatmap full width */}
-          <div className="lg:col-span-12">
+          <div>
             <SubmissionsHeatmap submissionsByDate={stats.submissionsByDate} />
           </div>
         </motion.div>
