@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { setCachedGoal } from "@/utils/examConfig";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Search, Bell, Menu, X, Home, FileText, Target, User, LogOut, Calendar } from "lucide-react";
@@ -81,6 +82,7 @@ export const Navbar = () => {
     if (data) {
       setUserData(data);
       setUserGoal(data.goal);
+      setCachedGoal(data.goal);
     }
   };
 
