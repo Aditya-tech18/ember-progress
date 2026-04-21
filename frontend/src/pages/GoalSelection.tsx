@@ -74,11 +74,11 @@ export const GoalSelection = () => {
       toast.success(`Goal set to ${selectedGoal}!`);
       
       // Navigate based on goal
-      if (selectedGoal === "JEE") {
-        // JEE users go to home
+      if (selectedGoal === "JEE" || selectedGoal === "NEET") {
+        // JEE and NEET users go to home
         navigate("/");
       } else {
-        // Non-JEE users go to BuildLife (will trigger subscription check there)
+        // Non-JEE/NEET users go to BuildLife (will trigger subscription check there)
         navigate("/buildlife");
       }
     } catch (error: any) {
