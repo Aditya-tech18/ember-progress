@@ -347,7 +347,7 @@ const ChapterSelect = () => {
       
       // Fetch all questions for this subject to get totals
       const { data: questionData } = await supabase
-        .from("questions")
+        .from(questionsTable)
         .select("id, chapter")
         .eq("subject", config.questionsSubject);
 
