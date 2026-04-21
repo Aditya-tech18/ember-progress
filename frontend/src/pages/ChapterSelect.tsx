@@ -288,6 +288,27 @@ const subjectConfig = {
     dbSubject: "maths",
     questionsSubject: "Mathematics",
   },
+  Biology: {
+    icon: HeartPulse,
+    gradient: "from-emerald to-green-500",
+    bgGradient: "from-emerald/20 to-green-500/10",
+    dbSubject: "biology",
+    questionsSubject: "Biology",
+  },
+  Botany: {
+    icon: Leaf,
+    gradient: "from-emerald to-green-500",
+    bgGradient: "from-emerald/20 to-green-500/10",
+    dbSubject: "biology",
+    questionsSubject: "Botany",
+  },
+  Zoology: {
+    icon: HeartPulse,
+    gradient: "from-emerald to-teal-500",
+    bgGradient: "from-emerald/20 to-teal-500/10",
+    dbSubject: "biology",
+    questionsSubject: "Zoology",
+  },
 };
 
 const availableYears = ["ALL", "2026", ...Array.from({ length: 11 }, (_, i) => (2025 - i).toString())];
