@@ -91,7 +91,7 @@ const QuestionScreen = () => {
         }
       } else {
         const { data, error: fetchError } = await supabase
-          .from("questions")
+          .from(table)
           .select("*")
           .eq("id", parseInt(questionId || "0"))
           .single();
