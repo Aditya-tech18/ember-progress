@@ -70,6 +70,9 @@ export const SubjectsSection = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState<Record<string, SubjectProgress>>({});
+  const userGoal = getCachedGoal();
+  const subjectConfig = useMemo(() => userGoal === 'NEET' ? neetSubjectConfig : jeeSubjectConfig, [userGoal]);
+  const questionsTable = getQuestionsTable(userGoal);
 
   useEffect(() => {
     fetchProgress();
@@ -79,9 +82,9 @@ export const SubjectsSection = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Fetch total questions per subject
+      // Fetch total questions per subject from goal-appropriate table
       const { data: questionsData, error: questionsError } = await supabase
-        .from("questions")
+        .from(questionsTable)
         .select("subject");
 
       if (questionsError) throw questionsError;
@@ -103,11 +106,11 @@ export const SubjectsSection = () => {
       });
 
       chaptersData?.forEach((c) => {
-        // Map chapter subject (lowercase) to display name
         const subjectMap: Record<string, string> = {
           physics: "Physics",
           chemistry: "Chemistry",
           maths: "Mathematics",
+          biology: "Biology",
         };
         const displayName = subjectMap[c.subject.toLowerCase()] || c.subject;
         chapterCounts[displayName] = (chapterCounts[displayName] || 0) + 1;
@@ -122,13 +125,11 @@ export const SubjectsSection = () => {
           .eq("user_id", user.id);
 
         if (!submissionsError && submissionsData) {
-          // Get the question IDs that user has solved
           const solvedQuestionIds = submissionsData.map((s) => s.question_id).filter(Boolean);
 
           if (solvedQuestionIds.length > 0) {
-            // Fetch subjects for these question IDs
             const { data: solvedQuestionsData } = await supabase
-              .from("questions")
+              .from(questionsTable)
               .select("id, subject")
               .in("id", solvedQuestionIds);
 
