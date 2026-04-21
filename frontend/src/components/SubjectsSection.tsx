@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Atom, FlaskConical, Calculator, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { Atom, FlaskConical, Calculator, ArrowRight, Sparkles, Loader2, HeartPulse } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedGoal, getQuestionsTable } from "@/utils/examConfig";
 
 interface SubjectProgress {
   solved: number;
@@ -11,10 +12,10 @@ interface SubjectProgress {
   chapters: number;
 }
 
-const subjectConfig = [
+const jeeSubjectConfig = [
   {
     name: "Physics",
-    dbName: "Physics", // matches questions.subject
+    dbName: "Physics",
     icon: Atom,
     color: "from-electric-blue to-cyan-500",
     bgColor: "bg-electric-blue/10",
@@ -35,6 +36,33 @@ const subjectConfig = [
     color: "from-gold to-amber-500",
     bgColor: "bg-gold/10",
     description: "Calculus, Algebra, Coordinate Geometry & more",
+  },
+];
+
+const neetSubjectConfig = [
+  {
+    name: "Physics",
+    dbName: "Physics",
+    icon: Atom,
+    color: "from-electric-blue to-cyan-500",
+    bgColor: "bg-electric-blue/10",
+    description: "Mechanics, Optics, Modern Physics & more",
+  },
+  {
+    name: "Chemistry",
+    dbName: "Chemistry",
+    icon: FlaskConical,
+    color: "from-primary to-crimson",
+    bgColor: "bg-primary/10",
+    description: "Organic, Inorganic & Physical Chemistry",
+  },
+  {
+    name: "Biology",
+    dbName: "Biology",
+    icon: HeartPulse,
+    color: "from-emerald to-green-500",
+    bgColor: "bg-emerald/10",
+    description: "Botany, Zoology, Human Physiology & more",
   },
 ];
 
