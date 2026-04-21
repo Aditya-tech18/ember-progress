@@ -82,7 +82,7 @@ export const DownloadAppBanner = () => {
                 </motion.div>
                 <div className="flex flex-col">
                   <span className="text-white font-bold text-sm sm:text-base flex items-center gap-2">
-                    📱 Download the Prepixo App
+                    📱 Download the PYQBook App
                     <motion.span
                       animate={{ scale: [1, 1.2, 1] }}
                       transition={{ duration: 1.5, repeat: Infinity }}

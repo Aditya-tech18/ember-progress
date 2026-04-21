@@ -49,7 +49,7 @@ const RefundPolicy = () => {
                 <h2 className="text-xl font-semibold text-foreground mb-3">1. No Refund Policy</h2>
                 <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg mb-4">
                   <p className="text-foreground font-semibold">
-                    ⚠️ Important: All purchases on Prepixo are final and non-refundable.
+                    ⚠️ Important: All purchases on PYQBook are final and non-refundable.
                   </p>
                 </div>
                 <p>
@@ -131,7 +131,7 @@ const RefundPolicy = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">10. Agreement</h2>
                 <p>
-                  By making a purchase on Prepixo, you acknowledge that you have read, understood, and agree to this Refund & Cancellation Policy.
+                  By making a purchase on PYQBook, you acknowledge that you have read, understood, and agree to this Refund & Cancellation Policy.
                 </p>
               </section>
             </div>

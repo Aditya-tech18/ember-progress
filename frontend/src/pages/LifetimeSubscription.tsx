@@ -82,7 +82,7 @@ export const LifetimeSubscription = () => {
         key: RAZORPAY_KEY_ID,
         amount: 9900, // ₹99 in paise
         currency: "INR",
-        name: "Prepixo",
+        name: "PYQBook",
         description: "Lifetime Access - Premium Features",
         image: "https://i.imgur.com/3g7nmJC.png",
         handler: async function (response: any) {

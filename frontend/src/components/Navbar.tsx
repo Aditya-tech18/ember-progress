@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { setCachedGoal } from "@/utils/examConfig";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Search, Bell, Menu, X, Home, FileText, Target, User, LogOut, Calendar } from "lucide-react";
@@ -81,6 +82,7 @@ export const Navbar = () => {
     if (data) {
       setUserData(data);
       setUserGoal(data.goal);
+      setCachedGoal(data.goal);
     }
   };
 
@@ -138,11 +140,11 @@ export const Navbar = () => {
               >
                 <img 
                   src="/images/prepixo-splash.jpg" 
-                  alt="Prepixo" 
+                  alt="PYQBook" 
                   className="w-9 h-9 rounded-xl shadow-md shadow-primary/20 object-cover"
                 />
                 <span className="text-lg font-bold text-foreground hidden sm:block tracking-tight">
-                  Prepixo
+                  PYQBook
                 </span>
               </motion.div>
 

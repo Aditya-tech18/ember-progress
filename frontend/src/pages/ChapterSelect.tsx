@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription, isChapterFree } from "@/hooks/useSubscription";
+import { getCachedGoal, getQuestionsTable } from "@/utils/examConfig";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,6 +210,55 @@ const allChaptersData: Record<string, ChapterData[]> = {
   ],
 };
 
+// ==================== NEET BIOLOGY CHAPTERS ====================
+const neetBiologyChapters: ChapterData[] = [
+  { name: "The Living World", icon: Leaf, iconColor: "text-green-400" },
+  { name: "Biological Classification", icon: Layers, iconColor: "text-teal-400" },
+  { name: "Plant Kingdom", icon: Leaf, iconColor: "text-lime-400" },
+  { name: "Animal Kingdom", icon: HeartPulse, iconColor: "text-red-400" },
+  { name: "Morphology of Flowering Plants", icon: Leaf, iconColor: "text-green-500" },
+  { name: "Anatomy of Flowering Plants", icon: Microscope, iconColor: "text-emerald-400" },
+  { name: "Structural Organisation in Animals", icon: Shapes, iconColor: "text-orange-400" },
+  { name: "Cell: The Unit of Life", icon: CircleDot, iconColor: "text-blue-400" },
+  { name: "Biomolecules", icon: HeartPulse, iconColor: "text-pink-400" },
+  { name: "Cell Cycle and Cell Division", icon: RefreshCw, iconColor: "text-cyan-400" },
+  { name: "Transport in Plants", icon: TrendingUp, iconColor: "text-green-600" },
+  { name: "Mineral Nutrition", icon: Droplets, iconColor: "text-amber-400" },
+  { name: "Photosynthesis in Higher Plants", icon: Sparkles, iconColor: "text-yellow-400" },
+  { name: "Respiration in Plants", icon: Flame, iconColor: "text-orange-500" },
+  { name: "Plant Growth and Development", icon: TrendingUp, iconColor: "text-lime-500" },
+  { name: "Digestion and Absorption", icon: Beaker, iconColor: "text-orange-400" },
+  { name: "Breathing and Exchange of Gases", icon: Cloud, iconColor: "text-sky-400" },
+  { name: "Body Fluids and Circulation", icon: HeartPulse, iconColor: "text-red-500" },
+  { name: "Excretory Products and their Elimination", icon: Droplets, iconColor: "text-amber-500" },
+  { name: "Locomotion and Movement", icon: MoveRight, iconColor: "text-blue-500" },
+  { name: "Neural Control and Coordination", icon: Brain, iconColor: "text-purple-400" },
+  { name: "Chemical Coordination and Integration", icon: FlaskConical, iconColor: "text-pink-500" },
+  { name: "Reproduction in Organisms", icon: RefreshCw, iconColor: "text-rose-400" },
+  { name: "Sexual Reproduction in Flowering Plants", icon: Leaf, iconColor: "text-green-400" },
+  { name: "Human Reproduction", icon: HeartPulse, iconColor: "text-red-400" },
+  { name: "Reproductive Health", icon: HeartPulse, iconColor: "text-pink-400" },
+  { name: "Principles of Inheritance and Variation", icon: GitBranch, iconColor: "text-indigo-400" },
+  { name: "Molecular Basis of Inheritance", icon: Atom, iconColor: "text-violet-400" },
+  { name: "Evolution", icon: TrendingUp, iconColor: "text-amber-600" },
+  { name: "Human Health and Disease", icon: HeartPulse, iconColor: "text-red-600" },
+  { name: "Strategies for Enhancement in Food Production", icon: Factory, iconColor: "text-green-600" },
+  { name: "Microbes in Human Welfare", icon: Microscope, iconColor: "text-teal-500" },
+  { name: "Biotechnology: Principles and Processes", icon: Cpu, iconColor: "text-blue-600" },
+  { name: "Biotechnology and its Applications", icon: Lightbulb, iconColor: "text-yellow-500" },
+  { name: "Organisms and Populations", icon: Globe, iconColor: "text-green-500" },
+  { name: "Ecosystem", icon: Leaf, iconColor: "text-emerald-500" },
+  { name: "Biodiversity and Conservation", icon: Globe, iconColor: "text-teal-600" },
+  { name: "Environmental Issues", icon: Cloud, iconColor: "text-gray-500" },
+];
+
+// NEET-specific chapter data
+const neetChaptersData: Record<string, ChapterData[]> = {
+  physics: allChaptersData.physics,
+  chemistry: allChaptersData.chemistry,
+  biology: neetBiologyChapters,
+};
+
 const subjectConfig = {
   Physics: {
     icon: Atom,
@@ -238,6 +288,27 @@ const subjectConfig = {
     dbSubject: "maths",
     questionsSubject: "Mathematics",
   },
+  Biology: {
+    icon: HeartPulse,
+    gradient: "from-emerald to-green-500",
+    bgGradient: "from-emerald/20 to-green-500/10",
+    dbSubject: "biology",
+    questionsSubject: "Biology",
+  },
+  Botany: {
+    icon: Leaf,
+    gradient: "from-emerald to-green-500",
+    bgGradient: "from-emerald/20 to-green-500/10",
+    dbSubject: "biology",
+    questionsSubject: "Botany",
+  },
+  Zoology: {
+    icon: HeartPulse,
+    gradient: "from-emerald to-teal-500",
+    bgGradient: "from-emerald/20 to-teal-500/10",
+    dbSubject: "biology",
+    questionsSubject: "Zoology",
+  },
 };
 
 const availableYears = ["ALL", "2026", ...Array.from({ length: 11 }, (_, i) => (2025 - i).toString())];
@@ -246,6 +317,8 @@ const ChapterSelect = () => {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
   const { hasAccess, loading: subLoading } = useSubscription();
+  const userGoal = getCachedGoal();
+  const questionsTable = getQuestionsTable(userGoal);
   
   const [chapterStats, setChapterStats] = useState<Record<string, { solved: number; total: number }>>({});
   const [loading, setLoading] = useState(true);
@@ -256,11 +329,12 @@ const ChapterSelect = () => {
   const config = subjectConfig[decodedSubject as keyof typeof subjectConfig] || subjectConfig.Physics;
   const SubjectIcon = config.icon;
 
-  // Get chapters for this subject
+  // Get chapters for this subject - use NEET chapters if goal is NEET
   const chapters = useMemo(() => {
-    const key = config.dbSubject as keyof typeof allChaptersData;
-    return allChaptersData[key] || [];
-  }, [config.dbSubject]);
+    const chaptersSource = userGoal === 'NEET' ? neetChaptersData : allChaptersData;
+    const key = config.dbSubject as keyof typeof chaptersSource;
+    return chaptersSource[key] || [];
+  }, [config.dbSubject, userGoal]);
 
   useEffect(() => {
     fetchChapterStats();
@@ -273,7 +347,7 @@ const ChapterSelect = () => {
       
       // Fetch all questions for this subject to get totals
       const { data: questionData } = await supabase
-        .from("questions")
+        .from(questionsTable)
         .select("id, chapter")
         .eq("subject", config.questionsSubject);
 

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Rocket, Heart, Shield, GraduationCap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { setCachedGoal } from "@/utils/examConfig";
 
 const goals = [
   { 
@@ -71,14 +72,15 @@ export const GoalSelection = () => {
 
       if (error) throw error;
 
+      setCachedGoal(selectedGoal);
       toast.success(`Goal set to ${selectedGoal}!`);
       
       // Navigate based on goal
-      if (selectedGoal === "JEE") {
-        // JEE users go to home
+      if (selectedGoal === "JEE" || selectedGoal === "NEET") {
+        // JEE and NEET users go to home
         navigate("/");
       } else {
-        // Non-JEE users go to BuildLife (will trigger subscription check there)
+        // Non-JEE/NEET users go to BuildLife (will trigger subscription check there)
         navigate("/buildlife");
       }
     } catch (error: any) {

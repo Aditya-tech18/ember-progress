@@ -62,7 +62,7 @@ const AboutUs = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">Who We Are</h2>
                 <p>
-                  Prepixo is an innovative educational platform dedicated to helping JEE aspirants achieve their dreams of getting into top engineering colleges in India. Founded by a team of educators and engineers who understand the challenges of competitive exam preparation, we've built a platform that makes quality JEE preparation accessible, effective, and affordable.
+                  PYQBook is an innovative educational platform dedicated to helping JEE aspirants achieve their dreams of getting into top engineering colleges in India. Founded by a team of educators and engineers who understand the challenges of competitive exam preparation, we've built a platform that makes quality JEE preparation accessible, effective, and affordable.
                 </p>
               </section>
 
@@ -108,7 +108,7 @@ const AboutUs = () => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-foreground mb-3">Why Choose Prepixo?</h2>
+                <h2 className="text-xl font-semibold text-foreground mb-3">Why Choose PYQBook?</h2>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li><strong>Curated Content:</strong> All questions are sourced from actual JEE Main papers</li>
                   <li><strong>Affordable Pricing:</strong> Premium features starting at just ₹9/month</li>

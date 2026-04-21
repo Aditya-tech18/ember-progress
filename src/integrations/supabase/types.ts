@@ -744,6 +744,48 @@ export type Database = {
         }
         Relationships: []
       }
+      neet_questions: {
+        Row: {
+          chapter: string | null
+          chapter_id: string | null
+          correct_answer: string | null
+          exam_shift: string | null
+          exam_year: number | null
+          id: number
+          options_list: string | null
+          question_image_url: string | null
+          question_text: string
+          solution: string | null
+          subject: string | null
+        }
+        Insert: {
+          chapter?: string | null
+          chapter_id?: string | null
+          correct_answer?: string | null
+          exam_shift?: string | null
+          exam_year?: number | null
+          id: number
+          options_list?: string | null
+          question_image_url?: string | null
+          question_text: string
+          solution?: string | null
+          subject?: string | null
+        }
+        Update: {
+          chapter?: string | null
+          chapter_id?: string | null
+          correct_answer?: string | null
+          exam_shift?: string | null
+          exam_year?: number | null
+          id?: number
+          options_list?: string | null
+          question_image_url?: string | null
+          question_text?: string
+          solution?: string | null
+          subject?: string | null
+        }
+        Relationships: []
+      }
       otp_store: {
         Row: {
           created_at: string

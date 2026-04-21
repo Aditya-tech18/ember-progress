@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedGoal, getQuestionsTable } from "@/utils/examConfig";
 import { Navbar } from "@/components/Navbar";
 import { LatexRenderer } from "@/components/LatexRenderer";
 import { Button } from "@/components/ui/button";
@@ -72,9 +73,10 @@ const QuestionScreen = () => {
     setError(null);
 
     try {
+      const table = getQuestionsTable(getCachedGoal());
       if (state?.chapterName && state?.year) {
         const { data, error: fetchError } = await supabase
-          .from("questions")
+          .from(table)
           .select("*")
           .eq("chapter", state.chapterName)
           .eq("exam_year", state.year)
@@ -89,7 +91,7 @@ const QuestionScreen = () => {
         }
       } else {
         const { data, error: fetchError } = await supabase
-          .from("questions")
+          .from(table)
           .select("*")
           .eq("id", parseInt(questionId || "0"))
           .single();

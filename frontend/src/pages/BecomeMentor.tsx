@@ -34,7 +34,7 @@ export default function BecomeMentor() {
     {
       icon: Award,
       title: "Approval & Activation",
-      description: "Once approved, your profile goes live on Prepixo. You can start creating services and connecting with students!",
+      description: "Once approved, your profile goes live on PYQBook. You can start creating services and connecting with students!",
       color: "from-green-600 to-emerald-600"
     }
   ];
@@ -60,7 +60,7 @@ export default function BecomeMentor() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-600/20 to-red-600/20 border border-red-500/30 mb-6">
               <GraduationCap className="w-4 h-4 text-red-400" />
-              <span className="text-sm font-semibold text-red-400">Become a Prepixo Mentor</span>
+              <span className="text-sm font-semibold text-red-400">Become a PYQBook Mentor</span>
             </div>
             
             <h1 className="text-4xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-red-400 via-red-400 to-red-400 bg-clip-text text-transparent">
@@ -68,7 +68,7 @@ export default function BecomeMentor() {
             </h1>
             
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Become a verified mentor on Prepixo and help students crack competitive exams while earning money
+              Become a verified mentor on PYQBook and help students crack competitive exams while earning money
             </p>
 
             {/* Benefits Grid */}
@@ -140,7 +140,7 @@ export default function BecomeMentor() {
               <div>
                 <h3 className="font-bold text-lg mb-2">Quality Assurance</h3>
                 <p className="text-muted-foreground">
-                  Only verified mentors are allowed on Prepixo to ensure quality guidance. 
+                  Only verified mentors are allowed on PYQBook to ensure quality guidance. 
                   We manually review all applications to maintain trust and authenticity.
                 </p>
               </div>

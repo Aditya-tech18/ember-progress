@@ -1,9 +1,10 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Atom, FlaskConical, Calculator, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { Atom, FlaskConical, Calculator, ArrowRight, Sparkles, Loader2, HeartPulse } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedGoal, getQuestionsTable } from "@/utils/examConfig";
 
 interface SubjectProgress {
   solved: number;
@@ -11,10 +12,10 @@ interface SubjectProgress {
   chapters: number;
 }
 
-const subjectConfig = [
+const jeeSubjectConfig = [
   {
     name: "Physics",
-    dbName: "Physics", // matches questions.subject
+    dbName: "Physics",
     icon: Atom,
     color: "from-electric-blue to-cyan-500",
     bgColor: "bg-electric-blue/10",
@@ -38,10 +39,40 @@ const subjectConfig = [
   },
 ];
 
+const neetSubjectConfig = [
+  {
+    name: "Physics",
+    dbName: "Physics",
+    icon: Atom,
+    color: "from-electric-blue to-cyan-500",
+    bgColor: "bg-electric-blue/10",
+    description: "Mechanics, Optics, Modern Physics & more",
+  },
+  {
+    name: "Chemistry",
+    dbName: "Chemistry",
+    icon: FlaskConical,
+    color: "from-primary to-crimson",
+    bgColor: "bg-primary/10",
+    description: "Organic, Inorganic & Physical Chemistry",
+  },
+  {
+    name: "Biology",
+    dbName: "Biology",
+    icon: HeartPulse,
+    color: "from-emerald to-green-500",
+    bgColor: "bg-emerald/10",
+    description: "Botany, Zoology, Human Physiology & more",
+  },
+];
+
 export const SubjectsSection = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState<Record<string, SubjectProgress>>({});
+  const userGoal = getCachedGoal();
+  const subjectConfig = useMemo(() => userGoal === 'NEET' ? neetSubjectConfig : jeeSubjectConfig, [userGoal]);
+  const questionsTable = getQuestionsTable(userGoal);
 
   useEffect(() => {
     fetchProgress();
@@ -51,9 +82,9 @@ export const SubjectsSection = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Fetch total questions per subject
+      // Fetch total questions per subject from goal-appropriate table
       const { data: questionsData, error: questionsError } = await supabase
-        .from("questions")
+        .from(questionsTable)
         .select("subject");
 
       if (questionsError) throw questionsError;
@@ -75,11 +106,11 @@ export const SubjectsSection = () => {
       });
 
       chaptersData?.forEach((c) => {
-        // Map chapter subject (lowercase) to display name
         const subjectMap: Record<string, string> = {
           physics: "Physics",
           chemistry: "Chemistry",
           maths: "Mathematics",
+          biology: "Biology",
         };
         const displayName = subjectMap[c.subject.toLowerCase()] || c.subject;
         chapterCounts[displayName] = (chapterCounts[displayName] || 0) + 1;
@@ -94,13 +125,11 @@ export const SubjectsSection = () => {
           .eq("user_id", user.id);
 
         if (!submissionsError && submissionsData) {
-          // Get the question IDs that user has solved
           const solvedQuestionIds = submissionsData.map((s) => s.question_id).filter(Boolean);
 
           if (solvedQuestionIds.length > 0) {
-            // Fetch subjects for these question IDs
             const { data: solvedQuestionsData } = await supabase
-              .from("questions")
+              .from(questionsTable)
               .select("id, subject")
               .in("id", solvedQuestionIds);
 
