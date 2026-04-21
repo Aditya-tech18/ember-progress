@@ -231,7 +231,7 @@ export const CreatePostModal = ({ isOpen, onClose, onPostCreated }: CreatePostMo
             <p className="text-muted-foreground mb-6">
               {isLoggedIn === false
                 ? "Please login or sign up to share your achievements with the community."
-                : "Become a Prepixo member to share achievements and connect with fellow JEE aspirants!"}
+                : "Become a PYQBook member to share achievements and connect with fellow JEE aspirants!"}
             </p>
             <div className="flex flex-col gap-3">
               <Button

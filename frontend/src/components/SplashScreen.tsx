@@ -29,7 +29,7 @@ export const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
           >
             <img
               src="/images/prepixo-splash.jpg"
-              alt="Prepixo"
+              alt="PYQBook"
               className="w-full h-full object-contain max-w-[80vw] max-h-[80vh]"
             />
           </motion.div>

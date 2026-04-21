@@ -48,7 +48,7 @@ const PrivacyPolicy = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">1. Introduction</h2>
                 <p>
-                  Welcome to Prepixo ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
+                  Welcome to PYQBook ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
                 </p>
               </section>
 

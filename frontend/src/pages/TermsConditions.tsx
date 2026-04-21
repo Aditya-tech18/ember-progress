@@ -48,13 +48,13 @@ const TermsConditions = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">1. Acceptance of Terms</h2>
                 <p>
-                  By accessing and using Prepixo ("the Platform"), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our services.
+                  By accessing and using PYQBook ("the Platform"), you agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, please do not use our services.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">2. Description of Services</h2>
-                <p className="mb-3">Prepixo provides the following educational services for JEE preparation:</p>
+                <p className="mb-3">PYQBook provides the following educational services for JEE preparation:</p>
                 <ul className="list-disc list-inside space-y-2 ml-4">
                   <li>Previous Year Questions (PYQs) practice with detailed solutions</li>
                   <li>Mock Tests simulating actual JEE Main examination pattern</li>
@@ -102,7 +102,7 @@ const TermsConditions = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">6. Intellectual Property</h2>
                 <p>
-                  All content on the Platform, including questions, solutions, mock tests, graphics, and software, is owned by Prepixo or its licensors. You may not reproduce, distribute, modify, or create derivative works without our written permission.
+                  All content on the Platform, including questions, solutions, mock tests, graphics, and software, is owned by PYQBook or its licensors. You may not reproduce, distribute, modify, or create derivative works without our written permission.
                 </p>
               </section>
 
@@ -136,7 +136,7 @@ const TermsConditions = () => {
               <section>
                 <h2 className="text-xl font-semibold text-foreground mb-3">10. Limitation of Liability</h2>
                 <p>
-                  Prepixo shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Platform. Our total liability shall not exceed the amount paid by you for our services.
+                  PYQBook shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of the Platform. Our total liability shall not exceed the amount paid by you for our services.
                 </p>
               </section>
 

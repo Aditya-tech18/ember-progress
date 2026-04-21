@@ -37,7 +37,7 @@ export const Footer = () => {
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold text-xl">P</span>
               </div>
-              <span className="text-xl font-bold text-foreground">Prepixo</span>
+              <span className="text-xl font-bold text-foreground">PYQBook</span>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
               Your trusted companion for JEE Main preparation. Practice PYQs, take mock tests, and ace your exams!
@@ -135,7 +135,7 @@ export const Footer = () => {
         >
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-muted-foreground flex items-center gap-1">
-              © 2026 Prepixo. Made with <Heart className="w-4 h-4 text-primary fill-primary" /> in India
+              © 2026 PYQBook. Made with <Heart className="w-4 h-4 text-primary fill-primary" /> in India
             </p>
             <p className="text-xs text-muted-foreground">
               Payment secured by Razorpay

@@ -38,7 +38,7 @@ console.log('🔑 Razorpay Key ID:', RAZORPAY_KEY_ID?.substring(0, 10) + '...');
 const plans = [
   {
     name: "Trial Plan",
-    description: "Try Prepixo for a day! 🎯",
+    description: "Try PYQBook for a day! 🎯",
     duration: "1 day",
     months: 0,
     days: 1,
@@ -397,7 +397,7 @@ const Subscription = () => {
         key: RAZORPAY_KEY_ID,
         amount: plan.amount,
         currency: "INR",
-        name: "Prepixo",
+        name: "PYQBook",
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
         handler: async function (response: any) {

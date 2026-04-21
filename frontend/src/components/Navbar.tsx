@@ -138,11 +138,11 @@ export const Navbar = () => {
               >
                 <img 
                   src="/images/prepixo-splash.jpg" 
-                  alt="Prepixo" 
+                  alt="PYQBook" 
                   className="w-9 h-9 rounded-xl shadow-md shadow-primary/20 object-cover"
                 />
                 <span className="text-lg font-bold text-foreground hidden sm:block tracking-tight">
-                  Prepixo
+                  PYQBook
                 </span>
               </motion.div>
 

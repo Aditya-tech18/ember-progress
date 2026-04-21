@@ -144,7 +144,7 @@ const MentorProfilePage = () => {
         key: RAZORPAY_KEY_ID,
         amount: 9900,
         currency: "INR",
-        name: "Prepixo Mentorship",
+        name: "PYQBook Mentorship",
         description: `1:1 Session with ${mentor?.full_name}`,
         image: "https://i.imgur.com/3g7nmJC.png",
         handler: async function (response: any) {
