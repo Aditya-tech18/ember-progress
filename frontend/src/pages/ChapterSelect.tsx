@@ -317,6 +317,8 @@ const ChapterSelect = () => {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
   const { hasAccess, loading: subLoading } = useSubscription();
+  const userGoal = getCachedGoal();
+  const questionsTable = getQuestionsTable(userGoal);
   
   const [chapterStats, setChapterStats] = useState<Record<string, { solved: number; total: number }>>({});
   const [loading, setLoading] = useState(true);
@@ -327,11 +329,12 @@ const ChapterSelect = () => {
   const config = subjectConfig[decodedSubject as keyof typeof subjectConfig] || subjectConfig.Physics;
   const SubjectIcon = config.icon;
 
-  // Get chapters for this subject
+  // Get chapters for this subject - use NEET chapters if goal is NEET
   const chapters = useMemo(() => {
-    const key = config.dbSubject as keyof typeof allChaptersData;
-    return allChaptersData[key] || [];
-  }, [config.dbSubject]);
+    const chaptersSource = userGoal === 'NEET' ? neetChaptersData : allChaptersData;
+    const key = config.dbSubject as keyof typeof chaptersSource;
+    return chaptersSource[key] || [];
+  }, [config.dbSubject, userGoal]);
 
   useEffect(() => {
     fetchChapterStats();
