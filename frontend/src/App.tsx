@@ -148,12 +148,12 @@ const AppContent = () => {
         <Route 
           path="/" 
           element={
-            userGoal === "JEE" ? <Index /> : <Navigate to="/goal-selection" replace />
+            (userGoal === "JEE" || userGoal === "NEET") ? <Index /> : <Navigate to="/goal-selection" replace />
           } 
         />
 
-        {/* JEE-only routes */}
-        {userGoal === "JEE" ? (
+        {/* JEE & NEET shared routes */}
+        {(userGoal === "JEE" || userGoal === "NEET") ? (
           <>
             <Route path="/chapters/:subject" element={<ChapterSelect />} />
             <Route path="/questions/:chapterName" element={<QuestionList />} />
@@ -187,7 +187,6 @@ const AppContent = () => {
             <Route path="/pyq" element={<ChapterSelect />} />
           </>
         ) : (
-          // Non-JEE users trying to access JEE routes get redirected
           <Route path="*" element={<Navigate to="/goal-selection" replace />} />
         )}
 
@@ -195,8 +194,8 @@ const AppContent = () => {
         <Route path="/404" element={<NotFound />} />
       </Routes>
       
-      {/* Only show bottom nav for JEE users */}
-      {userGoal === "JEE" && <BottomNavBar />}
+      {/* Show bottom nav for JEE and NEET users */}
+      {(userGoal === "JEE" || userGoal === "NEET") && <BottomNavBar />}
     </>
   );
 };
