@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight, Clock, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getCachedGoal } from "@/utils/examConfig";
 
 interface CarouselItem {
   id: string;
@@ -37,8 +38,9 @@ export const ContentCarousel = ({ title, items, variant = "default" }: ContentCa
     if (item.type === "mock") {
       navigate("/mock-tests");
     } else if (item.type === "pyq") {
-      // Navigate to ChapterSelect with Physics as default subject
-      navigate("/chapters/Physics");
+      // Navigate to ChapterSelect with first subject for the user's goal
+      const isNEET = getCachedGoal() === "NEET";
+      navigate(`/chapters/${isNEET ? "Botany" : "Physics"}`);
     }
   };
 
