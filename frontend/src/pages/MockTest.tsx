@@ -297,8 +297,8 @@ const MockTest = () => {
         
         if (wasEmpty) {
           const attemptedCount = getSectionBAttemptedCount(question.subject);
-          if (attemptedCount >= MAX_SECTION_B_ATTEMPTS) {
-            toast.error(`You can only attempt ${MAX_SECTION_B_ATTEMPTS} questions in Section B per subject.`);
+          if (attemptedCount >= maxSectionBAttempts) {
+            toast.error(`You can only attempt ${maxSectionBAttempts} questions in Section B per subject.`);
             return;
           }
         }
