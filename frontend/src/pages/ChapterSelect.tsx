@@ -451,7 +451,7 @@ const ChapterSelect = () => {
                   <SubjectIcon className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">JEE Mains PYQ Bank</h1>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">Prepixo PYQ Bank</h1>
                   <p className="text-muted-foreground text-sm">
                     {filteredChapters.length} Chapters • {totalQuestions} Questions
                   </p>
@@ -461,7 +461,10 @@ const ChapterSelect = () => {
 
             {/* Subject Tabs */}
             <div className="flex gap-2 mb-6">
-              {["Physics", "Chemistry", "Mathematics"].map((sub) => {
+              {(userGoal === 'NEET'
+                ? ["Physics", "Chemistry", "Botany", "Zoology"]
+                : ["Physics", "Chemistry", "Mathematics"]
+              ).map((sub) => {
                 const isSelected = decodedSubject === sub || (decodedSubject === "Maths" && sub === "Mathematics");
                 return (
                   <Button
