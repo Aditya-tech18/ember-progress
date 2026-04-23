@@ -140,49 +140,107 @@ const MockTest = () => {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      const questionIds = getMockTestQuestionIds();
-      const allIds = [
-        ...questionIds.Physics,
-        ...questionIds.Chemistry,
-        ...questionIds.Mathematics,
-      ];
+      if (isNEET) {
+        // Parse year from testId like "neet_2025" or "2025_NEET 2025"
+        const yearMatch = testId?.match(/(\d{4})/);
+        const year = yearMatch ? parseInt(yearMatch[1]) : null;
 
-      const { data, error } = await supabase
-        .from("questions")
-        .select("*")
-        .in("id", allIds);
+        if (!year) {
+          toast.error("Invalid test ID");
+          setLoading(false);
+          return;
+        }
 
-      if (error) throw error;
+        const { data, error } = await supabase
+          .from("neet_questions")
+          .select("*")
+          .eq("exam_year", year)
+          .order("subject")
+          .order("id");
 
-      if (data && data.length > 0) {
-        const sortedQuestions: Question[] = [];
-        
-        questionIds.Physics.forEach(id => {
-          const q = data.find(d => d.id === id);
-          if (q) sortedQuestions.push({ ...q, subject: "Physics" });
-        });
-        
-        questionIds.Chemistry.forEach(id => {
-          const q = data.find(d => d.id === id);
-          if (q) sortedQuestions.push({ ...q, subject: "Chemistry" });
-        });
-        
-        questionIds.Mathematics.forEach(id => {
-          const q = data.find(d => d.id === id);
-          if (q) sortedQuestions.push({ ...q, subject: "Mathematics" });
-        });
+        if (error) throw error;
 
-        setQuestions(sortedQuestions);
-        
-        const initialAnswers = new Map<number, Answer>();
-        sortedQuestions.forEach((q) => {
-          initialAnswers.set(q.id, {
-            questionId: q.id,
-            userAnswer: null,
-            isMarkedForReview: false,
+        if (data && data.length > 0) {
+          // Sort by subject order: Physics, Chemistry, Biology
+          const subjectOrder = ["Physics", "Chemistry", "Biology"];
+          const sorted = data.sort((a: any, b: any) => {
+            const ai = subjectOrder.indexOf(a.subject || "");
+            const bi = subjectOrder.indexOf(b.subject || "");
+            if (ai !== bi) return ai - bi;
+            return a.id - b.id;
           });
-        });
-        setAnswers(initialAnswers);
+
+          const mappedQuestions: Question[] = sorted.map((q: any) => ({
+            id: q.id,
+            subject: q.subject || "Physics",
+            chapter: q.chapter || "",
+            question_text: q.question_text,
+            options_list: q.options_list,
+            correct_answer: q.correct_answer || "",
+            solution: q.solution || "",
+            question_image_url: q.question_image_url,
+            exam_year: q.exam_year,
+            exam_shift: q.exam_shift || "",
+          }));
+
+          setQuestions(mappedQuestions);
+
+          const initialAnswers = new Map<number, Answer>();
+          mappedQuestions.forEach((q) => {
+            initialAnswers.set(q.id, {
+              questionId: q.id,
+              userAnswer: null,
+              isMarkedForReview: false,
+            });
+          });
+          setAnswers(initialAnswers);
+        }
+      } else {
+        // JEE flow (existing)
+        const questionIds = getMockTestQuestionIds();
+        const allIds = [
+          ...questionIds.Physics,
+          ...questionIds.Chemistry,
+          ...questionIds.Mathematics,
+        ];
+
+        const { data, error } = await supabase
+          .from("questions")
+          .select("*")
+          .in("id", allIds);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const sortedQuestions: Question[] = [];
+          
+          questionIds.Physics.forEach(id => {
+            const q = data.find(d => d.id === id);
+            if (q) sortedQuestions.push({ ...q, subject: "Physics" });
+          });
+          
+          questionIds.Chemistry.forEach(id => {
+            const q = data.find(d => d.id === id);
+            if (q) sortedQuestions.push({ ...q, subject: "Chemistry" });
+          });
+          
+          questionIds.Mathematics.forEach(id => {
+            const q = data.find(d => d.id === id);
+            if (q) sortedQuestions.push({ ...q, subject: "Mathematics" });
+          });
+
+          setQuestions(sortedQuestions);
+          
+          const initialAnswers = new Map<number, Answer>();
+          sortedQuestions.forEach((q) => {
+            initialAnswers.set(q.id, {
+              questionId: q.id,
+              userAnswer: null,
+              isMarkedForReview: false,
+            });
+          });
+          setAnswers(initialAnswers);
+        }
       }
     } catch (err) {
       console.error("Error fetching questions:", err);
