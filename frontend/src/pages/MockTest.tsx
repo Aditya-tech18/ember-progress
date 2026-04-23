@@ -336,7 +336,7 @@ const MockTest = () => {
       if (nextQuestion) {
         const subjectQuestions = questions.filter(q => q.subject === nextQuestion.subject);
         const indexInSubject = subjectQuestions.indexOf(nextQuestion);
-        setCurrentSection(indexInSubject < 20 ? "A" : "B");
+        setCurrentSection(indexInSubject < sectionASize ? "A" : "B");
         setSelectedSubject(nextQuestion.subject);
       }
     }
@@ -345,9 +345,9 @@ const MockTest = () => {
   const getSubjectQuestions = (subject: string, section: "A" | "B") => {
     const subjectQuestions = questions.filter((q) => q.subject === subject);
     if (section === "A") {
-      return subjectQuestions.slice(0, 20);
+      return subjectQuestions.slice(0, sectionASize);
     }
-    return subjectQuestions.slice(20);
+    return subjectQuestions.slice(sectionASize);
   };
 
   const goToQuestion = (subject: string, section: "A" | "B", index: number) => {
