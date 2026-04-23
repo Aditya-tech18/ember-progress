@@ -304,14 +304,14 @@ const subjectConfig = {
     icon: Leaf,
     gradient: "from-emerald to-green-500",
     bgGradient: "from-emerald/20 to-green-500/10",
-    dbSubject: "biology",
+    dbSubject: "botany",
     questionsSubject: "Botany",
   },
   Zoology: {
     icon: HeartPulse,
     gradient: "from-emerald to-teal-500",
     bgGradient: "from-emerald/20 to-teal-500/10",
-    dbSubject: "biology",
+    dbSubject: "zoology",
     questionsSubject: "Zoology",
   },
 };

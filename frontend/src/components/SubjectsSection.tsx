@@ -57,12 +57,20 @@ const neetSubjectConfig = [
     description: "Organic, Inorganic & Physical Chemistry",
   },
   {
-    name: "Biology",
-    dbName: "Biology",
+    name: "Botany",
+    dbName: "Botany",
     icon: HeartPulse,
     color: "from-emerald to-green-500",
     bgColor: "bg-emerald/10",
-    description: "Botany, Zoology, Human Physiology & more",
+    description: "Plant Kingdom, Morphology, Photosynthesis & more",
+  },
+  {
+    name: "Zoology",
+    dbName: "Zoology",
+    icon: HeartPulse,
+    color: "from-emerald to-teal-500",
+    bgColor: "bg-emerald/10",
+    description: "Human Physiology, Genetics, Evolution & more",
   },
 ];
 
