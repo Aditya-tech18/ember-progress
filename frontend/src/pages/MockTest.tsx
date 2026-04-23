@@ -6,6 +6,7 @@ import { LatexRenderer } from "@/components/LatexRenderer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { getCachedGoal } from "@/utils/examConfig";
 import {
   Clock,
   ChevronLeft,
@@ -18,6 +19,7 @@ import {
   Atom,
   FlaskConical,
   Calculator,
+  BookOpen,
 } from "lucide-react";
 
 interface Question {
@@ -39,11 +41,17 @@ interface Answer {
   isMarkedForReview: boolean;
 }
 
-// Max 5 attempts allowed in Section B per subject
-const MAX_SECTION_B_ATTEMPTS = 5;
+// Max 5 attempts allowed in Section B per subject (JEE)
+// Max 10 attempts allowed in Section B per subject (NEET)
+const MAX_SECTION_B_ATTEMPTS_JEE = 5;
+const MAX_SECTION_B_ATTEMPTS_NEET = 10;
+
+// Section A size: JEE = 20, NEET = 35
+const SECTION_A_SIZE_JEE = 20;
+const SECTION_A_SIZE_NEET = 35;
 
 // Subject configuration with icons and colors
-const subjectConfig = {
+const subjectConfig: Record<string, { icon: any; color: string; bgColor: string; textColor: string }> = {
   Physics: {
     icon: Atom,
     color: "from-electric-blue to-cyan-500",
@@ -61,6 +69,12 @@ const subjectConfig = {
     color: "from-gold to-amber-500",
     bgColor: "bg-gold",
     textColor: "text-gold",
+  },
+  Biology: {
+    icon: BookOpen,
+    color: "from-green-500 to-emerald-500",
+    bgColor: "bg-green-600",
+    textColor: "text-green-500",
   },
 };
 
@@ -88,17 +102,21 @@ const getMockTestQuestionIds = () => {
 const MockTest = () => {
   const navigate = useNavigate();
   const { testId } = useParams<{ testId: string }>();
+  const goal = getCachedGoal();
+  const isNEET = goal === "NEET";
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<number, Answer>>(new Map());
-  const [timeLeft, setTimeLeft] = useState(3 * 60 * 60);
+  const [timeLeft, setTimeLeft] = useState(isNEET ? 200 * 60 : 3 * 60 * 60); // NEET: 200 min, JEE: 180 min
   const [selectedSubject, setSelectedSubject] = useState<string>("Physics");
   const [currentSection, setCurrentSection] = useState<"A" | "B">("A");
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
-  const subjects = ["Physics", "Chemistry", "Mathematics"];
+  const subjects = isNEET ? ["Physics", "Chemistry", "Biology"] : ["Physics", "Chemistry", "Mathematics"];
+  const sectionASize = isNEET ? SECTION_A_SIZE_NEET : SECTION_A_SIZE_JEE;
+  const maxSectionBAttempts = isNEET ? MAX_SECTION_B_ATTEMPTS_NEET : MAX_SECTION_B_ATTEMPTS_JEE;
   const currentQuestion = questions[currentIndex];
   const isNumerical = currentQuestion && !parseOptions(currentQuestion.options_list).hasOptions;
 
