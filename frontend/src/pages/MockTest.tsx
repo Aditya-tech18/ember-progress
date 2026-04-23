@@ -289,7 +289,7 @@ const MockTest = () => {
     if (question) {
       const subjectQuestions = questions.filter(q => q.subject === question.subject);
       const indexInSubject = subjectQuestions.indexOf(question);
-      const isInSectionB = indexInSubject >= 20;
+      const isInSectionB = indexInSubject >= sectionASize;
 
       if (isInSectionB && answer.trim() !== "") {
         const currentAnswer = answers.get(questionId);
