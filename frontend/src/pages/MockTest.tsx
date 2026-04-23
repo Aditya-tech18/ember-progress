@@ -398,7 +398,8 @@ const MockTest = () => {
         }
       });
 
-      const timeSpent = 3 * 60 * 60 - timeLeft;
+      const totalTime = isNEET ? 200 * 60 : 3 * 60 * 60;
+      const timeSpent = totalTime - timeLeft;
       const totalCorrect = physicsCorrect + chemistryCorrect + mathsCorrect;
       const totalWrong = physicsWrong + chemistryWrong + mathsWrong;
       const totalUnattempted = physicsUnattempted + chemistryUnattempted + mathsUnattempted;
