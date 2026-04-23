@@ -2,20 +2,25 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
+import { getCachedGoal, getExamLabel } from "@/utils/examConfig";
 import {
   ArrowLeft,
   Rocket,
   BookOpen,
   Clock,
   CheckCircle2,
-  XCircle,
-  MinusCircle,
   AlertTriangle,
 } from "lucide-react";
 
 const MockTestInstructions = () => {
   const navigate = useNavigate();
   const { testId } = useParams<{ testId: string }>();
+  const goal = getCachedGoal();
+  const isNEET = goal === "NEET";
+  const examLabel = getExamLabel(goal);
+
+  // Parse year from testId (e.g. "neet_2025" or "2025_Main")
+  const testYear = testId?.match(/\d{4}/)?.[0] || "";
 
   const handleStartTest = () => {
     navigate(`/mock-test/${testId}`);
@@ -42,7 +47,7 @@ const MockTestInstructions = () => {
             </Button>
 
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              JEE Main 2 April 2025 Shift 2
+              {isNEET ? `NEET ${testYear}` : `JEE Main ${testYear}`}
             </h1>
             <p className="text-muted-foreground">Read all instructions carefully before starting</p>
           </motion.div>
@@ -70,7 +75,7 @@ const MockTestInstructions = () => {
                       <span className="text-primary">•</span> Chemistry - Full Syllabus
                     </li>
                     <li className="flex items-center gap-2">
-                      <span className="text-primary">•</span> Mathematics - Full Syllabus
+                      <span className="text-primary">•</span> {isNEET ? "Biology (Botany + Zoology)" : "Mathematics"} - Full Syllabus
                     </li>
                   </ul>
                 </div>
@@ -81,18 +86,41 @@ const MockTestInstructions = () => {
                     📝 Test Structure
                   </h3>
                   <div className="space-y-2 text-muted-foreground text-sm">
-                    <p className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                      <span><strong>Section A:</strong> 20 Multiple Choice Questions (MCQs) - Attempt all</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                      <span><strong>Section B:</strong> 10 Integer Type Questions - Attempt any 5</span>
-                    </p>
-                    <p className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                      <span><strong>Duration:</strong> 3 hours (180 minutes) for the entire test</span>
-                    </p>
+                    {isNEET ? (
+                      <>
+                        <p className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                          <span><strong>Section A:</strong> 35 MCQs per subject - Attempt all</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                          <span><strong>Section B:</strong> 15 MCQs per subject - Attempt any 10</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                          <span><strong>Duration:</strong> 3 hours 20 minutes (200 minutes)</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                          <span><strong>Total Questions:</strong> 200 (attempt 180)</span>
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                          <span><strong>Section A:</strong> 20 Multiple Choice Questions (MCQs) - Attempt all</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                          <span><strong>Section B:</strong> 10 Integer Type Questions - Attempt any 5</span>
+                        </p>
+                        <p className="flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
+                          <span><strong>Duration:</strong> 3 hours (180 minutes)</span>
+                        </p>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -116,7 +144,7 @@ const MockTestInstructions = () => {
                 </div>
               </div>
               <p className="text-gold font-semibold text-sm">
-                Maximum Score: 300 marks (75 questions × 4 marks)
+                Maximum Score: {isNEET ? "720 marks (180 questions × 4 marks)" : "300 marks (75 questions × 4 marks)"}
               </p>
             </div>
 
@@ -134,7 +162,9 @@ const MockTestInstructions = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                    You can select only 5 integer type questions to attempt per subject
+                    {isNEET
+                      ? "In Section B, you can attempt only 10 out of 15 questions per subject"
+                      : "You can select only 5 integer type questions to attempt per subject"}
                   </li>
                   <li className="flex items-start gap-2">
                     <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />

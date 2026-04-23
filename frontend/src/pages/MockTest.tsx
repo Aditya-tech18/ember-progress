@@ -6,6 +6,7 @@ import { LatexRenderer } from "@/components/LatexRenderer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { getCachedGoal } from "@/utils/examConfig";
 import {
   Clock,
   ChevronLeft,
@@ -18,6 +19,7 @@ import {
   Atom,
   FlaskConical,
   Calculator,
+  BookOpen,
 } from "lucide-react";
 
 interface Question {
@@ -39,11 +41,17 @@ interface Answer {
   isMarkedForReview: boolean;
 }
 
-// Max 5 attempts allowed in Section B per subject
-const MAX_SECTION_B_ATTEMPTS = 5;
+// Max 5 attempts allowed in Section B per subject (JEE)
+// Max 10 attempts allowed in Section B per subject (NEET)
+const MAX_SECTION_B_ATTEMPTS_JEE = 5;
+const MAX_SECTION_B_ATTEMPTS_NEET = 10;
+
+// Section A size: JEE = 20, NEET = 35
+const SECTION_A_SIZE_JEE = 20;
+const SECTION_A_SIZE_NEET = 35;
 
 // Subject configuration with icons and colors
-const subjectConfig = {
+const subjectConfig: Record<string, { icon: any; color: string; bgColor: string; textColor: string }> = {
   Physics: {
     icon: Atom,
     color: "from-electric-blue to-cyan-500",
@@ -61,6 +69,12 @@ const subjectConfig = {
     color: "from-gold to-amber-500",
     bgColor: "bg-gold",
     textColor: "text-gold",
+  },
+  Biology: {
+    icon: BookOpen,
+    color: "from-green-500 to-emerald-500",
+    bgColor: "bg-green-600",
+    textColor: "text-green-500",
   },
 };
 
@@ -88,17 +102,21 @@ const getMockTestQuestionIds = () => {
 const MockTest = () => {
   const navigate = useNavigate();
   const { testId } = useParams<{ testId: string }>();
+  const goal = getCachedGoal();
+  const isNEET = goal === "NEET";
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Map<number, Answer>>(new Map());
-  const [timeLeft, setTimeLeft] = useState(3 * 60 * 60);
+  const [timeLeft, setTimeLeft] = useState(isNEET ? 200 * 60 : 3 * 60 * 60); // NEET: 200 min, JEE: 180 min
   const [selectedSubject, setSelectedSubject] = useState<string>("Physics");
   const [currentSection, setCurrentSection] = useState<"A" | "B">("A");
   const [showSubmitConfirm, setShowSubmitConfirm] = useState(false);
 
-  const subjects = ["Physics", "Chemistry", "Mathematics"];
+  const subjects = isNEET ? ["Physics", "Chemistry", "Biology"] : ["Physics", "Chemistry", "Mathematics"];
+  const sectionASize = isNEET ? SECTION_A_SIZE_NEET : SECTION_A_SIZE_JEE;
+  const maxSectionBAttempts = isNEET ? MAX_SECTION_B_ATTEMPTS_NEET : MAX_SECTION_B_ATTEMPTS_JEE;
   const currentQuestion = questions[currentIndex];
   const isNumerical = currentQuestion && !parseOptions(currentQuestion.options_list).hasOptions;
 
@@ -122,49 +140,107 @@ const MockTest = () => {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      const questionIds = getMockTestQuestionIds();
-      const allIds = [
-        ...questionIds.Physics,
-        ...questionIds.Chemistry,
-        ...questionIds.Mathematics,
-      ];
+      if (isNEET) {
+        // Parse year from testId like "neet_2025" or "2025_NEET 2025"
+        const yearMatch = testId?.match(/(\d{4})/);
+        const year = yearMatch ? parseInt(yearMatch[1]) : null;
 
-      const { data, error } = await supabase
-        .from("questions")
-        .select("*")
-        .in("id", allIds);
+        if (!year) {
+          toast.error("Invalid test ID");
+          setLoading(false);
+          return;
+        }
 
-      if (error) throw error;
+        const { data, error } = await supabase
+          .from("neet_questions")
+          .select("*")
+          .eq("exam_year", year)
+          .order("subject")
+          .order("id");
 
-      if (data && data.length > 0) {
-        const sortedQuestions: Question[] = [];
-        
-        questionIds.Physics.forEach(id => {
-          const q = data.find(d => d.id === id);
-          if (q) sortedQuestions.push({ ...q, subject: "Physics" });
-        });
-        
-        questionIds.Chemistry.forEach(id => {
-          const q = data.find(d => d.id === id);
-          if (q) sortedQuestions.push({ ...q, subject: "Chemistry" });
-        });
-        
-        questionIds.Mathematics.forEach(id => {
-          const q = data.find(d => d.id === id);
-          if (q) sortedQuestions.push({ ...q, subject: "Mathematics" });
-        });
+        if (error) throw error;
 
-        setQuestions(sortedQuestions);
-        
-        const initialAnswers = new Map<number, Answer>();
-        sortedQuestions.forEach((q) => {
-          initialAnswers.set(q.id, {
-            questionId: q.id,
-            userAnswer: null,
-            isMarkedForReview: false,
+        if (data && data.length > 0) {
+          // Sort by subject order: Physics, Chemistry, Biology
+          const subjectOrder = ["Physics", "Chemistry", "Biology"];
+          const sorted = data.sort((a: any, b: any) => {
+            const ai = subjectOrder.indexOf(a.subject || "");
+            const bi = subjectOrder.indexOf(b.subject || "");
+            if (ai !== bi) return ai - bi;
+            return a.id - b.id;
           });
-        });
-        setAnswers(initialAnswers);
+
+          const mappedQuestions: Question[] = sorted.map((q: any) => ({
+            id: q.id,
+            subject: q.subject || "Physics",
+            chapter: q.chapter || "",
+            question_text: q.question_text,
+            options_list: q.options_list,
+            correct_answer: q.correct_answer || "",
+            solution: q.solution || "",
+            question_image_url: q.question_image_url,
+            exam_year: q.exam_year,
+            exam_shift: q.exam_shift || "",
+          }));
+
+          setQuestions(mappedQuestions);
+
+          const initialAnswers = new Map<number, Answer>();
+          mappedQuestions.forEach((q) => {
+            initialAnswers.set(q.id, {
+              questionId: q.id,
+              userAnswer: null,
+              isMarkedForReview: false,
+            });
+          });
+          setAnswers(initialAnswers);
+        }
+      } else {
+        // JEE flow (existing)
+        const questionIds = getMockTestQuestionIds();
+        const allIds = [
+          ...questionIds.Physics,
+          ...questionIds.Chemistry,
+          ...questionIds.Mathematics,
+        ];
+
+        const { data, error } = await supabase
+          .from("questions")
+          .select("*")
+          .in("id", allIds);
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const sortedQuestions: Question[] = [];
+          
+          questionIds.Physics.forEach(id => {
+            const q = data.find(d => d.id === id);
+            if (q) sortedQuestions.push({ ...q, subject: "Physics" });
+          });
+          
+          questionIds.Chemistry.forEach(id => {
+            const q = data.find(d => d.id === id);
+            if (q) sortedQuestions.push({ ...q, subject: "Chemistry" });
+          });
+          
+          questionIds.Mathematics.forEach(id => {
+            const q = data.find(d => d.id === id);
+            if (q) sortedQuestions.push({ ...q, subject: "Mathematics" });
+          });
+
+          setQuestions(sortedQuestions);
+          
+          const initialAnswers = new Map<number, Answer>();
+          sortedQuestions.forEach((q) => {
+            initialAnswers.set(q.id, {
+              questionId: q.id,
+              userAnswer: null,
+              isMarkedForReview: false,
+            });
+          });
+          setAnswers(initialAnswers);
+        }
       }
     } catch (err) {
       console.error("Error fetching questions:", err);
@@ -213,7 +289,7 @@ const MockTest = () => {
     if (question) {
       const subjectQuestions = questions.filter(q => q.subject === question.subject);
       const indexInSubject = subjectQuestions.indexOf(question);
-      const isInSectionB = indexInSubject >= 20;
+      const isInSectionB = indexInSubject >= sectionASize;
 
       if (isInSectionB && answer.trim() !== "") {
         const currentAnswer = answers.get(questionId);
@@ -221,8 +297,8 @@ const MockTest = () => {
         
         if (wasEmpty) {
           const attemptedCount = getSectionBAttemptedCount(question.subject);
-          if (attemptedCount >= MAX_SECTION_B_ATTEMPTS) {
-            toast.error(`You can only attempt ${MAX_SECTION_B_ATTEMPTS} questions in Section B per subject.`);
+          if (attemptedCount >= maxSectionBAttempts) {
+            toast.error(`You can only attempt ${maxSectionBAttempts} questions in Section B per subject.`);
             return;
           }
         }
@@ -260,7 +336,7 @@ const MockTest = () => {
       if (nextQuestion) {
         const subjectQuestions = questions.filter(q => q.subject === nextQuestion.subject);
         const indexInSubject = subjectQuestions.indexOf(nextQuestion);
-        setCurrentSection(indexInSubject < 20 ? "A" : "B");
+        setCurrentSection(indexInSubject < sectionASize ? "A" : "B");
         setSelectedSubject(nextQuestion.subject);
       }
     }
@@ -269,9 +345,9 @@ const MockTest = () => {
   const getSubjectQuestions = (subject: string, section: "A" | "B") => {
     const subjectQuestions = questions.filter((q) => q.subject === subject);
     if (section === "A") {
-      return subjectQuestions.slice(0, 20);
+      return subjectQuestions.slice(0, sectionASize);
     }
-    return subjectQuestions.slice(20);
+    return subjectQuestions.slice(sectionASize);
   };
 
   const goToQuestion = (subject: string, section: "A" | "B", index: number) => {
@@ -322,7 +398,8 @@ const MockTest = () => {
         }
       });
 
-      const timeSpent = 3 * 60 * 60 - timeLeft;
+      const totalTime = isNEET ? 200 * 60 : 3 * 60 * 60;
+      const timeSpent = totalTime - timeLeft;
       const totalCorrect = physicsCorrect + chemistryCorrect + mathsCorrect;
       const totalWrong = physicsWrong + chemistryWrong + mathsWrong;
       const totalUnattempted = physicsUnattempted + chemistryUnattempted + mathsUnattempted;
@@ -475,7 +552,7 @@ const MockTest = () => {
                       : `border-primary/50 ${config.textColor} hover:bg-primary/10`
                   }`}
                 >
-                  Section {section} {section === "A" ? "(MCQ)" : `(Integer - ${sectionBCount}/${MAX_SECTION_B_ATTEMPTS})`}
+                  Section {section} {section === "A" ? "(MCQ)" : isNEET ? `(MCQ - ${sectionBCount}/${maxSectionBAttempts})` : `(Integer - ${sectionBCount}/${maxSectionBAttempts})`}
                 </button>
               );
             })}
