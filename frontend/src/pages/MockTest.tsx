@@ -551,7 +551,7 @@ const MockTest = () => {
                       : `border-primary/50 ${config.textColor} hover:bg-primary/10`
                   }`}
                 >
-                  Section {section} {section === "A" ? "(MCQ)" : `(Integer - ${sectionBCount}/${MAX_SECTION_B_ATTEMPTS})`}
+                  Section {section} {section === "A" ? "(MCQ)" : isNEET ? `(MCQ - ${sectionBCount}/${maxSectionBAttempts})` : `(Integer - ${sectionBCount}/${maxSectionBAttempts})`}
                 </button>
               );
             })}
