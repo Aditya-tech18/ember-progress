@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Loader2, Bell, TrendingUp, Clock, Users } from "lucide-react";
+import { X, Search, Loader2, Bell, TrendingUp, Clock, Users, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { PostCard } from "./PostCard";
 import { UserProfileModal } from "./UserProfileModal";
 import { NotificationPanel } from "./NotificationPanel";
+import { CreatePostModal } from "./CreatePostModal";
 
 interface Post {
   id: string;
@@ -45,6 +46,7 @@ export const PostCloudModal = ({ isOpen, onClose }: PostCloudModalProps) => {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showCreatePost, setShowCreatePost] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -246,6 +248,14 @@ export const PostCloudModal = ({ isOpen, onClose }: PostCloudModalProps) => {
               </h1>
               <div className="flex items-center gap-2">
                 <Button
+                  onClick={() => setShowCreatePost(true)}
+                  size="sm"
+                  className="rounded-full bg-gradient-to-r from-primary to-crimson text-white font-semibold shadow-lg shadow-primary/30 hover:shadow-primary/50 transition-shadow px-4"
+                >
+                  <Plus className="w-4 h-4 mr-1" strokeWidth={2.5} />
+                  Post
+                </Button>
+                <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setShowNotifications(true)}
@@ -352,9 +362,15 @@ export const PostCloudModal = ({ isOpen, onClose }: PostCloudModalProps) => {
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <Users className="w-16 h-16 text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">No posts yet</h3>
-              <p className="text-muted-foreground">
-                Be the first to share your JEE journey!
+              <p className="text-muted-foreground mb-6">
+                Be the first to share your preparation journey!
               </p>
+              <Button
+                onClick={() => setShowCreatePost(true)}
+                className="bg-gradient-to-r from-primary to-crimson text-white font-semibold"
+              >
+                <Plus className="w-4 h-4 mr-2" /> Create your first post
+              </Button>
             </div>
           ) : (
             <div className="space-y-6">
@@ -371,6 +387,30 @@ export const PostCloudModal = ({ isOpen, onClose }: PostCloudModalProps) => {
             </div>
           )}
         </div>
+
+        {/* Floating Create Post FAB — LinkedIn-style */}
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, type: "spring", stiffness: 260, damping: 20 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setShowCreatePost(true)}
+          aria-label="Create new post"
+          className="fixed bottom-20 right-5 sm:bottom-8 sm:right-8 z-30 h-14 w-14 rounded-full bg-gradient-to-br from-primary to-crimson text-white shadow-[0_8px_32px_-4px_hsl(var(--primary)/0.6)] flex items-center justify-center hover:shadow-[0_12px_40px_-4px_hsl(var(--primary)/0.8)] transition-shadow"
+        >
+          <Plus className="w-7 h-7" strokeWidth={2.5} />
+        </motion.button>
+
+        {/* Create Post Modal */}
+        <CreatePostModal
+          isOpen={showCreatePost}
+          onClose={() => setShowCreatePost(false)}
+          onPostCreated={() => {
+            setShowCreatePost(false);
+            fetchPosts();
+          }}
+        />
 
         {/* User Profile Modal */}
         {selectedProfileId && (

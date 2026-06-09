@@ -9,7 +9,9 @@ import { BottomNavBar } from "@/components/BottomNavBar";
 import { SplashScreen } from "@/components/SplashScreen";
 import { useHabitReminder } from "@/hooks/useHabitReminder";
 import { useBackButton } from "@/hooks/useBackButton";
+import { useAndroidBackButton } from "@/hooks/useAndroidBackButton";
 import { supabase } from "@/integrations/supabase/client";
+import { App as CapacitorApp } from "@capacitor/app";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import OtpVerification from "./pages/OtpVerification";
@@ -44,34 +46,64 @@ import MockTestSolutions from "./pages/MockTestSolutions";
 import MentorProfilePage from "./pages/MentorProfilePage";
 import MentorApplication from "./pages/MentorApplication";
 import GoalSelection from "./pages/GoalSelection";
-import BuildLifePlanner from "./pages/BuildLifePlanner";
-import BuildLifeSubscription from "./pages/BuildLifeSubscription";
 import AdminPanel from "./pages/AdminPanel";
 import StudentMentorDashboard from "./pages/StudentMentorDashboard";
 import MentorDashboard from "./pages/MentorDashboard";
 import MentorChat from "./pages/MentorChat";
 import Posts from "./pages/Posts";
+import NotesList from "./pages/NotesList";
+import NotesViewer from "./pages/NotesViewer";
+import AdminNotesUpload from "./pages/AdminNotesUpload";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const [userGoal, setUserGoal] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [initialCheckDone, setInitialCheckDone] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   useHabitReminder();
   useBackButton();
+  useAndroidBackButton();
+
+  // Deep link handler — catches OAuth callback on Android
+  useEffect(() => {
+    let listener: any;
+
+    const setup = async () => {
+      listener = await CapacitorApp.addListener("appUrlOpen", async ({ url }) => {
+        console.log("AppContent deep link:", url);
+
+        if (!url.includes("auth/callback") && !url.includes("access_token")) return;
+
+        // Retry up to 10 times with 500ms intervals (5 seconds total)
+        for (let i = 0; i < 10; i++) {
+          await new Promise((r) => setTimeout(r, 500));
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            window.dispatchEvent(new Event("goalSaved"));
+            navigate("/", { replace: true });
+            return;
+          }
+        }
+
+        // If session never appeared, send to goal selection as fallback
+        console.warn("AppContent: session never established after OAuth callback");
+        navigate("/goal-selection", { replace: true });
+      });
+    };
+
+    setup();
+    return () => { listener?.remove(); };
+  }, [navigate]);
 
   useEffect(() => {
     const fetchUserGoal = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         setLoading(false);
-        setInitialCheckDone(true);
-        // Not logged in, check if on root path
         if (location.pathname === "/") {
           navigate("/goal-selection");
         }
@@ -85,39 +117,32 @@ const AppContent = () => {
         .maybeSingle();
 
       if (!data || !data.goal) {
-        // User logged in but no goal
         setLoading(false);
-        setInitialCheckDone(true);
         if (location.pathname === "/") {
           navigate("/goal-selection");
         }
         return;
       }
 
-      // User has a goal
       setUserGoal(data.goal);
       setLoading(false);
-      setInitialCheckDone(true);
-      
-      // Only redirect on initial load from root
-      if (!initialCheckDone && location.pathname === "/") {
-        if (data.goal === "JEE") {
-          // Stay on home for JEE users
-        } else {
-          // Redirect to buildlife for non-JEE users
-          navigate("/buildlife");
-        }
-      }
     };
 
     fetchUserGoal();
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      fetchUserGoal();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+        fetchUserGoal();
+      }
     });
 
-    return () => subscription.unsubscribe();
+    const handleGoalSaved = () => fetchUserGoal();
+    window.addEventListener("goalSaved", handleGoalSaved);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("goalSaved", handleGoalSaved);
+    };
   }, []);
 
   if (loading) {
@@ -127,7 +152,6 @@ const AppContent = () => {
   return (
     <>
       <Routes>
-        {/* Public routes */}
         <Route path="/goal-selection" element={<GoalSelection />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/otp-verification" element={<OtpVerification />} />
@@ -138,20 +162,19 @@ const AppContent = () => {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/contact" element={<Contact />} />
 
-        {/* BuildLife routes (non-JEE users) */}
-        <Route path="/buildlife" element={<BuildLifePlanner />} />
-        <Route path="/buildlife-subscription" element={<BuildLifeSubscription />} />
+        <Route path="/buildlife" element={<Navigate to="/goal-selection" replace />} />
+        <Route path="/buildlife-subscription" element={<Navigate to="/subscription" replace />} />
 
-        {/* Home route */}
-        <Route 
-          path="/" 
+        <Route
+          path="/"
           element={
-            userGoal === "JEE" ? <Index /> : <Navigate to="/goal-selection" replace />
-          } 
+            (userGoal === "JEE" || userGoal === "NEET")
+              ? <Index />
+              : <Navigate to="/goal-selection" replace />
+          }
         />
 
-        {/* JEE-only routes */}
-        {userGoal === "JEE" ? (
+        {(userGoal === "JEE" || userGoal === "NEET") ? (
           <>
             <Route path="/chapters/:subject" element={<ChapterSelect />} />
             <Route path="/questions/:chapterName" element={<QuestionList />} />
@@ -182,19 +205,19 @@ const AppContent = () => {
             <Route path="/mentor-dashboard" element={<MentorDashboard />} />
             <Route path="/mentor-chat/:sessionId" element={<MentorChat />} />
             <Route path="/posts" element={<Posts />} />
+            <Route path="/notes" element={<NotesList />} />
+            <Route path="/notes/:noteId" element={<NotesViewer />} />
+            <Route path="/admin/notes" element={<AdminNotesUpload />} />
             <Route path="/pyq" element={<ChapterSelect />} />
           </>
         ) : (
-          // Non-JEE users trying to access JEE routes get redirected
           <Route path="*" element={<Navigate to="/goal-selection" replace />} />
         )}
 
-        {/* 404 for truly unknown routes */}
         <Route path="/404" element={<NotFound />} />
       </Routes>
-      
-      {/* Only show bottom nav for JEE users */}
-      {userGoal === "JEE" && <BottomNavBar />}
+
+      {(userGoal === "JEE" || userGoal === "NEET") && <BottomNavBar />}
     </>
   );
 };

@@ -2,20 +2,9 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { 
-  ShieldCheck, 
-  UserCheck, 
-  UserX, 
-  Clock, 
-  CheckCircle, 
-  XCircle,
-  FileText,
-  Mail,
-  Phone,
-  GraduationCap,
-  Award,
-  ChevronDown,
-  ChevronUp,
-  Loader2
+  ShieldCheck, UserCheck, UserX, Clock, CheckCircle, XCircle,
+  FileText, Mail, Phone, GraduationCap, Award, ChevronDown,
+  ChevronUp, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -39,7 +28,7 @@ interface MentorApplication {
   about_me: string;
   college_id_url: string;
   exam_result_url: string;
-  status: 'pending' | 'under_review' | 'approved' | 'rejected';
+  status: string;
   admin_notes?: string;
   created_at: string;
   updated_at: string;
@@ -54,7 +43,6 @@ export const AdminPanel = () => {
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [processingId, setProcessingId] = useState<string | null>(null);
-  const [creatingContest, setCreatingContest] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -62,410 +50,239 @@ export const AdminPanel = () => {
 
   const checkAuth = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    
     if (!session?.user) {
       toast.error("Please login to access admin panel");
       navigate("/auth");
       return;
     }
-
     const userEmail = session.user.email || "";
     if (!isAdmin(userEmail)) {
       toast.error("Unauthorized access. Admin privileges required.");
       navigate("/");
       return;
     }
-
     setUser(session.user);
-    fetchApplications(userEmail);
+    fetchApplications();
   };
 
-  const fetchApplications = async (adminEmail: string) => {
+  const fetchApplications = async () => {
     try {
       setLoading(true);
-      // Vite exposes env vars through import.meta.env, not process.env
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
-      console.log('Fetching applications from:', backendUrl);
-      const response = await fetch(
-        `${backendUrl}/api/admin/applications?admin_email=${encodeURIComponent(adminEmail)}`
-      );
+      const { data, error } = await supabase
+        .from("mentor_applications")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch applications');
-      }
-
-      const data = await response.json();
-      console.log('Fetched applications:', data);
-      setApplications(data.applications || []);
+      if (error) throw error;
+      setApplications((data as unknown as MentorApplication[]) || []);
     } catch (error: any) {
-      console.error('Error fetching applications:', error);
-      toast.error(error.message || "Failed to load applications");
+      console.error("Error fetching applications:", error);
+      toast.error("Failed to load applications");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async (applicationId: string) => {
-    if (!user?.email) return;
-
+  const handleApprove = async (app: MentorApplication) => {
+    if (!user) return;
     try {
-      setProcessingId(applicationId);
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
-      const response = await fetch(
-        `${backendUrl}/api/admin/applications/${applicationId}/approve`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            admin_email: user.email,
-            admin_notes: 'Approved by admin'
-          })
-        }
-      );
+      setProcessingId(app.id);
 
-      if (!response.ok) {
-        throw new Error('Failed to approve application');
-      }
+      // 1. Update application status to approved
+      const { error: updateError } = await supabase
+        .from("mentor_applications")
+        .update({
+          status: "approved",
+          admin_notes: "Approved by admin",
+          reviewed_by: user.id,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", app.id);
+
+      if (updateError) throw updateError;
+
+      // 2. Create mentor profile from application data
+      const { error: profileError } = await supabase
+        .from("mentor_profiles")
+        .insert({
+          user_id: app.user_id,
+          full_name: app.full_name,
+          email: app.email,
+          application_id: app.id,
+          tagline: app.tagline,
+          achievements: app.achievements,
+          about_me: app.about_me,
+          college_name: app.college_name,
+          college: app.college_name,
+          course: app.course,
+          display_college: app.display_college_publicly ?? true,
+          exam_expertise: app.exam_expertise,
+          is_active: true,
+          is_verified: true,
+          rating: 0,
+          total_sessions: 0,
+          total_reviews: 0,
+        });
+
+      if (profileError) throw profileError;
 
       toast.success("Application approved! Mentor profile created.");
-      fetchApplications(user.email);
+      fetchApplications();
     } catch (error: any) {
-      console.error('Error approving application:', error);
+      console.error("Error approving:", error);
       toast.error(error.message || "Failed to approve application");
     } finally {
       setProcessingId(null);
     }
   };
 
-  const handleReject = async (applicationId: string) => {
-    if (!user?.email) return;
-
+  const handleReject = async (app: MentorApplication) => {
+    if (!user) return;
     const reason = prompt("Enter rejection reason (optional):");
-    
     try {
-      setProcessingId(applicationId);
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
-      const response = await fetch(
-        `${backendUrl}/api/admin/applications/${applicationId}/reject`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            admin_email: user.email,
-            admin_notes: reason || 'Rejected by admin'
-          })
-        }
-      );
+      setProcessingId(app.id);
+      const { error } = await supabase
+        .from("mentor_applications")
+        .update({
+          status: "rejected",
+          admin_notes: reason || "Rejected by admin",
+          reviewed_by: user.id,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq("id", app.id);
 
-      if (!response.ok) {
-        throw new Error('Failed to reject application');
-      }
-
+      if (error) throw error;
       toast.success("Application rejected.");
-      fetchApplications(user.email);
+      fetchApplications();
     } catch (error: any) {
-      console.error('Error rejecting application:', error);
+      console.error("Error rejecting:", error);
       toast.error(error.message || "Failed to reject application");
     } finally {
       setProcessingId(null);
     }
   };
 
-  const handleCreateWeeklyContest = async () => {
-    if (!user?.email) return;
-
-    try {
-      setCreatingContest(true);
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
-      const response = await fetch(
-        `${backendUrl}/api/admin/contests/create-weekly?admin_email=${encodeURIComponent(user.email)}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to create weekly contest');
-      }
-
-      const data = await response.json();
-      toast.success(data.message || "Weekly contest created for upcoming Sunday!");
-    } catch (error: any) {
-      console.error('Error creating contest:', error);
-      toast.error(error.message || "Failed to create weekly contest");
-    } finally {
-      setCreatingContest(false);
-    }
-  };
-
-
   const getStatusBadge = (status: string) => {
-    const styles = {
+    const styles: Record<string, string> = {
       pending: "bg-yellow-500/20 text-yellow-300 border-yellow-500/30",
-      under_review: "bg-blue-500/20 text-blue-300 border-blue-500/30",
       approved: "bg-green-500/20 text-green-300 border-green-500/30",
-      rejected: "bg-red-500/20 text-red-300 border-red-500/30"
+      rejected: "bg-red-500/20 text-red-300 border-red-500/30",
     };
-
-    const icons = {
-      pending: Clock,
-      under_review: FileText,
-      approved: CheckCircle,
-      rejected: XCircle
-    };
-
-    const Icon = icons[status as keyof typeof icons] || Clock;
-
+    const icons: Record<string, any> = { pending: Clock, approved: CheckCircle, rejected: XCircle };
+    const Icon = icons[status] || Clock;
     return (
-      <Badge className={`${styles[status as keyof typeof styles]} border flex items-center gap-1`}>
+      <Badge className={`${styles[status] || styles.pending} border flex items-center gap-1`}>
         <Icon className="w-3 h-3" />
-        {status.replace('_', ' ').toUpperCase()}
+        {status.toUpperCase()}
       </Badge>
     );
   };
 
   const stats = {
     total: applications.length,
-    pending: applications.filter(a => a.status === 'pending').length,
-    approved: applications.filter(a => a.status === 'approved').length,
-    rejected: applications.filter(a => a.status === 'rejected').length,
+    pending: applications.filter(a => a.status === "pending").length,
+    approved: applications.filter(a => a.status === "approved").length,
+    rejected: applications.filter(a => a.status === "rejected").length,
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0B0B0B] flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading applications...</p>
-        </div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0B0B] text-white pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#0B0B0B]/95 backdrop-blur-lg border-b border-white/10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold">Admin Panel</h1>
-                <p className="text-sm text-gray-400">{user?.email}</p>
-              </div>
+    <div className="min-h-screen bg-background text-foreground pb-20">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/20 rounded-lg"><ShieldCheck className="w-6 h-6 text-primary" /></div>
+            <div>
+              <h1 className="text-xl font-bold">Admin Panel</h1>
+              <p className="text-sm text-muted-foreground">{user?.email}</p>
             </div>
-            <Button onClick={() => navigate("/")} variant="ghost" size="sm">
-              Back to Home
-            </Button>
           </div>
+          <Button onClick={() => navigate("/")} variant="ghost" size="sm">Back to Home</Button>
         </div>
       </div>
 
-      {/* Stats */}
       <div className="container mx-auto px-4 py-6">
-        {/* Admin Actions */}
-        <div className="mb-6">
-          <Button
-            onClick={handleCreateWeeklyContest}
-            disabled={creatingContest}
-            className="bg-gradient-to-r from-[#E50914] to-red-600 hover:from-[#E50914]/90 hover:to-red-600/90 text-white font-bold"
-          >
-            {creatingContest ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating Contest...
-              </>
-            ) : (
-              "📅 Create JEE Main Weekly Contest (Sunday)"
-            )}
-          </Button>
-        </div>
-
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="bg-[#151515] border-white/10 p-4">
-            <div className="text-2xl font-bold text-white">{stats.total}</div>
-            <div className="text-sm text-gray-400">Total Applications</div>
-          </Card>
-          <Card className="bg-[#151515] border-yellow-500/20 p-4">
-            <div className="text-2xl font-bold text-yellow-400">{stats.pending}</div>
-            <div className="text-sm text-gray-400">Pending</div>
-          </Card>
-          <Card className="bg-[#151515] border-green-500/20 p-4">
-            <div className="text-2xl font-bold text-green-400">{stats.approved}</div>
-            <div className="text-sm text-gray-400">Approved</div>
-          </Card>
-          <Card className="bg-[#151515] border-red-500/20 p-4">
-            <div className="text-2xl font-bold text-red-400">{stats.rejected}</div>
-            <div className="text-sm text-gray-400">Rejected</div>
-          </Card>
+          <Card className="p-4"><div className="text-2xl font-bold">{stats.total}</div><div className="text-sm text-muted-foreground">Total</div></Card>
+          <Card className="p-4 border-yellow-500/20"><div className="text-2xl font-bold text-yellow-400">{stats.pending}</div><div className="text-sm text-muted-foreground">Pending</div></Card>
+          <Card className="p-4 border-green-500/20"><div className="text-2xl font-bold text-green-400">{stats.approved}</div><div className="text-sm text-muted-foreground">Approved</div></Card>
+          <Card className="p-4 border-red-500/20"><div className="text-2xl font-bold text-red-400">{stats.rejected}</div><div className="text-sm text-muted-foreground">Rejected</div></Card>
         </div>
 
-        {/* Applications List */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <UserCheck className="w-5 h-5 text-purple-400" />
-            Mentor Applications
-          </h2>
+        <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
+          <UserCheck className="w-5 h-5 text-primary" /> Mentor Applications
+        </h2>
 
-          {applications.length === 0 ? (
-            <Card className="bg-[#151515] border-white/10 p-8 text-center">
-              <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400">No applications yet</p>
-            </Card>
-          ) : (
-            applications.map((app) => (
-              <motion.div
-                key={app.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-[#151515] border border-white/10 rounded-lg overflow-hidden"
-              >
-                {/* Application Header */}
+        {applications.length === 0 ? (
+          <Card className="p-8 text-center"><FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" /><p className="text-muted-foreground">No applications yet</p></Card>
+        ) : (
+          <div className="space-y-4">
+            {applications.map((app) => (
+              <Card key={app.id} className="overflow-hidden">
                 <div className="p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="font-semibold text-lg truncate">{app.full_name}</h3>
                       {getStatusBadge(app.status)}
                     </div>
-                    
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-3">
-                      <div className="flex items-center gap-1">
-                        <Mail className="w-4 h-4" />
-                        <span className="truncate">{app.email}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-4 h-4" />
-                        <span>{app.mobile_number}</span>
-                      </div>
+                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-2">
+                      <span className="flex items-center gap-1"><Mail className="w-4 h-4" />{app.email}</span>
+                      <span className="flex items-center gap-1"><Phone className="w-4 h-4" />{app.mobile_number}</span>
                     </div>
-
-                    <div className="flex items-center gap-2 text-sm">
-                      <GraduationCap className="w-4 h-4 text-purple-400" />
-                      <span className="text-gray-300">{app.college_name} - {app.course}</span>
+                    <div className="flex items-center gap-2 text-sm mb-2">
+                      <GraduationCap className="w-4 h-4 text-primary" />
+                      <span>{app.college_name} - {app.course}</span>
                     </div>
-
-                    <div className="flex flex-wrap gap-2 mt-3">
+                    <div className="flex flex-wrap gap-2">
                       {app.exam_expertise.map((exam, idx) => (
-                        <Badge key={idx} variant="outline" className="border-purple-500/30 text-purple-300">
-                          {exam}
-                        </Badge>
+                        <Badge key={idx} variant="outline">{exam}</Badge>
                       ))}
                     </div>
                   </div>
-
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setExpandedId(expandedId === app.id ? null : app.id)}
-                  >
-                    {expandedId === app.id ? (
-                      <ChevronUp className="w-5 h-5" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5" />
-                    )}
+                  <Button variant="ghost" size="sm" onClick={() => setExpandedId(expandedId === app.id ? null : app.id)}>
+                    {expandedId === app.id ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                   </Button>
                 </div>
 
-                {/* Expanded Details */}
                 {expandedId === app.id && (
-                  <motion.div
-                    initial={{ height: 0 }}
-                    animate={{ height: "auto" }}
-                    exit={{ height: 0 }}
-                    className="border-t border-white/10"
-                  >
-                    <div className="p-4 space-y-4">
-                      <div>
-                        <h4 className="text-sm font-semibold text-purple-400 mb-2">Tagline</h4>
-                        <p className="text-gray-300">{app.tagline}</p>
+                  <div className="border-t border-border p-4 space-y-4">
+                    <div><h4 className="text-sm font-semibold text-primary mb-1">Tagline</h4><p>{app.tagline}</p></div>
+                    <div><h4 className="text-sm font-semibold text-primary mb-1 flex items-center gap-1"><Award className="w-4 h-4" />Achievements</h4><p className="whitespace-pre-line">{app.achievements}</p></div>
+                    <div><h4 className="text-sm font-semibold text-primary mb-1">About</h4><p>{app.about_me}</p></div>
+                    <div>
+                      <h4 className="text-sm font-semibold text-primary mb-1">Documents</h4>
+                      <div className="flex gap-4">
+                        <a href={app.college_id_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm underline">View College ID</a>
+                        <a href={app.exam_result_url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm underline">View Exam Result</a>
                       </div>
-
-                      <div>
-                        <h4 className="text-sm font-semibold text-purple-400 mb-2 flex items-center gap-2">
-                          <Award className="w-4 h-4" />
-                          Achievements
-                        </h4>
-                        <p className="text-gray-300 whitespace-pre-line">{app.achievements}</p>
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-semibold text-purple-400 mb-2">About</h4>
-                        <p className="text-gray-300">{app.about_me}</p>
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-semibold text-purple-400 mb-2">Verification Documents</h4>
-                        <div className="flex gap-4">
-                          <a 
-                            href={app.college_id_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 text-sm underline"
-                          >
-                            View College ID
-                          </a>
-                          <a 
-                            href={app.exam_result_url} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-400 hover:text-blue-300 text-sm underline"
-                          >
-                            View Exam Result
-                          </a>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-gray-500">
-                        Applied: {new Date(app.created_at).toLocaleDateString()}
-                      </div>
-
-                      {/* Action Buttons */}
-                      {app.status === 'pending' && (
-                        <div className="flex gap-3 pt-4">
-                          <Button
-                            onClick={() => handleApprove(app.id)}
-                            disabled={processingId === app.id}
-                            className="flex-1 bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600"
-                          >
-                            {processingId === app.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <UserCheck className="w-4 h-4 mr-2" />
-                            )}
-                            Approve
-                          </Button>
-                          <Button
-                            onClick={() => handleReject(app.id)}
-                            disabled={processingId === app.id}
-                            variant="destructive"
-                            className="flex-1"
-                          >
-                            {processingId === app.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                            ) : (
-                              <UserX className="w-4 h-4 mr-2" />
-                            )}
-                            Reject
-                          </Button>
-                        </div>
-                      )}
                     </div>
-                  </motion.div>
+                    <p className="text-xs text-muted-foreground">Applied: {new Date(app.created_at).toLocaleDateString()}</p>
+
+                    {app.status === "pending" && (
+                      <div className="flex gap-3 pt-4">
+                        <Button onClick={() => handleApprove(app)} disabled={processingId === app.id} className="flex-1 bg-green-600 hover:bg-green-700">
+                          {processingId === app.id ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserCheck className="w-4 h-4 mr-2" />}
+                          Approve
+                        </Button>
+                        <Button onClick={() => handleReject(app)} disabled={processingId === app.id} variant="destructive" className="flex-1">
+                          {processingId === app.id ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <UserX className="w-4 h-4 mr-2" />}
+                          Reject
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 )}
-              </motion.div>
-            ))
-          )}
-        </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

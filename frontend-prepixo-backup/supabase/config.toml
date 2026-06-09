@@ -1,0 +1,16 @@
+project_id = "pgvymttdvdlkcroqxsgn"
+
+[functions.otp_generator]
+verify_jwt = false
+
+[functions.verify_otp]
+verify_jwt = false
+
+[functions.bright-action]
+verify_jwt = false
+
+[functions.ask-ai]
+verify_jwt = false
+
+[functions.livekit-token]
+verify_jwt = false

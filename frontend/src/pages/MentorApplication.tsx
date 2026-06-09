@@ -199,15 +199,15 @@ export default function MentorApplication() {
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      <div className="pt-20 pb-16 px-4">
+      <div className="pt-20 pb-20 px-3 sm:px-4">
         <div className="container mx-auto max-w-3xl">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Mentor Application</h1>
-            <p className="text-muted-foreground">Step {step} of 3</p>
+          <div className="mb-6 text-center">
+            <h1 className="text-2xl sm:text-3xl font-bold mb-2">Mentor Application</h1>
+            <p className="text-sm text-muted-foreground">Step {step} of 3</p>
           </div>
 
           <form onSubmit={handleSubmit}>
-            <Card className="p-8 border-red-600/30">
+            <Card className="p-4 sm:p-6 md:p-8 border-red-600/30">
               {step === 1 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold mb-6">Personal Information</h2>
@@ -222,7 +222,7 @@ export default function MentorApplication() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label>Mobile Number *</Label>
                       <Input
@@ -278,7 +278,7 @@ export default function MentorApplication() {
                 <div className="space-y-6">
                   <h2 className="text-2xl font-bold mb-6">Academic Details</h2>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <Label>College Name *</Label>
                       <Input

@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedGoal, getQuestionsTable } from "@/utils/examConfig";
 import { Navbar } from "@/components/Navbar";
 import { LatexRenderer } from "@/components/LatexRenderer";
 import { Button } from "@/components/ui/button";
@@ -60,8 +61,9 @@ const QuestionList = () => {
     setError(null);
 
     try {
+      const table = getQuestionsTable(getCachedGoal());
       const { data, error: fetchError } = await supabase
-        .from("questions")
+        .from(table)
         .select("id, chapter, subject, exam_year, exam_shift, question_text")
         .eq("chapter", decodedChapterName)
         .order("exam_year", { ascending: false });

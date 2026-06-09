@@ -32,20 +32,29 @@ export const BottomNavBar = () => {
 
   const checkMentorStatus = async (userId: string) => {
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'https://db-integration-16.preview.emergentagent.com';
+      // Check if user is an approved mentor
+      const { data: mentorProfile } = await supabase
+        .from('mentor_profiles')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_verified', true)
+        .maybeSingle();
       
-      // Check if user has mentor profile
-      const mentorCheck = await fetch(`${backendUrl}/api/sessions/mentor/${userId}`);
-      const mentorData = await mentorCheck.json();
-      
-      // Check if user has paid sessions as student
-      const studentCheck = await fetch(`${backendUrl}/api/sessions/student/${userId}`);
-      const studentData = await studentCheck.json();
-      
-      if (mentorData.success && mentorData.sessions?.length > 0) {
+      if (mentorProfile) {
         setShowMentorButton(true);
         setMentorPath("/mentor-dashboard");
-      } else if (studentData.success && studentData.sessions?.length > 0) {
+        return;
+      }
+      
+      // Check if user has paid for any sessions
+      const { data: sessions } = await supabase
+        .from('mentor_sessions')
+        .select('id')
+        .eq('student_id', userId)
+        .eq('payment_status', 'completed')
+        .limit(1);
+      
+      if (sessions && sessions.length > 0) {
         setShowMentorButton(true);
         setMentorPath("/student-mentors");
       }
@@ -99,13 +108,18 @@ export const BottomNavBar = () => {
             const isActive = item.path === "/posts" 
               ? false 
               : location.pathname === item.path;
+            const isPost = item.path === "/posts";
             
             return (
               <motion.button
                 key={item.label}
                 whileTap={{ scale: 0.85 }}
+                animate={isPost ? { scale: [1, 1.08, 1] } : {}}
+                transition={isPost ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : {}}
                 onClick={() => handleNavClick(item)}
-                className="flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative"
+                className={`flex flex-col items-center justify-center gap-0.5 flex-1 py-1 relative ${
+                  isPost ? "drop-shadow-[0_0_8px_hsl(var(--primary))]" : ""
+                }`}
               >
                 {isActive && (
                   <motion.div
@@ -113,8 +127,11 @@ export const BottomNavBar = () => {
                     className="absolute -top-0.5 w-6 h-0.5 bg-primary rounded-full"
                   />
                 )}
-                <item.icon className={`w-5 h-5 ${isActive ? "text-primary" : "text-muted-foreground"}`} />
-                <span className={`text-[10px] font-medium ${isActive ? "text-primary" : "text-muted-foreground"}`}>
+                {isPost && (
+                  <span className="absolute inset-0 -m-1 rounded-full bg-primary/20 blur-md animate-pulse pointer-events-none" />
+                )}
+                <item.icon className={`w-5 h-5 ${isPost ? "text-primary" : isActive ? "text-primary" : "text-muted-foreground"}`} />
+                <span className={`text-[10px] font-medium ${isPost ? "text-primary font-bold" : isActive ? "text-primary" : "text-muted-foreground"}`}>
                   {item.label}
                 </span>
               </motion.button>

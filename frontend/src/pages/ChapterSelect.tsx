@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription, isChapterFree } from "@/hooks/useSubscription";
+import { getCachedGoal, getQuestionsTable } from "@/utils/examConfig";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -209,6 +210,60 @@ const allChaptersData: Record<string, ChapterData[]> = {
   ],
 };
 
+// ==================== NEET BOTANY CHAPTERS ====================
+const neetBotanyChapters: ChapterData[] = [
+  { name: "Living World | REDUCED", icon: Leaf, iconColor: "text-green-400" },
+  { name: "Bio Classification", icon: Layers, iconColor: "text-teal-400" },
+  { name: "Plant Kingdom | REDUCED", icon: Leaf, iconColor: "text-lime-400" },
+  { name: "Animal Kingdom", icon: HeartPulse, iconColor: "text-red-400" },
+  { name: "Morphology of Plants | REDUCED", icon: Leaf, iconColor: "text-green-500" },
+  { name: "Anatomy of Plants | REDUCED", icon: Microscope, iconColor: "text-emerald-400" },
+  { name: "Cell Cycle & Division", icon: RefreshCw, iconColor: "text-cyan-400" },
+  { name: "Cell - Unit of Life", icon: CircleDot, iconColor: "text-blue-400" },
+  { name: "Plant Growth & Dev | REDUCED", icon: TrendingUp, iconColor: "text-lime-500" },
+  { name: "Plant Transport | REMOVED", icon: TrendingUp, iconColor: "text-green-600" },
+  { name: "Plant Respiration", icon: Flame, iconColor: "text-orange-500" },
+  { name: "Mineral Nutrition | REMOVED", icon: Droplets, iconColor: "text-amber-400" },
+  { name: "Photosynthesis", icon: Sparkles, iconColor: "text-yellow-400" },
+  { name: "Reproduction in Plants", icon: Leaf, iconColor: "text-green-400" },
+  { name: "Reproduction | REMOVED", icon: RefreshCw, iconColor: "text-rose-400" },
+  { name: "Biomolecules (B) | REDUCED", icon: HeartPulse, iconColor: "text-pink-400" },
+  { name: "Environmental Issues | REMOVED", icon: Cloud, iconColor: "text-gray-500" },
+  { name: "Biodiversity", icon: Globe, iconColor: "text-teal-600" },
+  { name: "Ecosystem | REDUCED", icon: Leaf, iconColor: "text-emerald-500" },
+];
+
+// ==================== NEET ZOOLOGY CHAPTERS ====================
+const neetZoologyChapters: ChapterData[] = [
+  { name: "Structural Org in Animals | REDUCED", icon: Shapes, iconColor: "text-orange-400" },
+  { name: "Chemical Coordination", icon: FlaskConical, iconColor: "text-pink-500" },
+  { name: "Digestion & Absorption | REMOVED", icon: Beaker, iconColor: "text-orange-400" },
+  { name: "Body Fluids & Circulation", icon: HeartPulse, iconColor: "text-red-500" },
+  { name: "Neural Control | REDUCED", icon: Brain, iconColor: "text-purple-400" },
+  { name: "Excretion", icon: Droplets, iconColor: "text-amber-500" },
+  { name: "Breathing & Exchange", icon: Cloud, iconColor: "text-sky-400" },
+  { name: "Locomotion & Movement", icon: MoveRight, iconColor: "text-blue-500" },
+  { name: "Reproductive Health", icon: HeartPulse, iconColor: "text-pink-400" },
+  { name: "Human Reproduction", icon: HeartPulse, iconColor: "text-red-400" },
+  { name: "Molecular Inheritance", icon: Atom, iconColor: "text-violet-400" },
+  { name: "Inheritance & Variation", icon: GitBranch, iconColor: "text-indigo-400" },
+  { name: "Evolution", icon: TrendingUp, iconColor: "text-amber-600" },
+  { name: "Health & Diseases", icon: HeartPulse, iconColor: "text-red-600" },
+  { name: "Microbes & Welfare", icon: Microscope, iconColor: "text-teal-500" },
+  { name: "Food Production Strategies | REMOVED", icon: Factory, iconColor: "text-green-600" },
+  { name: "Biotech Applications", icon: Lightbulb, iconColor: "text-yellow-500" },
+  { name: "Biotech Principles", icon: Cpu, iconColor: "text-blue-600" },
+  { name: "Organisms & Populations", icon: Globe, iconColor: "text-green-500" },
+];
+
+// NEET-specific chapter data
+const neetChaptersData: Record<string, ChapterData[]> = {
+  physics: allChaptersData.physics,
+  chemistry: allChaptersData.chemistry,
+  botany: neetBotanyChapters,
+  zoology: neetZoologyChapters,
+};
+
 const subjectConfig = {
   Physics: {
     icon: Atom,
@@ -238,29 +293,56 @@ const subjectConfig = {
     dbSubject: "maths",
     questionsSubject: "Mathematics",
   },
+  Biology: {
+    icon: HeartPulse,
+    gradient: "from-emerald to-green-500",
+    bgGradient: "from-emerald/20 to-green-500/10",
+    dbSubject: "biology",
+    questionsSubject: "Biology",
+  },
+  Botany: {
+    icon: Leaf,
+    gradient: "from-emerald to-green-500",
+    bgGradient: "from-emerald/20 to-green-500/10",
+    dbSubject: "botany",
+    questionsSubject: "Botany",
+  },
+  Zoology: {
+    icon: HeartPulse,
+    gradient: "from-emerald to-teal-500",
+    bgGradient: "from-emerald/20 to-teal-500/10",
+    dbSubject: "zoology",
+    questionsSubject: "Zoology",
+  },
 };
 
-const availableYears = Array.from({ length: 11 }, (_, i) => 2025 - i);
+// Strip suffixes like " | REDUCED" or " | REMOVED" so UI names map to DB chapter names
+const normalizeChapterName = (name: string) => name.replace(/\s*\|\s*(REDUCED|REMOVED)\s*$/i, "").trim();
+
+const availableYears = ["ALL", "2026", ...Array.from({ length: 11 }, (_, i) => (2025 - i).toString())];
 
 const ChapterSelect = () => {
   const { subject } = useParams<{ subject: string }>();
   const navigate = useNavigate();
   const { hasAccess, loading: subLoading } = useSubscription();
+  const userGoal = getCachedGoal();
+  const questionsTable = getQuestionsTable(userGoal);
   
   const [chapterStats, setChapterStats] = useState<Record<string, { solved: number; total: number }>>({});
   const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
-  const [selectedYear, setSelectedYear] = useState<string>("2025");
+  const [selectedYear, setSelectedYear] = useState<string>("ALL");
 
   const decodedSubject = decodeURIComponent(subject || "");
   const config = subjectConfig[decodedSubject as keyof typeof subjectConfig] || subjectConfig.Physics;
   const SubjectIcon = config.icon;
 
-  // Get chapters for this subject
+  // Get chapters for this subject - use NEET chapters if goal is NEET
   const chapters = useMemo(() => {
-    const key = config.dbSubject as keyof typeof allChaptersData;
-    return allChaptersData[key] || [];
-  }, [config.dbSubject]);
+    const chaptersSource = userGoal === 'NEET' ? neetChaptersData : allChaptersData;
+    const key = config.dbSubject as keyof typeof chaptersSource;
+    return chaptersSource[key] || [];
+  }, [config.dbSubject, userGoal]);
 
   useEffect(() => {
     fetchChapterStats();
@@ -273,7 +355,7 @@ const ChapterSelect = () => {
       
       // Fetch all questions for this subject to get totals
       const { data: questionData } = await supabase
-        .from("questions")
+        .from(questionsTable)
         .select("id, chapter")
         .eq("subject", config.questionsSubject);
 
@@ -300,18 +382,20 @@ const ChapterSelect = () => {
         const solvedSet = new Set(submissions?.map(s => s.question_id) || []);
 
         chapters.forEach((chapter) => {
-          const chapterQuestionIds = questionIds[chapter.name] || [];
+          const dbName = normalizeChapterName(chapter.name);
+          const chapterQuestionIds = questionIds[dbName] || [];
           const solvedCount = chapterQuestionIds.filter(id => solvedSet.has(id)).length;
           stats[chapter.name] = {
             solved: solvedCount,
-            total: totals[chapter.name] || 0,
+            total: totals[dbName] || 0,
           };
         });
       } else {
         chapters.forEach((chapter) => {
+          const dbName = normalizeChapterName(chapter.name);
           stats[chapter.name] = {
             solved: 0,
-            total: totals[chapter.name] || 0,
+            total: totals[dbName] || 0,
           };
         });
       }
@@ -342,7 +426,8 @@ const ChapterSelect = () => {
       return;
     }
     
-    navigate(`/questions/${encodeURIComponent(chapterName)}?subject=${encodeURIComponent(decodedSubject)}`);
+    const dbChapterName = normalizeChapterName(chapterName);
+    navigate(`/questions/${encodeURIComponent(dbChapterName)}?subject=${encodeURIComponent(decodedSubject)}`);
   };
 
   return (
@@ -372,7 +457,7 @@ const ChapterSelect = () => {
                   <SubjectIcon className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">JEE Mains PYQ Bank</h1>
+                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">Prepixo PYQ Bank</h1>
                   <p className="text-muted-foreground text-sm">
                     {filteredChapters.length} Chapters • {totalQuestions} Questions
                   </p>
@@ -382,7 +467,10 @@ const ChapterSelect = () => {
 
             {/* Subject Tabs */}
             <div className="flex gap-2 mb-6">
-              {["Physics", "Chemistry", "Mathematics"].map((sub) => {
+              {(userGoal === 'NEET'
+                ? ["Physics", "Chemistry", "Botany", "Zoology"]
+                : ["Physics", "Chemistry", "Mathematics"]
+              ).map((sub) => {
                 const isSelected = decodedSubject === sub || (decodedSubject === "Maths" && sub === "Mathematics");
                 return (
                   <Button

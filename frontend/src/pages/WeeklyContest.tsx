@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format, differenceInSeconds, isAfter, isBefore } from "date-fns";
+import { getCachedGoal } from "@/utils/examConfig";
 
 interface Contest {
   contest_id: string;
@@ -23,6 +24,8 @@ interface Contest {
   start_time: string;
   end_time: string;
   result_time: string;
+  goal?: string | null;
+  mock_ref?: string | null;
 }
 
 interface Participant {
@@ -83,11 +86,21 @@ const WeeklyContest = () => {
 
   const fetchContestData = async () => {
     try {
+      const goal = (getCachedGoal() === "NEET" ? "NEET" : "JEE");
+
+      // Ensure an upcoming weekly contest exists for this goal (auto-rotates mocks)
+      try {
+        await supabase.rpc("ensure_weekly_contest" as any, { p_goal: goal });
+      } catch (e) {
+        console.warn("ensure_weekly_contest failed", e);
+      }
+
       const now = new Date().toISOString();
-      
+
       const { data: contestData, error: contestError } = await supabase
         .from("contests")
         .select("*")
+        .eq("goal", goal)
         .gte("result_time", now)
         .order("start_time", { ascending: true })
         .limit(1)
@@ -391,7 +404,13 @@ const WeeklyContest = () => {
               )}
             </div>
             <div className="p-6">
-              <h3 className="text-2xl font-bold mb-2">JEE Main 2025</h3>
+              <h3 className="text-2xl font-bold mb-2">
+                {contest.mock_ref
+                  ? (contest.goal === "NEET"
+                      ? (contest.mock_ref.replace(/^neet_/, "NEET ").replace(/_/g, " "))
+                      : `JEE Main ${contest.mock_ref}`)
+                  : contest.title}
+              </h3>
               <p className="text-muted-foreground mb-3">Full Mock Test - 3 Hours</p>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock className="w-4 h-4" />

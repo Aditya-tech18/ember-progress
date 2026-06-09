@@ -20,7 +20,15 @@ interface Question {
   subject: string;
 }
 
-export default function MockTestSolutions() {
+import NeetMockTestSolutions from "./neet/NeetMockTestSolutions";
+import { getCachedGoal } from "@/utils/examConfig";
+
+export default function MockTestSolutionsRouter() {
+  if (getCachedGoal() === "NEET") return <NeetMockTestSolutions />;
+  return <MockTestSolutionsInner />;
+}
+
+function MockTestSolutionsInner() {
   const { resultId } = useParams();
   const navigate = useNavigate();
   const [questions, setQuestions] = useState<Question[]>([]);

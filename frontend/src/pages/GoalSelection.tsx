@@ -3,8 +3,9 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Rocket, Heart, Shield, GraduationCap, Sparkles } from "lucide-react";
+import { Rocket, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { setCachedGoal } from "@/utils/examConfig";
 
 const goals = [
   { 
@@ -23,16 +24,6 @@ const goals = [
     description: "Medical Entrance",
     logo: "https://customer-assets.emergentagent.com/job_db-integration-16/artifacts/7g797bya_image.png"
   },
-  { 
-    id: "NDA", 
-    label: "NDA", 
-    icon: Shield, 
-    color: "from-[#E50914] to-orange-600", 
-    description: "National Defence Academy",
-    logo: "https://customer-assets.emergentagent.com/job_db-integration-16/artifacts/cnm6agwd_image.png"
-  },
-  { id: "COLLEGE", label: "COLLEGE", icon: GraduationCap, color: "from-[#E50914] to-purple-600", description: "College Studies" },
-  { id: "LIFE", label: "LIFE", icon: Sparkles, color: "from-[#E50914] to-yellow-600", description: "Personal Growth" },
 ];
 
 export const GoalSelection = () => {
@@ -71,16 +62,12 @@ export const GoalSelection = () => {
 
       if (error) throw error;
 
+      setCachedGoal(selectedGoal);
+      
       toast.success(`Goal set to ${selectedGoal}!`);
       
-      // Navigate based on goal
-      if (selectedGoal === "JEE") {
-        // JEE users go to home
-        navigate("/");
-      } else {
-        // Non-JEE users go to BuildLife (will trigger subscription check there)
-        navigate("/buildlife");
-      }
+window.dispatchEvent(new Event("goalSaved"));
+navigate("/");
     } catch (error: any) {
       console.error("Error setting goal:", error);
       toast.error("Failed to set goal. Please try again.");
@@ -116,7 +103,7 @@ export const GoalSelection = () => {
         </div>
 
         {/* Goal Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8 max-w-2xl mx-auto">
           {goals.map((goal, index) => {
             const Icon = goal.icon;
             const isSelected = selectedGoal === goal.id;

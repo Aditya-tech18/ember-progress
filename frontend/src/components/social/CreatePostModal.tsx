@@ -231,7 +231,7 @@ export const CreatePostModal = ({ isOpen, onClose, onPostCreated }: CreatePostMo
             <p className="text-muted-foreground mb-6">
               {isLoggedIn === false
                 ? "Please login or sign up to share your achievements with the community."
-                : "Become a Prepixo member to share achievements and connect with fellow JEE aspirants!"}
+                : "Become a Prepixo member to share achievements and connect with fellow aspirants!"}
             </p>
             <div className="flex flex-col gap-3">
               <Button
@@ -293,7 +293,7 @@ export const CreatePostModal = ({ isOpen, onClose, onPostCreated }: CreatePostMo
           <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
             {/* Text Content */}
             <Textarea
-              placeholder="Share your JEE preparation journey, achievements, or tips..."
+              placeholder="Share your preparation journey, achievements, or tips..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               className="min-h-[120px] bg-muted/30 border-border/30 resize-none focus:ring-primary"

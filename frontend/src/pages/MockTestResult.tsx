@@ -170,4 +170,7 @@ const MockTestResult = () => {
   );
 };
 
-export default MockTestResult;
+import NeetMockTestResult from "./neet/NeetMockTestResult";
+import { getCachedGoal } from "@/utils/examConfig";
+const MockTestResultRouter = () => (getCachedGoal() === "NEET" ? <NeetMockTestResult /> : <MockTestResult />);
+export default MockTestResultRouter;

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { getCachedGoal, getQuestionsTable } from "@/utils/examConfig";
 import { Navbar } from "@/components/Navbar";
 import { LatexRenderer } from "@/components/LatexRenderer";
 import { Button } from "@/components/ui/button";
@@ -72,9 +73,10 @@ const QuestionScreen = () => {
     setError(null);
 
     try {
+      const table = getQuestionsTable(getCachedGoal());
       if (state?.chapterName && state?.year) {
         const { data, error: fetchError } = await supabase
-          .from("questions")
+          .from(table)
           .select("*")
           .eq("chapter", state.chapterName)
           .eq("exam_year", state.year)
@@ -89,7 +91,7 @@ const QuestionScreen = () => {
         }
       } else {
         const { data, error: fetchError } = await supabase
-          .from("questions")
+          .from(table)
           .select("*")
           .eq("id", parseInt(questionId || "0"))
           .single();
@@ -438,7 +440,7 @@ const QuestionScreen = () => {
 
           {/* Solution */}
           <AnimatePresence>
-            {showSolution && currentQuestion.solution && (
+            {showSolution && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: "auto" }}
@@ -451,9 +453,19 @@ const QuestionScreen = () => {
                   </div>
                   <h3 className="text-xl font-bold text-foreground">Solution</h3>
                 </div>
-                <div className="overflow-x-auto question-scroll">
-                  <LatexRenderer content={currentQuestion.solution} multilineSolution={true} />
-                </div>
+                {currentQuestion.solution && currentQuestion.solution.trim() ? (
+                  <div className="overflow-x-auto question-scroll">
+                    <LatexRenderer content={currentQuestion.solution} multilineSolution={true} />
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-primary/40 bg-primary/5 p-6 text-center">
+                    <Sparkles className="w-8 h-8 text-primary mx-auto mb-3" />
+                    <p className="text-foreground font-semibold mb-1">Solution will be uploaded soon</p>
+                    <p className="text-sm text-muted-foreground">
+                      Our experts are crafting a detailed step-by-step solution. In the meantime, try the AI Doubt Solver below.
+                    </p>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -488,7 +500,7 @@ const QuestionScreen = () => {
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border p-4 z-40">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-lg border-t border-border p-4 z-40 pb-[max(env(safe-area-inset-bottom),16px)]">
         <div className="container mx-auto max-w-4xl flex items-center justify-between gap-4">
           <Button
             variant="outline"
