@@ -301,40 +301,44 @@ const Subscription = () => {
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
 
-        // ENHANCED UPI CONFIGURATION - Shows all installed UPI apps first
+        // CRITICAL: UPI-FIRST Configuration for Mobile (Android/iOS)
         config: {
           display: {
             blocks: {
-              // PRIMARY BLOCK - UPI Apps (PhonePe, Google Pay, Paytm, etc.)
-              upi: {
-                name: "Pay with UPI Apps",
+              // PRIMARY: UPI - Always show first
+              utib: {
+                name: "Pay with UPI",
                 instruments: [
                   {
                     method: "upi",
-                    // Intent flow opens installed UPI apps directly
-                    flows: ["intent", "collect", "qr"],
                   },
                 ],
               },
-              // SECONDARY BLOCK - Other payment methods
-              banks: {
-                name: "Pay with Card/Net Banking",
+              // SECONDARY: Cards & Net Banking
+              other: {
+                name: "Other Payment Methods",
                 instruments: [
-                  { method: "card" },
-                  { method: "netbanking" },
-                ],
-              },
-              // TERTIARY BLOCK - Wallets
-              wallets: {
-                name: "Pay with Wallets",
-                instruments: [
-                  { method: "wallet" },
-                  { method: "paylater" },
+                  {
+                    method: "card",
+                  },
+                  {
+                    method: "netbanking",
+                  },
+                  {
+                    method: "wallet",
+                  },
                 ],
               },
             },
-            // SEQUENCE: UPI apps shown FIRST
-            sequence: ["block.upi", "block.banks", "block.wallets"],
+            hide: [
+              {
+                method: "paylater",
+              },
+              {
+                method: "emi",
+              },
+            ],
+            sequence: ["block.utib", "block.other"],
             preferences: {
               show_default_blocks: false,
             },
@@ -344,7 +348,7 @@ const Subscription = () => {
         // Pre-fill user details
         prefill: {
           email: user.email || "",
-          contact: "", // Can add user phone if available
+          contact: "", // Add phone if available
         },
 
         // Payment success handler
