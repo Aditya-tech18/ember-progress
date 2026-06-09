@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   Rocket, Zap, Target, Handshake, Crown, Check,
-  Loader2, ArrowLeft, Shield, Gift, Copy,
+  Loader2, ArrowLeft, Shield, Gift, Copy, Smartphone,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -301,36 +301,53 @@ const Subscription = () => {
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
 
-        // Shows UPI as first option with intent flow (opens GPay/PhonePe/Paytm)
+        // ENHANCED UPI CONFIGURATION - Shows all installed UPI apps first
         config: {
           display: {
             blocks: {
-              upi_block: {
-                name: "Pay via UPI",
+              // PRIMARY BLOCK - UPI Apps (PhonePe, Google Pay, Paytm, etc.)
+              upi: {
+                name: "Pay with UPI Apps",
                 instruments: [
                   {
                     method: "upi",
+                    // Intent flow opens installed UPI apps directly
                     flows: ["intent", "collect", "qr"],
                   },
                 ],
               },
-              other_block: {
-                name: "Other Methods",
+              // SECONDARY BLOCK - Other payment methods
+              banks: {
+                name: "Pay with Card/Net Banking",
                 instruments: [
                   { method: "card" },
                   { method: "netbanking" },
+                ],
+              },
+              // TERTIARY BLOCK - Wallets
+              wallets: {
+                name: "Pay with Wallets",
+                instruments: [
                   { method: "wallet" },
                   { method: "paylater" },
                 ],
               },
             },
-            sequence: ["block.upi_block", "block.other_block"],
+            // SEQUENCE: UPI apps shown FIRST
+            sequence: ["block.upi", "block.banks", "block.wallets"],
             preferences: {
               show_default_blocks: false,
             },
           },
         },
 
+        // Pre-fill user details
+        prefill: {
+          email: user.email || "",
+          contact: "", // Can add user phone if available
+        },
+
+        // Payment success handler
         handler: async function (response: any) {
           console.log("✅ Payment successful:", response.razorpay_payment_id);
           try {
@@ -360,7 +377,6 @@ const Subscription = () => {
           }
         },
 
-        prefill: { email: user.email || "" },
         notes: {
           user_id: user.id,
           plan_name: plan.name,
@@ -368,21 +384,29 @@ const Subscription = () => {
         },
         theme: { color: "#E50914" },
         retry: { enabled: true, max_count: 3 },
+        
+        // Modal configuration
         modal: {
           confirm_close: true,
           ondismiss: () => {
             toast.info("Payment cancelled. You can retry anytime.");
             setLoading(null);
           },
+          // Better mobile experience
+          animation: true,
+          backdropclose: false,
         },
       };
 
       const razorpay = new window.Razorpay(options);
+      
+      // Payment failure handler
       razorpay.on("payment.failed", (response: any) => {
         console.error("❌ Payment failed:", response.error);
         toast.error(`Payment failed: ${response.error.description || "Unknown error"}`);
         setLoading(null);
       });
+      
       razorpay.open();
 
     } catch (error: any) {
@@ -417,6 +441,17 @@ const Subscription = () => {
             <p className="text-gray-400 max-w-xl mx-auto text-lg">
               Get unlimited access to all PYQs, mock tests, and AI-powered doubt solving
             </p>
+            
+            {/* UPI Payment Highlight */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30"
+            >
+              <Smartphone className="w-4 h-4 text-green-500" />
+              <span className="text-sm font-bold text-green-400">Pay instantly with PhonePe, Google Pay, Paytm & more</span>
+            </motion.div>
           </motion.div>
 
           {/* Features */}
@@ -557,7 +592,10 @@ const Subscription = () => {
                   {loading === plan.name ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Processing...</>
                   ) : (
-                    "Subscribe Now"
+                    <>
+                      <Smartphone className="w-4 h-4 mr-2" />
+                      Pay with UPI
+                    </>
                   )}
                 </Button>
               </motion.div>
@@ -569,10 +607,13 @@ const Subscription = () => {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
             className="mt-12 text-center"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 text-gray-400 text-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 text-gray-400 text-sm mb-4">
               <Shield className="w-4 h-4 text-green-500" />
               <span>Secure payments powered by Razorpay</span>
             </div>
+            <p className="text-xs text-gray-500 max-w-md mx-auto">
+              Supports PhonePe, Google Pay, Paytm, BHIM UPI, and 100+ payment methods
+            </p>
           </motion.div>
 
         </div>
