@@ -1017,7 +1017,9 @@ async def get_mock_test_questions(test_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-# Include the router in the main app
+# Include routers
+from routes import orders as orders_route
+app.include_router(orders_route.router, prefix="/api/orders", tags=["orders"])
 app.include_router(api_router)
 
 app.add_middleware(

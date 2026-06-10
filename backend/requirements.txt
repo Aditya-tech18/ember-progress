@@ -27,3 +27,4 @@ emergentintegrations==0.1.0
 supabase>=2.10.0
 httpx>=0.27.0
 supabase
+razorpay==2.0.1
