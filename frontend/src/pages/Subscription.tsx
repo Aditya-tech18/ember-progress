@@ -293,6 +293,7 @@ const Subscription = () => {
         return;
       }
 
+      // SIMPLEST CONFIGURATION - Shows ALL payment methods
       const options = {
         key: RAZORPAY_KEY_ID,
         amount: plan.amount,
@@ -300,17 +301,6 @@ const Subscription = () => {
         name: "Prepixo",
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
-
-        // Enable all payment methods
-        method: {
-          netbanking: true,
-          card: true,
-          upi: true,
-          wallet: true  // Enable all wallets including PhonePe
-        },
-
-        // CRITICAL: Enable UPI Intent for Android
-        webview_intent: true,
 
         // Pre-fill user details
         prefill: {
