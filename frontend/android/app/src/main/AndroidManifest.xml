@@ -43,7 +43,7 @@
 
                 <data
                     android:scheme="https"
-                    android:host="db-integration-16.preview.emergentagent.com" />
+                    android:host="ember-progress.vercel.app" />
                 <data
                     android:scheme="com.prepixo.aimup" />
             </intent-filter>
