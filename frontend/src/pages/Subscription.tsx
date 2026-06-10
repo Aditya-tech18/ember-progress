@@ -293,7 +293,35 @@ const Subscription = () => {
         return;
       }
 
-      // EXPLICIT CONFIGURATION - Force all payment methods to show
+      // Step 1: Create Razorpay order on backend (MANDATORY for secure payments)
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL;
+      console.log("🔄 Creating Razorpay order on backend...");
+      
+      const orderResponse = await fetch(`${BACKEND_URL}/api/orders/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: plan.amount,
+          currency: "INR",
+          receipt: `receipt_${user.id}_${Date.now()}`,
+          notes: {
+            user_id: user.id,
+            plan_name: plan.name,
+            duration_months: plan.months.toString(),
+            user_email: user.email || "",
+          }
+        })
+      });
+
+      if (!orderResponse.ok) {
+        const errorData = await orderResponse.json();
+        throw new Error(errorData.detail || "Failed to create order");
+      }
+
+      const orderData = await orderResponse.json();
+      console.log("✅ Order created:", orderData.id);
+
+      // Step 2: Configure Razorpay checkout with order_id
       const options = {
         key: RAZORPAY_KEY_ID,
         amount: plan.amount,
@@ -301,6 +329,7 @@ const Subscription = () => {
         name: "Prepixo",
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
+        order_id: orderData.id, // CRITICAL: Backend-generated order_id
 
         // CRITICAL: Force display of ALL payment methods
         config: {
@@ -344,6 +373,27 @@ const Subscription = () => {
         handler: async function (response: any) {
           console.log("✅ Payment successful:", response.razorpay_payment_id);
           try {
+            // Step 3: Verify payment signature on backend (MANDATORY for security)
+            console.log("🔄 Verifying payment signature...");
+            const verifyResponse = await fetch(`${BACKEND_URL}/api/orders/verify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              })
+            });
+
+            const verifyData = await verifyResponse.json();
+            
+            if (!verifyData.success) {
+              throw new Error("Payment verification failed. Contact support.");
+            }
+            
+            console.log("✅ Payment verified successfully");
+
+            // Step 4: Save subscription to database
             const now = new Date();
             const validUntil = new Date(now);
             if ((plan as any).isTrial) {
@@ -358,13 +408,14 @@ const Subscription = () => {
               paid_on: now.toISOString(),
               valid_until: validUntil.toISOString(),
               payment_id: response.razorpay_payment_id,
+              order_id: response.razorpay_order_id,
             }, { onConflict: "user_id" });
             if (error) throw error;
             toast.success("🎉 Subscription activated successfully!");
             setTimeout(() => { navigate("/"); }, 1500);
           } catch (error: any) {
             console.error("Error saving subscription:", error);
-            toast.error("Payment successful but failed to activate. Contact support.");
+            toast.error(error.message || "Payment successful but failed to activate. Contact support.");
           } finally {
             setLoading(null);
           }
