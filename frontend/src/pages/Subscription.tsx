@@ -293,7 +293,7 @@ const Subscription = () => {
         return;
       }
 
-      // SIMPLEST CONFIGURATION - Shows ALL payment methods
+      // EXPLICIT CONFIGURATION - Force all payment methods to show
       const options = {
         key: RAZORPAY_KEY_ID,
         amount: plan.amount,
@@ -301,6 +301,38 @@ const Subscription = () => {
         name: "Prepixo",
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
+
+        // CRITICAL: Force display of ALL payment methods
+        config: {
+          display: {
+            blocks: {
+              banks: {
+                name: "All Payment Methods",
+                instruments: [
+                  {
+                    method: "upi",
+                    flows: ["intent", "collect", "qr"]
+                  },
+                  {
+                    method: "wallet",
+                    wallets: ["paytm", "mobikwik", "olamoney", "freecharge", "phonepe"]
+                  },
+                  {
+                    method: "card"
+                  },
+                  {
+                    method: "netbanking"
+                  }
+                ]
+              }
+            },
+            hide: [],
+            sequence: ["block.banks"],
+            preferences: {
+              show_default_blocks: true
+            }
+          }
+        },
 
         // Pre-fill user details
         prefill: {

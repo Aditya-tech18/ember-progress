@@ -34,18 +34,21 @@
                     android:pathPrefix="/callback" />
             </intent-filter>
 
-            <!-- Razorpay UPI Intent callback handler -->
+            <!-- Razorpay UPI Intent and Wallet callback handler -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:scheme="https"
-                    android:host="ember-progress.vercel.app" />
-                <data
-                    android:scheme="com.prepixo.aimup" />
+                
+                <!-- Production URL -->
+                <data android:scheme="https" android:host="ember-progress.vercel.app" />
+                
+                <!-- App custom scheme -->
+                <data android:scheme="com.prepixo.aimup" />
+                
+                <!-- Razorpay specific schemes for UPI -->
+                <data android:scheme="upi" />
+                <data android:scheme="io.rzp" />
             </intent-filter>
 
         </activity>
