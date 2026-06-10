@@ -301,39 +301,16 @@ const Subscription = () => {
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
 
-        // CRITICAL: Enable UPI Intent for Android WebView/Mobile browsers
-        webview_intent: true,
-
-        // Configure payment methods - Show all methods including wallets
-        config: {
-          display: {
-            blocks: {
-              banks: {
-                name: "All Payment Methods",
-                instruments: [
-                  {
-                    method: "upi",
-                    flows: ["intent", "collect"]
-                  },
-                  {
-                    method: "wallet",
-                    wallets: ["phonepe", "paytm", "mobikwik", "olamoney", "freecharge"]
-                  },
-                  {
-                    method: "card"
-                  },
-                  {
-                    method: "netbanking"
-                  }
-                ]
-              }
-            },
-            sequence: ["block.banks"],
-            preferences: {
-              show_default_blocks: true
-            }
-          }
+        // Enable all payment methods
+        method: {
+          netbanking: true,
+          card: true,
+          upi: true,
+          wallet: true  // Enable all wallets including PhonePe
         },
+
+        // CRITICAL: Enable UPI Intent for Android
+        webview_intent: true,
 
         // Pre-fill user details
         prefill: {
