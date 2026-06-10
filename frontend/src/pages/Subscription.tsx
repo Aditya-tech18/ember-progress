@@ -302,44 +302,35 @@ const Subscription = () => {
         image: "https://i.imgur.com/3g7nmJC.png",
 
         // CRITICAL: Enable UPI Intent for Android WebView/Mobile browsers
-        // This enables navigation to PhonePe, GPay, Paytm apps
         webview_intent: true,
 
-        // Configure payment methods display - Prioritize PhonePe
+        // Configure payment methods - Show all methods including wallets
         config: {
           display: {
             blocks: {
-              // Primary block - UPI apps (PhonePe priority)
-              utib: {
-                name: "Pay using UPI Apps",
+              banks: {
+                name: "All Payment Methods",
                 instruments: [
                   {
                     method: "upi",
-                    flows: ["intent"], // Intent flow navigates to UPI apps
-                    apps: ["phonepe", "gpay", "paytm"] // PhonePe first
-                  }
-                ]
-              },
-              // Secondary block - Other methods
-              other: {
-                name: "Other Payment Methods",
-                instruments: [
+                    flows: ["intent", "collect"]
+                  },
+                  {
+                    method: "wallet",
+                    wallets: ["phonepe", "paytm", "mobikwik", "olamoney", "freecharge"]
+                  },
                   {
                     method: "card"
                   },
                   {
                     method: "netbanking"
-                  },
-                  {
-                    method: "wallet",
-                    wallets: ["phonepe"] // PhonePe wallet
                   }
                 ]
               }
             },
-            sequence: ["block.utib", "block.other"],
+            sequence: ["block.banks"],
             preferences: {
-              show_default_blocks: false // Use our custom blocks
+              show_default_blocks: true
             }
           }
         },

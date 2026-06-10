@@ -12,6 +12,7 @@ import { useBackButton } from "@/hooks/useBackButton";
 import { useAndroidBackButton } from "@/hooks/useAndroidBackButton";
 import { supabase } from "@/integrations/supabase/client";
 import { App as CapacitorApp } from "@capacitor/app";
+import { checkSubscriptionStatus } from "@/utils/subscriptionUtils";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import OtpVerification from "./pages/OtpVerification";
@@ -108,6 +109,16 @@ const AppContent = () => {
           navigate("/goal-selection");
         }
         return;
+      }
+
+      // Check subscription status on app load
+      const { isActive, daysRemaining } = await checkSubscriptionStatus(user.id);
+      if (!isActive && daysRemaining === 0) {
+        console.log("📅 Subscription expired. User needs to renew.");
+        // Subscription is expired but we don't force navigation here
+        // User can still browse and will be prompted when accessing premium features
+      } else if (isActive && daysRemaining <= 3) {
+        console.log(`⚠️ Subscription expiring soon: ${daysRemaining} days remaining`);
       }
 
       const { data } = await supabase
