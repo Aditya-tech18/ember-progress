@@ -18,10 +18,10 @@ declare global {
   }
 }
 
-const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID;
+const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_live_SObcQvFXRo6HAa";
 
-if (!RAZORPAY_KEY_ID) {
-  console.error("❌ VITE_RAZORPAY_KEY_ID not found in environment variables");
+if (!import.meta.env.VITE_RAZORPAY_KEY_ID) {
+  console.warn("⚠️ VITE_RAZORPAY_KEY_ID not found in environment, using fallback");
 }
 
 const plans = [
