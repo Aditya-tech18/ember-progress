@@ -34,6 +34,20 @@
                     android:pathPrefix="/callback" />
             </intent-filter>
 
+            <!-- Razorpay UPI Intent callback handler -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="https"
+                    android:host="db-integration-16.preview.emergentagent.com" />
+                <data
+                    android:scheme="com.prepixo.aimup" />
+            </intent-filter>
+
         </activity>
 
         <provider

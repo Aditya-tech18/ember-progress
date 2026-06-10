@@ -301,49 +301,9 @@ const Subscription = () => {
         description: `${plan.name} - ${plan.duration} Subscription`,
         image: "https://i.imgur.com/3g7nmJC.png",
 
-        // CRITICAL: UPI-FIRST Configuration for Mobile (Android/iOS)
-        config: {
-          display: {
-            blocks: {
-              // PRIMARY: UPI - Always show first
-              utib: {
-                name: "Pay with UPI",
-                instruments: [
-                  {
-                    method: "upi",
-                  },
-                ],
-              },
-              // SECONDARY: Cards & Net Banking
-              other: {
-                name: "Other Payment Methods",
-                instruments: [
-                  {
-                    method: "card",
-                  },
-                  {
-                    method: "netbanking",
-                  },
-                  {
-                    method: "wallet",
-                  },
-                ],
-              },
-            },
-            hide: [
-              {
-                method: "paylater",
-              },
-              {
-                method: "emi",
-              },
-            ],
-            sequence: ["block.utib", "block.other"],
-            preferences: {
-              show_default_blocks: false,
-            },
-          },
-        },
+        // CRITICAL: Enable UPI Intent for Android WebView/Mobile browsers
+        // This makes PhonePe, GPay, Paytm appear as payment options
+        webview_intent: true,
 
         // Pre-fill user details
         prefill: {
