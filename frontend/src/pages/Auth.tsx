@@ -92,6 +92,15 @@ export default function Auth() {
           !url.includes("code")
         ) return;
 
+        // Close the browser window immediately when OAuth callback is received
+        try {
+          const { Browser } = await import("@capacitor/browser");
+          await Browser.close();
+          console.log("✅ Browser closed after OAuth callback");
+        } catch (e) {
+          console.log("Browser close error (may already be closed):", e);
+        }
+
         // Spinner was already set in handleGoogleSignIn before Browser.open
         try {
           let session = null;
