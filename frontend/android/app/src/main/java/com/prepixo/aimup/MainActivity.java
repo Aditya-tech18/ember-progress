@@ -41,7 +41,7 @@ public class MainActivity extends BridgeActivity {
     }
     
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
         // Ensure intent is processed when app comes to foreground
         if (getIntent() != null && getIntent().getData() != null) {
