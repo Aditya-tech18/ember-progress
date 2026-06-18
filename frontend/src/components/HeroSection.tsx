@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Target, BarChart3, Sparkles, Play, Zap, X, Flame, Calendar } from "lucide-react";
+import { Target, BarChart3, Sparkles, Play, Zap, X, Flame, Calendar, Trophy, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ActivityHeatmap } from "./ActivityHeatmap";
 
@@ -19,6 +19,60 @@ export const HeroSection = () => {
   const navigate = useNavigate();
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [timeLeft, setTimeLeft] = useState<TimeLeft>({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  // Hours studied today tracker — counts while app is visible, pauses when minimized
+  const [studiedSeconds, setStudiedSeconds] = useState(0);
+  const studyTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startStudyTimer = () => {
+    if (studyTimerRef.current) return;
+    studyTimerRef.current = setInterval(() => {
+      setStudiedSeconds(prev => {
+        const next = prev + 1;
+        // Persist to sessionStorage so it survives page navigation within session
+        sessionStorage.setItem("studiedSeconds", String(next));
+        return next;
+      });
+    }, 1000);
+  };
+
+  const stopStudyTimer = () => {
+    if (studyTimerRef.current) {
+      clearInterval(studyTimerRef.current);
+      studyTimerRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    // Restore today's studied time from sessionStorage
+    const saved = parseInt(sessionStorage.getItem("studiedSeconds") || "0", 10);
+    setStudiedSeconds(saved);
+
+    // Start timer immediately if page is visible
+    if (!document.hidden) startStudyTimer();
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        stopStudyTimer();
+      } else {
+        startStudyTimer();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      stopStudyTimer();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, []);
+
+  const formatStudyTime = (secs: number) => {
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    const s = secs % 60;
+    if (h > 0) return `${h}h ${m}m ${s}s`;
+    if (m > 0) return `${m}m ${s}s`;
+    return `${s}s`;
+  };
 
   useEffect(() => {
     const calculateTimeLeft = () => {
@@ -108,31 +162,35 @@ export const HeroSection = () => {
             </Button>
             <Button
               variant="outline"
-              onClick={() => setShowHeatmap(true)}
+              onClick={() => navigate("/leaderboard")}
               className="border-border/50 px-4 py-2.5 sm:py-3 rounded-xl text-sm"
             >
-              <BarChart3 className="w-4 h-4 mr-1.5" />
-              Progress
+              <Trophy className="w-4 h-4 mr-1.5" />
+              Leaderboard
             </Button>
           </motion.div>
 
-          {/* Compact Stats Row */}
+          {/* Hours Studied Today */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="flex items-center justify-center gap-6 sm:gap-10"
+            className="flex items-center justify-center"
           >
-            {[
-              { value: "50K+", label: "Questions" },
-              { value: "12", label: "Ranks" },
-              { value: "10K+", label: "Students" },
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-lg sm:text-xl font-bold text-foreground">{stat.value}</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground">{stat.label}</div>
+            <div className="flex items-center gap-2.5 px-5 py-2.5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#E50914] to-orange-500 flex items-center justify-center shrink-0">
+                <Clock className="w-3.5 h-3.5 text-white" />
               </div>
-            ))}
+              <div>
+                <div className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider leading-none mb-0.5">
+                  Today's Study Time
+                </div>
+                <div className="text-base font-black text-foreground font-mono leading-none">
+                  {formatStudyTime(studiedSeconds)}
+                </div>
+              </div>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse ml-1" />
+            </div>
           </motion.div>
         </div>
       </div>

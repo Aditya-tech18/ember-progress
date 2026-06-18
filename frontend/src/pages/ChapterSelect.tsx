@@ -511,19 +511,6 @@ const ChapterSelect = () => {
             </div>
           </motion.div>
 
-          {/* Free chapters info */}
-          {!hasAccess && !subLoading && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4 p-3 rounded-xl bg-gold/10 border border-gold/20 flex items-center gap-3"
-            >
-              <Crown className="w-5 h-5 text-gold shrink-0" />
-              <p className="text-sm text-gold">
-                First 2 chapters are <strong>free</strong>! Subscribe to unlock all.
-              </p>
-            </motion.div>
-          )}
 
           {/* Chapters List */}
           {loading ? (
