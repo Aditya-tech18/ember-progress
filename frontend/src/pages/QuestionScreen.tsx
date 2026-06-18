@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,9 +60,36 @@ const QuestionScreen = () => {
   const [error, setError] = useState<string | null>(null);
   const [showSolution, setShowSolution] = useState(false);
   const [isReporting, setIsReporting] = useState(false);
+  // Per-question timer
+  const [questionTimer, setQuestionTimer] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentQuestion = questions[currentIndex];
   const isNumerical = currentQuestion && !parseOptions(currentQuestion.options_list).hasOptions;
+
+  // Start/reset timer on question change
+  useEffect(() => {
+    setQuestionTimer(0);
+    setIsSubmitted(false);
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setQuestionTimer(prev => prev + 1);
+    }, 1000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [currentIndex]);
+
+  const stopTimer = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  const formatQuestionTime = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  };
 
   useEffect(() => {
     fetchQuestions();
@@ -142,6 +169,7 @@ const QuestionScreen = () => {
     const userChoice = isNumerical ? userAnswer.trim() : selectedOption;
     const isCorrect = userChoice === currentQuestion.correct_answer;
 
+    stopTimer(); // Stop the per-question timer on submit
     setIsSubmitted(true);
     setShowSolution(true);
 
@@ -307,8 +335,21 @@ const QuestionScreen = () => {
                 </span>
               </div>
 
-              <div className="text-muted-foreground font-medium">
-                {currentIndex + 1} / {questions.length}
+              <div className="flex items-center gap-3">
+                {/* Per-question timer */}
+                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-mono text-sm font-bold transition-colors ${
+                  isSubmitted
+                    ? "bg-muted/50 text-muted-foreground"
+                    : questionTimer > 120
+                    ? "bg-red-500/15 text-red-400 border border-red-500/30"
+                    : "bg-primary/10 text-primary border border-primary/20"
+                }`}>
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>{formatQuestionTime(questionTimer)}</span>
+                </div>
+                <div className="text-muted-foreground font-medium">
+                  {currentIndex + 1} / {questions.length}
+                </div>
               </div>
             </div>
           </motion.div>

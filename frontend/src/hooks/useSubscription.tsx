@@ -95,7 +95,7 @@ export function useSubscription() {
   };
 }
 
-// Check if a chapter is free (first 2 chapters per subject are free)
-export function isChapterFree(chapterIndex: number): boolean {
-  return chapterIndex < 2;
+// PYQs are completely free for all JEE/NEET aspirants
+export function isChapterFree(_chapterIndex: number): boolean {
+  return true; // All PYQ chapters are free
 }

@@ -13,7 +13,7 @@ import { LeaderboardModal } from "@/components/LeaderboardModal";
 const searchableFeatures = [
   { name: "Home", href: "/", keywords: ["home", "dashboard", "main", "start"] },
   { name: "PYQs", href: "/pyq", keywords: ["pyq", "previous", "year", "questions", "practice", "jee", "papers"] },
-  { name: "Mock Tests", href: "/mock-tests", keywords: ["mock", "test", "exam", "practice", "full", "paper", "jee"] },
+  { name: "Test Series", href: "/mock-tests", keywords: ["mock", "test", "exam", "practice", "full", "paper", "jee"] },
   { name: "Study Planner", href: "/planner", keywords: ["planner", "habit", "tracker", "study", "schedule", "goals", "focus", "pomodoro"] },
   { name: "Weekly Contest", href: "/weekly-contest", keywords: ["weekly", "contest", "competition", "leaderboard", "sunday"] },
   { name: "AI Chat", href: "/ai-chat", keywords: ["ai", "chat", "doubt", "help", "assistant", "ask"] },
@@ -28,7 +28,7 @@ const searchableFeatures = [
 const navLinks = [
   { name: "Home", href: "/", icon: Home },
   { name: "PYQs", href: "/pyq", icon: FileText },
-  { name: "Mock Tests", href: "/mock-tests", icon: Target },
+  { name: "Test Series", href: "/mock-tests", icon: Target },
   { name: "Planner", href: "/planner", icon: Calendar },
 ];
 

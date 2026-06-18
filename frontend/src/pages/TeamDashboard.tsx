@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
+import { PaywallPopup } from "@/components/PaywallPopup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -72,6 +73,36 @@ interface Notification {
   created_at: string;
 }
 
+// Paywall screen for Friendly Battles
+const FriendlyBattlePaywallScreen = () => {
+  const navigate = useNavigate();
+  const [showPopup, setShowPopup] = useState(true);
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center max-w-sm"
+      >
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#E50914] to-orange-500 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#E50914]/30">
+          <span className="text-4xl">⚔️</span>
+        </div>
+        <h2 className="text-2xl font-black text-white mb-3">Friendly Battles</h2>
+        <p className="text-gray-400 text-sm mb-6">
+          Compete head-to-head with fellow aspirants. Pressure trains champions.
+        </p>
+        <button
+          onClick={() => navigate("/subscription")}
+          className="w-full h-12 rounded-xl bg-gradient-to-r from-[#E50914] to-orange-500 text-white font-black text-sm shadow-lg shadow-[#E50914]/30"
+        >
+          Subscribe Now — at just ₹29/month
+        </button>
+      </motion.div>
+      <PaywallPopup open={showPopup} onClose={() => setShowPopup(false)} variant="friendly-battle" />
+    </div>
+  );
+};
+
 const TeamDashboard = () => {
   const navigate = useNavigate();
   const { teamId } = useParams();
@@ -110,25 +141,7 @@ const TeamDashboard = () => {
     return (
       <div className="min-h-screen bg-background pt-14">
         <Navbar />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            <Lock className="w-20 h-20 text-primary mx-auto mb-6" />
-            <h2 className="text-3xl font-bold mb-4">Premium Feature</h2>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Friendly Prep (Team Battles) is a premium feature. Subscribe to create or join teams and compete with friends!
-            </p>
-            <Button 
-              onClick={() => navigate("/subscription")}
-              className="bg-gradient-to-r from-primary to-crimson text-white px-8 py-6 text-lg"
-            >
-              <Crown className="w-5 h-5 mr-2" />
-              Subscribe Now
-            </Button>
-          </motion.div>
-        </div>
+        <FriendlyBattlePaywallScreen />
       </div>
     );
   }

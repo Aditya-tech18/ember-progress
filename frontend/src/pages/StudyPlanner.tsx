@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { usePlanner } from "@/hooks/usePlanner";
+import { PaywallPopup } from "@/components/PaywallPopup";
+import { useSubscription } from "@/hooks/useSubscription";
 import { HabitMatrix } from "@/components/planner/HabitMatrix";
 import { MonthlyAreaChart } from "@/components/planner/MonthlyAreaChart";
 import { DailyTodoList } from "@/components/planner/DailyTodoList";
@@ -48,6 +50,20 @@ const StudyPlanner = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [showGoalSetup, setShowGoalSetup] = useState(false);
   const [activeTab, setActiveTab] = useState("matrix");
+  const [showPlannerPaywall, setShowPlannerPaywall] = useState(false);
+  const [userCreatedAt, setUserCreatedAt] = useState<Date | null>(null);
+
+  const { hasAccess } = useSubscription();
+
+  // Check if user has free week access (within 7 days of signup)
+  const hasFreeWeekAccess = useMemo(() => {
+    if (!userCreatedAt) return true; // default allow while loading
+    const now = new Date();
+    const diffDays = (now.getTime() - userCreatedAt.getTime()) / (1000 * 60 * 60 * 24);
+    return diffDays <= 7;
+  }, [userCreatedAt]);
+
+  const plannerUnlocked = hasAccess || hasFreeWeekAccess;
 
   const {
     tasks,
@@ -69,6 +85,18 @@ const StudyPlanner = () => {
       } else {
         setIsAuthenticated(true);
         setUserId(user.id);
+        // Fetch user created_at for free week check
+        const { data: userData } = await supabase
+          .from("users")
+          .select("created_at")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (userData?.created_at) {
+          setUserCreatedAt(new Date(userData.created_at));
+        } else {
+          // Fallback: use auth metadata
+          setUserCreatedAt(new Date(user.created_at));
+        }
       }
     };
     checkAuth();
@@ -194,6 +222,12 @@ const StudyPlanner = () => {
       return;
     }
 
+    // Show paywall if free week expired and no subscription
+    if (!plannerUnlocked) {
+      setShowPlannerPaywall(true);
+      return;
+    }
+
     if (uniqueHabits >= MAX_HABITS) {
       toast.error(`Maximum ${MAX_HABITS} habits allowed. Delete some to add new ones.`);
       return;
@@ -298,6 +332,12 @@ const StudyPlanner = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <Navbar />
+
+      <PaywallPopup
+        open={showPlannerPaywall}
+        onClose={() => setShowPlannerPaywall(false)}
+        variant="planner"
+      />
 
       <main className="pt-20 pb-12 px-4">
         <div className="max-w-[1600px] mx-auto">

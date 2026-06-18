@@ -191,7 +191,7 @@ const Index = () => {
           <GameCards />
           {pyqCards.length > 0 && <ContentCarousel title={pyqTitle} items={pyqCards} />}
           {mockCards.length > 0 && (
-            <ContentCarousel title="📝 Mock Tests" items={mockCards} variant="large" />
+            <ContentCarousel title="📝 Test Series" items={mockCards} variant="large" />
           )}
           <BecomeMentorBanner />
         </main>

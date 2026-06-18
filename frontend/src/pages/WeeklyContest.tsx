@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { PaywallPopup } from "@/components/PaywallPopup";
 import { supabase } from "@/integrations/supabase/client";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,36 @@ interface Participant {
 }
 
 type ContestStatus = "upcoming" | "live" | "ended" | "results";
+
+// Full-screen paywall for Weekly Test Series
+const WeeklyTestPaywallScreen = () => {
+  const navigate = useNavigate();
+  const [showPopup, setShowPopup] = useState(true);
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[80vh] px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-center max-w-sm"
+      >
+        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#E50914] to-orange-500 flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#E50914]/30">
+          <span className="text-4xl">🏆</span>
+        </div>
+        <h2 className="text-2xl font-black text-white mb-3">Weekly Test Series</h2>
+        <p className="text-gray-400 text-sm mb-6">
+          Weekly mocks are the secret weapon of every JEE/NEET topper. Unlock your edge.
+        </p>
+        <button
+          onClick={() => navigate("/subscription")}
+          className="w-full h-12 rounded-xl bg-gradient-to-r from-[#E50914] to-orange-500 text-white font-black text-sm shadow-lg shadow-[#E50914]/30"
+        >
+          Subscribe Now — at just ₹29/month
+        </button>
+      </motion.div>
+      <PaywallPopup open={showPopup} onClose={() => setShowPopup(false)} variant="weekly-test" />
+    </div>
+  );
+};
 
 const WeeklyContest = () => {
   const navigate = useNavigate();
@@ -303,25 +334,7 @@ const WeeklyContest = () => {
     return (
       <div className="min-h-screen bg-background pt-14">
         <Navbar />
-        <div className="container mx-auto px-4 py-20 text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            <Lock className="w-20 h-20 text-primary mx-auto mb-6" />
-            <h2 className="text-3xl font-bold mb-4">Premium Feature</h2>
-            <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-              Weekly Contest is a premium feature. Subscribe to compete with other students and test your skills!
-            </p>
-            <Button 
-              onClick={() => navigate("/subscription")}
-              className="bg-gradient-to-r from-primary to-crimson text-white px-8 py-6 text-lg"
-            >
-              <Crown className="w-5 h-5 mr-2" />
-              Subscribe Now
-            </Button>
-          </motion.div>
-        </div>
+        <WeeklyTestPaywallScreen />
       </div>
     );
   }
@@ -363,7 +376,7 @@ const WeeklyContest = () => {
         >
           <Badge className="mb-4 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0">
             <Trophy className="w-3 h-3 mr-1" />
-            Weekly Contest
+            Weekly Test Series
           </Badge>
           <h1 className="text-3xl md:text-4xl font-bold mb-2">{contest.title}</h1>
           <p className="text-muted-foreground">

@@ -6,6 +6,8 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { PostCard } from "@/components/social/PostCard";
 import { CreatePostModal } from "@/components/social/CreatePostModal";
+import { PaywallPopup } from "@/components/PaywallPopup";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Plus, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,9 +23,11 @@ interface Post {
 
 export const Posts = () => {
   const navigate = useNavigate();
+  const { hasAccess } = useSubscription();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showPostPaywall, setShowPostPaywall] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -163,11 +167,23 @@ export const Posts = () => {
         animate={{ scale: 1 }}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => setShowCreateModal(true)}
+        onClick={() => {
+          if (!hasAccess) {
+            setShowPostPaywall(true);
+          } else {
+            setShowCreateModal(true);
+          }
+        }}
         className="fixed bottom-24 right-6 w-16 h-16 bg-gradient-to-br from-[#E50914] to-red-600 rounded-full shadow-2xl shadow-[#E50914]/50 flex items-center justify-center z-40 hover:shadow-[#E50914]/70 transition-all"
       >
         <Plus className="w-8 h-8 text-white" />
       </motion.button>
+
+      <PaywallPopup
+        open={showPostPaywall}
+        onClose={() => setShowPostPaywall(false)}
+        variant="post"
+      />
 
       {/* Create Post Modal */}
       <CreatePostModal

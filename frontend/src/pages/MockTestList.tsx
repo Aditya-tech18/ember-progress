@@ -108,7 +108,7 @@ const MockTestList = () => {
       const cards: MockTestCard[] = qualified
         .map((g) => ({
           id: encodeURIComponent(g.shift),
-          title: `${g.shift} Mock Test`,
+          title: `${g.shift} Test Series`,
           year: g.year,
           shift: g.shift,
           questionCount: 90,
@@ -131,8 +131,10 @@ const MockTestList = () => {
     }
   };
 
-  const handleStartTest = (testId: string) => {
-    if (!hasAccess) {
+  const handleStartTest = (testId: string, index: number) => {
+    // First 2 mock tests are FREE, rest require subscription
+    const isFree = index < 2;
+    if (!isFree && !hasAccess) {
       navigate("/subscription");
       return;
     }
@@ -166,7 +168,7 @@ const MockTestList = () => {
             </Button>
 
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              {examLabel} Mock Tests
+              {examLabel} Test Series
             </h1>
             <p className="text-muted-foreground">
               Practice with real {examLabel} exam papers
@@ -183,7 +185,10 @@ const MockTestList = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {mockTests.map((test, index) => (
+              {mockTests.map((test, index) => {
+                const isFree = index < 2;
+                const isLocked = !isFree && !hasAccess;
+                return (
                 <motion.div
                   key={test.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -191,6 +196,17 @@ const MockTestList = () => {
                   transition={{ delay: index * 0.1 }}
                   className="relative overflow-hidden rounded-2xl border border-red-900/40 bg-gradient-to-br from-[#1a1a2e] to-[#0d0d1a] shadow-lg shadow-red-900/10"
                 >
+                  {/* FREE badge */}
+                  {isFree && (
+                    <div className="absolute top-3 right-3 z-10 px-2.5 py-1 bg-green-500 text-white text-xs font-black rounded-full shadow-lg">
+                      FREE
+                    </div>
+                  )}
+                  {isLocked && (
+                    <div className="absolute top-3 right-3 z-10 px-2.5 py-1 bg-amber-500 text-white text-xs font-black rounded-full shadow-lg flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> PRO
+                    </div>
+                  )}
                   {/* Netflix-style top accent */}
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-700 via-red-500 to-red-700" />
 
@@ -231,55 +247,51 @@ const MockTestList = () => {
                         </div>
 
                         <div className="bg-black/30 border border-white/5 p-4 rounded-xl">
-                          <h3 className="text-sm font-semibold text-red-400 mb-2">
-                            📝 Exam Pattern
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {test.pattern}
-                          </p>
+                          <h3 className="text-sm font-semibold text-red-400 mb-2">📝 Exam Pattern</h3>
+                          <p className="text-sm text-muted-foreground">{test.pattern}</p>
                           <div className="flex items-center gap-4 mt-3 text-xs">
-                            <span className="px-2 py-1 rounded bg-green-500/15 text-green-400 border border-green-500/20">
-                              +4 Correct
-                            </span>
-                            <span className="px-2 py-1 rounded bg-red-500/15 text-red-400 border border-red-500/20">
-                              -1 Wrong
-                            </span>
-                            <span className="px-2 py-1 rounded bg-white/5 text-muted-foreground border border-white/10">
-                              0 Unattempted
-                            </span>
+                            <span className="px-2 py-1 rounded bg-green-500/15 text-green-400 border border-green-500/20">+4 Correct</span>
+                            <span className="px-2 py-1 rounded bg-red-500/15 text-red-400 border border-red-500/20">-1 Wrong</span>
+                            <span className="px-2 py-1 rounded bg-white/5 text-muted-foreground border border-white/10">0 Unattempted</span>
                           </div>
                         </div>
                       </div>
 
                       <div className="flex flex-col gap-3">
                         <Button
-                          onClick={() => handleStartTest(test.id)}
-                          className="bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-semibold px-8 shadow-lg shadow-red-900/30"
+                          onClick={() => handleStartTest(test.id, index)}
+                          className={`font-semibold px-8 shadow-lg ${
+                            isFree
+                              ? "bg-gradient-to-r from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 shadow-green-900/30"
+                              : isLocked
+                              ? "bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 shadow-amber-900/30"
+                              : "bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 shadow-red-900/30"
+                          } text-white`}
                           size="lg"
                         >
-                          {hasAccess ? (
-                            <>
-                              <Rocket className="w-4 h-4 mr-2" />
-                              Start Test
-                            </>
+                          {isFree ? (
+                            <><Rocket className="w-4 h-4 mr-2" />Start Free Test</>
+                          ) : isLocked ? (
+                            <><Lock className="w-4 h-4 mr-2" />Unlock Test</>
                           ) : (
-                            <>
-                              <Lock className="w-4 h-4 mr-2" />
-                              Unlock Test
-                            </>
+                            <><Rocket className="w-4 h-4 mr-2" />Start Test</>
                           )}
                         </Button>
-                        {!hasAccess && (
+                        {isLocked && (
                           <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                             <Crown className="w-3 h-3 text-yellow-500" />
-                            Premium required
+                            Subscribe at just ₹29/month
                           </p>
+                        )}
+                        {isFree && (
+                          <p className="text-xs text-green-400 text-center font-semibold">✓ No subscription needed</p>
                         )}
                       </div>
                     </div>
                   </div>
                 </motion.div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
