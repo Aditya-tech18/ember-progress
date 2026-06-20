@@ -531,51 +531,37 @@ const MockTest = () => {
                 />
                 {/* NTA-style number keypad */}
                 <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-                  <div className="grid grid-cols-5 gap-2 mb-2">
-                    {["7","8","9","⌫","C"].map(k => (
-                      <button
-                        key={k}
-                        onClick={() => {
-                          if (k === "C") { handleNumerical(""); }
-                          else if (k === "⌫") { handleNumerical((currentAns?.value || "").slice(0, -1)); }
-                          else { handleNumerical((currentAns?.value || "") + k); }
-                        }}
-                        className={`h-11 rounded-lg font-bold text-sm transition-all active:scale-95 shadow-sm ${
-                          k === "C" ? "bg-red-500 text-white hover:bg-red-600"
-                          : k === "⌫" ? "bg-amber-500 text-white hover:bg-amber-600"
-                          : "bg-white border border-gray-300 text-gray-800 hover:bg-[#FF6600] hover:text-white hover:border-[#FF6600]"
-                        }`}
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    {["7","8","9"].map(k => (
+                      <button key={k} onClick={() => handleNumerical((currentAns?.value || "") + k)}
+                        className="h-12 rounded-lg font-bold text-base bg-white border border-gray-300 text-gray-800 hover:bg-[#FF6600] hover:text-white hover:border-[#FF6600] transition-all active:scale-95 shadow-sm"
                       >{k}</button>
                     ))}
                   </div>
-                  <div className="grid grid-cols-5 gap-2 mb-2">
-                    {["4","5","6","+","-"].map(k => (
-                      <button
-                        key={k}
-                        onClick={() => {
-                          if (k === "+" || k === "-") {
-                            const cur = currentAns?.value || "";
-                            if (k === "-" && !cur.startsWith("-")) handleNumerical("-" + cur);
-                            else if (k === "+" && cur.startsWith("-")) handleNumerical(cur.slice(1));
-                          } else {
-                            handleNumerical((currentAns?.value || "") + k);
-                          }
-                        }}
-                        className={`h-11 rounded-lg font-bold text-sm transition-all active:scale-95 shadow-sm ${
-                          k === "+" || k === "-" ? "bg-blue-500 text-white hover:bg-blue-600"
-                          : "bg-white border border-gray-300 text-gray-800 hover:bg-[#FF6600] hover:text-white hover:border-[#FF6600]"
-                        }`}
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    {["4","5","6"].map(k => (
+                      <button key={k} onClick={() => handleNumerical((currentAns?.value || "") + k)}
+                        className="h-12 rounded-lg font-bold text-base bg-white border border-gray-300 text-gray-800 hover:bg-[#FF6600] hover:text-white hover:border-[#FF6600] transition-all active:scale-95 shadow-sm"
                       >{k}</button>
                     ))}
                   </div>
-                  <div className="grid grid-cols-5 gap-2">
-                    {["1","2","3","0","."].map(k => (
-                      <button
-                        key={k}
-                        onClick={() => handleNumerical((currentAns?.value || "") + k)}
-                        className="h-11 rounded-lg font-bold text-sm bg-white border border-gray-300 text-gray-800 hover:bg-[#FF6600] hover:text-white hover:border-[#FF6600] transition-all active:scale-95 shadow-sm"
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    {["1","2","3"].map(k => (
+                      <button key={k} onClick={() => handleNumerical((currentAns?.value || "") + k)}
+                        className="h-12 rounded-lg font-bold text-base bg-white border border-gray-300 text-gray-800 hover:bg-[#FF6600] hover:text-white hover:border-[#FF6600] transition-all active:scale-95 shadow-sm"
                       >{k}</button>
                     ))}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button onClick={() => handleNumerical((currentAns?.value || "") + "0")}
+                      className="h-12 rounded-lg font-bold text-base bg-white border border-gray-300 text-gray-800 hover:bg-[#FF6600] hover:text-white hover:border-[#FF6600] transition-all active:scale-95 shadow-sm"
+                    >0</button>
+                    <button onClick={() => handleNumerical((currentAns?.value || "").slice(0, -1))}
+                      className="h-12 rounded-lg font-bold text-base bg-amber-500 text-white hover:bg-amber-600 transition-all active:scale-95 shadow-sm"
+                    >⌫</button>
+                    <button onClick={() => handleNumerical("")}
+                      className="h-12 rounded-lg font-bold text-base bg-red-500 text-white hover:bg-red-600 transition-all active:scale-95 shadow-sm"
+                    >C</button>
                   </div>
                 </div>
               </div>

@@ -55,6 +55,7 @@ import Posts from "./pages/Posts";
 import NotesList from "./pages/NotesList";
 import NotesViewer from "./pages/NotesViewer";
 import AdminNotesUpload from "./pages/AdminNotesUpload";
+import LeaderboardPage from "./pages/LeaderboardPage";
 
 const queryClient = new QueryClient();
 
@@ -216,6 +217,7 @@ const AppContent = () => {
             <Route path="/mentor-dashboard" element={<MentorDashboard />} />
             <Route path="/mentor-chat/:sessionId" element={<MentorChat />} />
             <Route path="/posts" element={<Posts />} />
+            <Route path="/leaderboard" element={<LeaderboardPage />} />
             <Route path="/notes" element={<NotesList />} />
             <Route path="/notes/:noteId" element={<NotesViewer />} />
             <Route path="/admin/notes" element={<AdminNotesUpload />} />

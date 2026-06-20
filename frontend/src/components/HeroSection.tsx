@@ -161,9 +161,8 @@ export const HeroSection = () => {
               Practice PYQs
             </Button>
             <Button
-              variant="outline"
               onClick={() => navigate("/leaderboard")}
-              className="border-border/50 px-4 py-2.5 sm:py-3 rounded-xl text-sm"
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold px-4 py-2.5 sm:py-3 rounded-xl text-sm shadow-lg shadow-yellow-500/25 border-0"
             >
               <Trophy className="w-4 h-4 mr-1.5" />
               Leaderboard

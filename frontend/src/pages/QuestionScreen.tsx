@@ -399,10 +399,9 @@ const QuestionScreen = () => {
                     <Input
                       type="text"
                       value={userAnswer}
-                      onChange={(e) => setUserAnswer(e.target.value)}
+                      onChange={(e) => !isSubmitted && setUserAnswer(e.target.value)}
                       disabled={isSubmitted}
                       placeholder="Type or use keypad..."
-                      readOnly={!isSubmitted}
                       className={`text-2xl h-16 text-center font-mono ${
                         isSubmitted
                           ? userAnswer === currentQuestion.correct_answer
@@ -416,47 +415,37 @@ const QuestionScreen = () => {
                   {/* Number Keypad */}
                   {!isSubmitted && (
                     <div className="bg-muted/30 border border-border rounded-2xl p-3">
-                      <div className="grid grid-cols-5 gap-2 mb-2">
-                        {["7","8","9","⌫","C"].map(k => (
-                          <button
-                            key={k}
-                            onClick={() => {
-                              if (k === "C") setUserAnswer("");
-                              else if (k === "⌫") setUserAnswer(prev => prev.slice(0,-1));
-                              else setUserAnswer(prev => prev + k);
-                            }}
-                            className={`h-12 rounded-xl font-bold text-sm transition-all active:scale-95 ${
-                              k === "C" ? "bg-red-500/80 text-white hover:bg-red-500"
-                              : k === "⌫" ? "bg-amber-500/80 text-white hover:bg-amber-500"
-                              : "bg-background border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary"
-                            }`}
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        {["7","8","9"].map(k => (
+                          <button key={k} onClick={() => setUserAnswer(prev => prev + k)}
+                            className="h-12 rounded-xl font-bold text-base bg-background border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
                           >{k}</button>
                         ))}
                       </div>
-                      <div className="grid grid-cols-5 gap-2 mb-2">
-                        {["4","5","6","+","-"].map(k => (
-                          <button
-                            key={k}
-                            onClick={() => {
-                              if (k === "-") setUserAnswer(prev => prev.startsWith("-") ? prev.slice(1) : "-" + prev);
-                              else if (k === "+") setUserAnswer(prev => prev.startsWith("-") ? prev.slice(1) : prev);
-                              else setUserAnswer(prev => prev + k);
-                            }}
-                            className={`h-12 rounded-xl font-bold text-sm transition-all active:scale-95 ${
-                              k === "+" || k === "-" ? "bg-blue-500/80 text-white hover:bg-blue-500"
-                              : "bg-background border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary"
-                            }`}
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        {["4","5","6"].map(k => (
+                          <button key={k} onClick={() => setUserAnswer(prev => prev + k)}
+                            className="h-12 rounded-xl font-bold text-base bg-background border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
                           >{k}</button>
                         ))}
                       </div>
-                      <div className="grid grid-cols-5 gap-2">
-                        {["1","2","3","0","."].map(k => (
-                          <button
-                            key={k}
-                            onClick={() => setUserAnswer(prev => prev + k)}
-                            className="h-12 rounded-xl font-bold text-sm bg-background border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        {["1","2","3"].map(k => (
+                          <button key={k} onClick={() => setUserAnswer(prev => prev + k)}
+                            className="h-12 rounded-xl font-bold text-base bg-background border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
                           >{k}</button>
                         ))}
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button onClick={() => setUserAnswer(prev => prev + "0")}
+                          className="h-12 rounded-xl font-bold text-base bg-background border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all active:scale-95"
+                        >0</button>
+                        <button onClick={() => setUserAnswer(prev => prev.slice(0, -1))}
+                          className="h-12 rounded-xl font-bold text-base bg-amber-500/80 text-white hover:bg-amber-500 transition-all active:scale-95"
+                        >⌫</button>
+                        <button onClick={() => setUserAnswer("")}
+                          className="h-12 rounded-xl font-bold text-base bg-red-500/80 text-white hover:bg-red-500 transition-all active:scale-95"
+                        >C</button>
                       </div>
                     </div>
                   )}
